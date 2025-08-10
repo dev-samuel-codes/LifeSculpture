@@ -1,9 +1,13 @@
 import './App.css';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Introduce from './components/Introduce';
 import Study from './components/Study';
 import Blog from './components/Blog';
+import Login from './components/Login';
+import AdminDashboard from './components/AdminDashboard';
+import Settings from './components/Settings';
+import { AuthContext } from './context/AuthContext';
 
 function Home() {
   return (
@@ -16,6 +20,12 @@ function Home() {
 
 function App() {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const { isAuthenticated, role, userName, userEmail, logout } = useContext(AuthContext);
+
+  const handleLogout = () => {
+    logout();
+    setShowProfilePopup(false); // Close popup after logout
+  };
 
   return (
     <div className="App">
@@ -57,9 +67,19 @@ function App() {
                       boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
                     }}
                   >
-                    <p>Name: John Doe</p>
-                    <p>Email: john.doe@example.com</p>
-                    <p>Occupation: Developer</p>
+                    {isAuthenticated ? (
+                      <>
+                        <p>Name: {userName}</p>
+                        <p>Email: {userEmail}</p>
+                        <p>Role: {role}</p>
+                        {role === 'admin' && (
+                          <Link to="/settings" className="btn btn-info btn-sm mt-2" onClick={() => setShowProfilePopup(false)}>Settings</Link>
+                        )}
+                        <button className="btn btn-danger btn-sm mt-2" onClick={handleLogout}>Logout</button>
+                      </>
+                    ) : (
+                      <Link to="/login" className="btn btn-primary btn-sm" onClick={() => setShowProfilePopup(false)}>Login</Link>
+                    )}
                   </div>
                 )}
               </li>
@@ -74,6 +94,12 @@ function App() {
           <Route path="/introduce" element={<Introduce />} />
           <Route path="/study" element={<Study />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/login" element={<Login />} />
+          {/* AdminDashboard route is still here, but not linked from Navbar directly */}
+          {role === 'admin' && (
+            <Route path="/admin" element={<AdminDashboard />} />
+          )}
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </div>
     </div>
