@@ -1,0 +1,45 @@
+/* SettingsUsers.css */
+
+.settings-users-container {
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.settings-users-container h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+.settings-users-container .table {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.settings-users-container .table thead th {
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  padding: 1rem 1.25rem;
+}
+
+.settings-users-container .table tbody tr {
+  transition: background-color 0.3s;
+}
+
+.settings-users-container .table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.settings-users-container .table tbody td {
+  padding: 1rem 1.25rem;
+  vertical-align: middle;
+  color: #555;
+  border-top: 1px solid #ddd;
+}

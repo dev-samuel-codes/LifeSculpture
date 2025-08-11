@@ -12,7 +12,7 @@
   right: 0;
   background-color: white;
   border: 1px solid #ccc;
-  padding: 10px;
+  padding: 10px 20px;
   z-index: 1000;
   min-width: 350px;
   height: auto;
@@ -67,7 +67,7 @@
 }
 
 .google-login-button:hover {
-  background-color: #d1def286; /* Darker blue on hover */
+  background-color: #cbcbcb7d; /* Darker blue on hover */
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -75,25 +75,25 @@
 /* Enhance Bootstrap btn-danger (Logout) */
 .profile-popup-btns .btn-danger {
   color: #444444;
-  background-color: #cbcbcb7d; /* Bootstrap red */
+  background-color: #ffffff; /* Bootstrap red */
   border-color: #cbcbcb7d;
 }
 
 .profile-popup-btns .btn-danger:hover {
-  background-color: #b5b5b5; /* Darker red on hover */
-  border-color: #b5b5b5;
+  background-color: #f0f0f0; /* Darker red on hover */
+  border-color: #ededed;
 }
 
 /* Enhance Bootstrap btn-info (Settings) */
 .profile-popup-btns .btn-info {
   color: #444444;
-  background-color: #cbcbcb7d; /* Bootstrap info blue */
+  background-color: #ffffff; /* Bootstrap info blue */
   border-color: #cbcbcb7d;
 }
 
 .profile-popup-btns .btn-info:hover {
-  background-color: #b5b5b5; /* Darker info blue on hover */
-  border-color: #b5b5b5;
+  background-color: #f0f0f0; /* Darker info blue on hover */
+  border-color: #ededed;
 }
 
 

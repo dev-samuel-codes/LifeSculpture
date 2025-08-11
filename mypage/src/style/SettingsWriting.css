@@ -1,0 +1,65 @@
+/* SettingsWriting.css */
+
+.settings-writing-container {
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.settings-writing-container h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+.settings-writing-container .form-label {
+  font-weight: 600;
+  color: #555;
+}
+
+.settings-writing-container .form-control,
+.settings-writing-container .form-select {
+  border-radius: 8px;
+  box-shadow: none;
+  border-color: #ddd;
+  padding: 0.75rem 1rem;
+}
+
+.settings-writing-container .form-control:focus,
+.settings-writing-container .form-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+.settings-writing-container .react-quill {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.settings-writing-container .ql-toolbar {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  background-color: #f1f1f1;
+}
+
+.settings-writing-container .ql-container {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.settings-writing-container .btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.settings-writing-container .btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}

@@ -4,6 +4,7 @@ import { db } from '../firebase/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import ReactQuill from 'react-quill-new'; // Using react-quill-new
 import 'react-quill-new/dist/quill.snow.css'; // Import Quill's CSS
+import '../style/SettingsWriting.css';
 
 function SettingsWriting() {
   const [title, setTitle] = useState('');
@@ -64,7 +65,7 @@ function SettingsWriting() {
       <h2>Settings</h2>
       <div className="row settings-row d-flex h-100">
         <SettingsMenu />
-        <div className="col-md-9 h-100 flex-grow-1">
+        <div className="col-md-9 h-100 flex-grow-1 settings-writing-container">
           <h3>Write New Content</h3>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
@@ -92,14 +93,16 @@ function SettingsWriting() {
             </div>
             <div className="mb-3">
               <label htmlFor="contentInput" className="form-label">Content</label>
-              <ReactQuill 
-                theme="snow" 
-                value={content} 
-                onChange={setContent} 
-                modules={modules} 
-                formats={formats} 
-                style={{ height: '200px', marginBottom: '50px' }} // Added height and margin for editor
-              />
+              <div className="react-quill">
+                <ReactQuill 
+                  theme="snow" 
+                  value={content} 
+                  onChange={setContent} 
+                  modules={modules} 
+                  formats={formats} 
+                  style={{ height: '200px', marginBottom: '50px' }} // Added height and margin for editor
+                />
+              </div>
             </div>
             <button type="submit" className="btn btn-primary">Submit</button>
           </form>

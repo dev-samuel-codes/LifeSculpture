@@ -1,0 +1,35 @@
+/* SettingsMenu.css */
+
+.settings-menu-container {
+  padding-right: 0;
+}
+
+.settings-menu {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 1rem;
+}
+
+.settings-menu .list-group-item {
+  border: none;
+  padding: 1rem 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #555;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.3s, color 0.3s, transform 0.3s;
+}
+
+.settings-menu .list-group-item:hover {
+  background-color: #007bff;
+  color: #fff;
+  transform: translateX(5px);
+}
+
+.settings-menu .list-group-item.active {
+  background-color: #007bff;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}

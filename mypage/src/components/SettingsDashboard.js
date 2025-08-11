@@ -13,6 +13,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import '../style/SettingsDashboard.css';
 
 ChartJS.register(
   CategoryScale,
@@ -165,33 +166,32 @@ function SettingsDashboard() {
 
   return (
     <div className="container mt-4 h-100">
-      <h2>Settings</h2>
       <div className="row settings-row d-flex h-100">
         <SettingsMenu />
-        <div className="col-md-9 h-100 flex-grow-1">
+        <div className="col-md-9 h-100 flex-grow-1 settings-dashboard-container">
           <h3>Dashboard</h3>
           {Object.keys(dailyStats).length === 0 && allPostsData.length === 0 ? (
             <p>No data available to display charts or top posts.</p>
           ) : (
             <div className="row">
-              <div className="col-md-6 mb-4">
-                <h4>Posts Created by Date</h4>
+              <div className="col-md-6 mb-4 chart-container">
+                <h4>게시물 수</h4>
                 <Line options={{...chartOptions, plugins: {...chartOptions.plugins, title: {display: true, text: 'Posts Created by Date'}}}} data={postsData} />
               </div>
-              <div className="col-md-6 mb-4">
-                <h4>Total Views by Date</h4>
+              <div className="col-md-6 mb-4 chart-container">
+                <h4>조회수</h4>
                 <Line options={{...chartOptions, plugins: {...chartOptions.plugins, title: {display: true, text: 'Total Views by Date'}}}} data={viewsData} />
               </div>
-              <div className="col-md-6 mb-4">
-                <h4>Site Visitors by Date (Simulated)</h4>
+              <div className="col-md-6 mb-4 chart-container">
+                <h4>방문자 수</h4>
                 <Line options={{...chartOptions, plugins: {...chartOptions.plugins, title: {display: true, text: 'Site Visitors by Date (Simulated)'}}}} data={siteVisitorsData} />
               </div>
-              <div className="col-md-6 mb-4">
-                <h4>Top 5 Most Viewed Posts</h4>
+              <div className="col-md-6 mb-4 top-posts-container">
+                <h4>가장 많이 본 게시물</h4>
                 {top5Posts.length === 0 ? (
                   <p>No posts with view data available.</p>
                 ) : (
-                  <ul className="list-group">
+                  <ul className="list-group top-posts-list">
                     {top5Posts.map(post => (
                       <li key={post.id} className="list-group-item d-flex justify-content-between align-items-center">
                         <span>{post.title}</span>

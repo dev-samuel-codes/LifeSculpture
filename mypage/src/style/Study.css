@@ -1,0 +1,94 @@
+/* Study.css */
+
+/* General Container */
+.container.mt-4 {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+    border-radius: 8px;
+}
+
+/* Keyword List */
+.list-group {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.list-group-item {
+    border: none;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    color: #555;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.list-group-item:hover,
+.list-group-item.active {
+    background-color: #3999ffc8;
+    color: #fff;
+    border-radius: 8px;
+}
+
+/* Post Cards */
+.card {
+    border: none;
+    border-radius: 8px;
+    border-color: #555;
+    border-width: 0.54rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.card-text .text-muted {
+    font-size: 0.875rem;
+    color: #777 !important;
+}
+
+/* Pagination */
+.pagination .page-item .page-link {
+    border-radius: 50%;
+    margin: 0 5px;
+    border: none;
+    color: #007bff;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pagination .page-item .page-link:hover {
+    background-color: #e9ecef;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #f8f9fa;
+    box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .col-md-3 {
+        margin-bottom: 2rem;
+    }
+}

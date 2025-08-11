@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import '../style/Study.css';
 
 const POSTS_PER_PAGE = 6;
 
@@ -83,10 +84,8 @@ function Study() {
 
   return (
     <div className="container mt-4">
-      <h2>Study Page</h2>
       <div className="row">
         <div className="col-md-3">
-          <h3>Keywords</h3>
           <div className="list-group">
             <button 
               className={`list-group-item list-group-item-action ${selectedKeyword === null ? 'active' : ''}`}

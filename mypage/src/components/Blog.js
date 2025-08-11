@@ -83,10 +83,8 @@ function Blog() {
 
   return (
     <div className="container mt-4">
-      <h2>Blog Page</h2>
       <div className="row">
         <div className="col-md-3">
-          <h3>Keywords</h3>
           <div className="list-group">
             <button 
               className={`list-group-item list-group-item-action ${selectedKeyword === null ? 'active' : ''}`}

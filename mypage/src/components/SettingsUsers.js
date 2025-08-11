@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import '../style/SettingsUsers.css';
 
 function SettingsUsers() {
   const [users, setUsers] = useState([]);
@@ -66,12 +67,12 @@ function SettingsUsers() {
       <h2>Settings</h2>
       <div className="row settings-row d-flex h-100">
         <SettingsMenu />
-        <div className="col-md-9 h-100 flex-grow-1">
+        <div className="col-md-9 h-100 flex-grow-1 settings-users-container">
           <h3>Users Management</h3>
           {users.length === 0 ? (
             <p>No users found.</p>
           ) : (
-            <table className="table table-striped">
+            <table className="table">
               <thead>
                 <tr>
                   <th>Name</th>
