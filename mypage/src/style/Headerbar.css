@@ -1,0 +1,208 @@
+.profile-pic {
+  border-radius: 50%;
+  width: 30px; /* Adjust size as needed */
+  height: 30px; /* Adjust size as needed */
+  object-fit: cover;
+  margin-right: 5px;
+}
+
+.profile-popup {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 1000;
+  min-width: 350px;
+  height: auto;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  text-align: left;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 위에서부터 차례대로 */
+  gap: 20px; /* 요소 사이 간격 */
+}
+
+.profile-popup-btns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+/* General button styling within the profile popup */
+.profile-popup-btns .btn {
+  padding: 10px 15px;
+  border-radius: 8px; /* Slightly more rounded corners */
+  font-weight: bold;
+  transition: all 0.3s ease; /* Smooth transitions for hover effects */
+  text-decoration: none; /* Ensure links look like buttons */
+  display: inline-flex; /* Align text and potential icon */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Space between text and icon */
+}
+
+.profile-popup-btns .btn:hover {
+  transform: translateY(-2px); /* Slight lift on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow on hover */
+}
+
+/* Google Login Button specific styles */
+.google-login-button {
+  background-color: #eef4fc86; /* Google Blue */
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%; /* Make it full width within its container */
+}
+
+.google-login-button:hover {
+  background-color: #d1def286; /* Darker blue on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhance Bootstrap btn-danger (Logout) */
+.profile-popup-btns .btn-danger {
+  color: #444444;
+  background-color: #cbcbcb7d; /* Bootstrap red */
+  border-color: #cbcbcb7d;
+}
+
+.profile-popup-btns .btn-danger:hover {
+  background-color: #b5b5b5; /* Darker red on hover */
+  border-color: #b5b5b5;
+}
+
+/* Enhance Bootstrap btn-info (Settings) */
+.profile-popup-btns .btn-info {
+  color: #444444;
+  background-color: #cbcbcb7d; /* Bootstrap info blue */
+  border-color: #cbcbcb7d;
+}
+
+.profile-popup-btns .btn-info:hover {
+  background-color: #b5b5b5; /* Darker info blue on hover */
+  border-color: #b5b5b5;
+}
+
+
+/* Custom Navbar Styles */
+.my-navbar {
+  background-color: #ffffff; /* Light background */
+  padding: 15px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; /* Allow wrapping for responsiveness */
+}
+
+.Header-container {
+  width: 100%;
+  padding: 15px 30px 15px 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.my-navbar-brand {
+  font-weight: bold;
+  font-size: 35px;
+  color: #333;
+  text-decoration: none;
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+.my-navbar-toggler {
+  padding: .25rem .75rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  background-color: transparent;
+  border: 1px solid rgba(0,0,0,.1);
+  border-radius: .25rem;
+  cursor: pointer;
+  display: none; /* Hidden by default, shown on smaller screens */
+}
+
+.my-navbar-toggler-icon {
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100%;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.my-navbar-collapse {
+  flex-basis: 100%;
+  flex-grow: 1;
+  align-items: center;
+  display: none; /* Hidden by default, shown when toggled */
+}
+
+@media (min-width: 992px) {
+  .my-navbar-toggler {
+    display: none; /* Hide toggler on large screens */
+  }
+  .my-navbar-collapse {
+    display: flex !important; /* Show collapse content on large screens */
+    flex-basis: auto;
+    justify-content: flex-end;
+  }
+}
+
+.my-navbar-nav {
+  display: flex;
+  flex-direction: column; /* Stack items vertically on small screens */
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+  margin-left: auto; /* Push items to the right */
+}
+
+@media (min-width: 992px) {
+  .my-navbar-nav {
+    flex-direction: row; /* Arrange items horizontally on large screens */
+  }
+}
+
+.my-nav-item {
+  margin-bottom: 5px; /* Spacing between stacked items */
+}
+
+@media (min-width: 992px) {
+  .my-nav-item {
+    margin-left: 15px; /* Spacing between horizontal items */
+    margin-bottom: 0;
+  }
+
+  .my-profile-nav-item {
+    margin-left: 30px; /* Increased spacing for the profile item */
+  }
+}
+
+.my-nav-link {
+  display: block;
+  padding: 10px 15px;
+  font-size: 20px;
+  color: #555;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.my-nav-link:hover {
+  color: #007bff;
+}

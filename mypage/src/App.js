@@ -1,5 +1,5 @@
-import './App.css';
-import React, { useState, useContext } from 'react';
+import './style/App.css';
+import React from 'react'; // Removed useState, useContext
 import { Routes, Route, Link } from 'react-router-dom';
 import Introduce from './components/Introduce';
 import Study from './components/Study';
@@ -8,11 +8,12 @@ import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
 import Settings from './components/Settings';
 import PostDetail from './components/PostDetail';
-import GoogleLoginButton from './components/GoogleLoginButton'; // Import the new component
-import EditPost from './components/EditPost'; // Import EditPost component
-import { AuthContext } from './context/AuthContext';
+// Removed GoogleLoginButton import as it's now in Header.js
+import EditPost from './components/EditPost';
+import { AuthContext } from './context/AuthContext'; // Still needed for role check in routes
+import Header from './components/Header'; // Import the new Header component
 
-const DEFAULT_PROFILE_PIC = 'https://via.placeholder.com/30/0000FF/FFFFFF?text=U';
+// Removed DEFAULT_PROFILE_PIC as it's now in Header.js
 
 function Home() {
   return (
@@ -24,69 +25,12 @@ function Home() {
 }
 
 function App() {
-  const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const { isAuthenticated, role, userName, userEmail, userPicture, logout } = useContext(AuthContext);
-
-  const handleLogout = () => {
-    logout();
-    setShowProfilePopup(false); // Close popup after logout
-  };
+  // Removed showProfilePopup state and handleLogout function as they are now in Header.js
+  const { role } = React.useContext(AuthContext); // Only need role for route rendering
 
   return (
     <div className="App">
-      <nav className="navbar navbar-expand-lg navbar-light bg-light">
-        <div className="container-fluid">
-          <Link className="navbar-brand" to="/">LifeSculpture</Link>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item">
-                <Link className="nav-link" to="/introduce">Introduce</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/study">Study</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/blog">Blog</Link>
-              </li>
-              <li 
-                className="nav-item"
-                onMouseEnter={() => setShowProfilePopup(true)}
-                onMouseLeave={() => setShowProfilePopup(false)}
-                style={{ position: 'relative' }}
-              >
-                <span className="nav-link" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                  {isAuthenticated && userPicture ? (
-                    <img src={userPicture} alt="Profile" className="profile-pic" />
-                  ) : (
-                    <img src={DEFAULT_PROFILE_PIC} alt="Default Profile" className="profile-pic" />
-                  )}
-                </span>
-                {showProfilePopup && (
-                  <div className="profile-popup">
-                    {isAuthenticated ? (
-                      <>
-                        <p>{userName}</p>
-                        <p>로그인 계정: {userEmail}</p>
-                        <div className='profile-popup-btns'>
-                          {role === 'admin' && (
-                          <Link to="/settings" className="btn btn-info btn-sm mt-2" onClick={() => setShowProfilePopup(false)}>설정</Link>
-                        )}
-                        <button className="btn btn-danger btn-sm mt-2" onClick={handleLogout}>로그아웃 하기</button>
-                        </div>                        
-                      </>
-                    ) : (
-                      <GoogleLoginButton />
-                    )}
-                  </div>
-                )}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+      <Header /> {/* Render the new Header component */}
 
       <div className="container mt-4 min-vh-100">
         <Routes>
