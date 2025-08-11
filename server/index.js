@@ -1,4 +1,5 @@
 require('dotenv').config(); // Load environment variables from .env file
+console.log('dotenv config loaded. Process env GOOGLE_CLIENT_ID_BACKEND:', process.env.GOOGLE_CLIENT_ID_BACKEND);
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -76,7 +77,8 @@ app.post('/auth/google', async (req, res) => {
   const { id_token } = req.body;
 
   try {
-    console.log('Backend GOOGLE_CLIENT_ID:', GOOGLE_CLIENT_ID);
+    console.log('Backend GOOGLE_CLIENT_ID (at runtime):', GOOGLE_CLIENT_ID);
+    console.log('Received ID Token (first 50 chars):', id_token.substring(0, 50) + '...');
     const ticket = await client.verifyIdToken({
       idToken: id_token,
       audience: GOOGLE_CLIENT_ID,

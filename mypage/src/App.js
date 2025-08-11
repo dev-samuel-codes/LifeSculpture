@@ -70,10 +70,12 @@ function App() {
                       <>
                         <p>{userName}</p>
                         <p>로그인 계정: {userEmail}</p>
-                        {role === 'admin' && (
-                          <Link to="/settings" className="btn btn-info btn-sm mt-2" onClick={() => setShowProfilePopup(false)}>Settings</Link>
+                        <div className='profile-popup-btns'>
+                          {role === 'admin' && (
+                          <Link to="/settings" className="btn btn-info btn-sm mt-2" onClick={() => setShowProfilePopup(false)}>설정</Link>
                         )}
-                        <button className="btn btn-danger btn-sm mt-2" onClick={handleLogout}>Logout</button>
+                        <button className="btn btn-danger btn-sm mt-2" onClick={handleLogout}>로그아웃 하기</button>
+                        </div>                        
                       </>
                     ) : (
                       <GoogleLoginButton />

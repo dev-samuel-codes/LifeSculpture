@@ -53,9 +53,15 @@
   border: 1px solid #ccc;
   padding: 10px;
   z-index: 1000;
-  min-width: 300px;
+  min-width: 350px;
+  height: auto;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   text-align: left;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 위에서부터 차례대로 */
+  gap: 20px; /* 요소 사이 간격 */
 }
 
 /* Styles for images within post content */
@@ -64,4 +70,75 @@
   height: auto; /* Maintain aspect ratio */
   display: block; /* Remove extra space below image */
   margin: 10px auto; /* Center image and add some vertical margin */
+}
+
+.profile-popup-btns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+/* General button styling within the profile popup */
+.profile-popup-btns .btn {
+  padding: 10px 15px;
+  border-radius: 8px; /* Slightly more rounded corners */
+  font-weight: bold;
+  transition: all 0.3s ease; /* Smooth transitions for hover effects */
+  text-decoration: none; /* Ensure links look like buttons */
+  display: inline-flex; /* Align text and potential icon */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Space between text and icon */
+}
+
+.profile-popup-btns .btn:hover {
+  transform: translateY(-2px); /* Slight lift on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow on hover */
+}
+
+/* Google Login Button specific styles */
+.google-login-button {
+  background-color: #eef4fc86; /* Google Blue */
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%; /* Make it full width within its container */
+}
+
+.google-login-button:hover {
+  background-color: #d1def286; /* Darker blue on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhance Bootstrap btn-danger (Logout) */
+.profile-popup-btns .btn-danger {
+  color: #444444;
+  background-color: #cbcbcb7d; /* Bootstrap red */
+  border-color: #cbcbcb7d;
+}
+
+.profile-popup-btns .btn-danger:hover {
+  background-color: #b5b5b5; /* Darker red on hover */
+  border-color: #b5b5b5;
+}
+
+/* Enhance Bootstrap btn-info (Settings) */
+.profile-popup-btns .btn-info {
+  color: #444444;
+  background-color: #cbcbcb7d; /* Bootstrap info blue */
+  border-color: #cbcbcb7d;
+}
+
+.profile-popup-btns .btn-info:hover {
+  background-color: #b5b5b5; /* Darker info blue on hover */
+  border-color: #b5b5b5;
 }
