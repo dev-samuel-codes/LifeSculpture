@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 // Removed App.css import as its styles are now in Headerbar.css or App.css (general)
 import '../style/Headerbar.css'; // Import the new Headerbar.css
 
-const DEFAULT_PROFILE_PIC = 'https://via.placeholder.com/30/0000FF/FFFFFF?text=U';
+const DEFAULT_PROFILE_PIC = 'http://localhost:5000/assets/download.png';
 
 const Header = () => {
   const [showProfilePopup, setShowProfilePopup] = useState(false);

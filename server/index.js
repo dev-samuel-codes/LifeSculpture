@@ -39,6 +39,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
+// Serve static files from the 'assets' directory
+app.use('/assets', express.static('assets'));
+
 // Helper function to save/update user in Firestore
 const saveUserToFirestore = async (userData) => {
   try {
