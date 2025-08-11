@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase/firebase';
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
+import { AuthContext } from '../context/AuthContext';
 
 function PostDetail() {
   const { category, id } = useParams();
+  const navigate = useNavigate();
+  const { role } = useContext(AuthContext);
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,6 +40,19 @@ function PostDetail() {
     fetchPostAndIncrementView();
   }, [category, id]);
 
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await deleteDoc(doc(db, category, id));
+        alert('Post deleted successfully!');
+        navigate(`/${category}`); // Redirect to the category list page
+      } catch (e) {
+        console.error("Error deleting document: ", e);
+        alert('Error deleting post.');
+      }
+    }
+  };
+
   if (loading) {
     return <div className="container mt-4">Loading post...</div>;
   }
@@ -51,12 +67,24 @@ function PostDetail() {
 
   return (
     <div className="container mt-4">
-      <h2>{post.title}</h2>
+      <div className="d-flex align-items-center mb-3">
+        <h2>{post.title}</h2>
+        {role === 'admin' && (
+          <div className="ms-3">
+            <button className="btn btn-warning btn-sm me-2" onClick={() => navigate(`/edit-post/${category}/${id}`)}>
+              Edit
+            </button>
+            <button className="btn btn-danger btn-sm" onClick={handleDelete}>
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
       <p className="text-muted">
         {new Date(post.createdAt.toDate()).toLocaleString()} | Views: {post.viewCount}
       </p>
       <hr />
-      <p>{post.content}</p>
+      <div className="post-content" dangerouslySetInnerHTML={{ __html: post.content }} />
     </div>
   );
 }

@@ -8,7 +8,11 @@ import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
 import Settings from './components/Settings';
 import PostDetail from './components/PostDetail';
+import GoogleLoginButton from './components/GoogleLoginButton'; // Import the new component
+import EditPost from './components/EditPost'; // Import EditPost component
 import { AuthContext } from './context/AuthContext';
+
+const DEFAULT_PROFILE_PIC = 'https://via.placeholder.com/30/0000FF/FFFFFF?text=U';
 
 function Home() {
   return (
@@ -21,7 +25,7 @@ function Home() {
 
 function App() {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const { isAuthenticated, role, userName, userEmail, logout } = useContext(AuthContext);
+  const { isAuthenticated, role, userName, userEmail, userPicture, logout } = useContext(AuthContext);
 
   const handleLogout = () => {
     logout();
@@ -53,21 +57,15 @@ function App() {
                 onMouseLeave={() => setShowProfilePopup(false)}
                 style={{ position: 'relative' }}
               >
-                <span className="nav-link" style={{ cursor: 'pointer' }}>Profile</span>
+                <span className="nav-link" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                  {isAuthenticated && userPicture ? (
+                    <img src={userPicture} alt="Profile" className="profile-pic" />
+                  ) : (
+                    <img src={DEFAULT_PROFILE_PIC} alt="Default Profile" className="profile-pic" />
+                  )}
+                </span>
                 {showProfilePopup && (
-                  <div 
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      backgroundColor: 'white',
-                      border: '1px solid #ccc',
-                      padding: '10px',
-                      zIndex: 1000,
-                      minWidth: '150px',
-                      boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-                    }}
-                  >
+                  <div className="profile-popup">
                     {isAuthenticated ? (
                       <>
                         <p>Name: {userName}</p>
@@ -79,7 +77,7 @@ function App() {
                         <button className="btn btn-danger btn-sm mt-2" onClick={handleLogout}>Logout</button>
                       </>
                     ) : (
-                      <Link to="/login" className="btn btn-primary btn-sm" onClick={() => setShowProfilePopup(false)}>Login</Link>
+                      <GoogleLoginButton />
                     )}
                   </div>
                 )}
@@ -104,6 +102,9 @@ function App() {
             <Route path="/settings/*" element={<Settings />} />
           )}
           <Route path="/posts/:category/:id" element={<PostDetail />} />
+          {role === 'admin' && (
+            <Route path="/edit-post/:category/:id" element={<EditPost />} />
+          )}
         </Routes>
       </div>
     </div>

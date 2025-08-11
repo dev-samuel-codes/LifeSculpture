@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
   const [userName, setUserName] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
+  const [userPicture, setUserPicture] = useState(null); // Added userPicture state
 
   const decodeToken = (token) => {
     try {
@@ -27,6 +28,7 @@ export const AuthProvider = ({ children }) => {
       setRole(decoded.role);
       setUserName(decoded.name);
       setUserEmail(decoded.email);
+      setUserPicture(decoded.picture); // Set userPicture
     }
   };
 
@@ -36,6 +38,7 @@ export const AuthProvider = ({ children }) => {
     setRole(null);
     setUserName(null);
     setUserEmail(null);
+    setUserPicture(null); // Clear userPicture
   };
 
   useEffect(() => {
@@ -47,6 +50,7 @@ export const AuthProvider = ({ children }) => {
         setRole(decoded.role);
         setUserName(decoded.name);
         setUserEmail(decoded.email);
+        setUserPicture(decoded.picture); // Set userPicture from stored token
       } else {
         // Token is invalid, clear it
         logout();
@@ -56,11 +60,12 @@ export const AuthProvider = ({ children }) => {
       setRole(null);
       setUserName(null);
       setUserEmail(null);
+      setUserPicture(null);
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, role, userName, userEmail, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, role, userName, userEmail, userPicture, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { GoogleLogin } from '@react-oauth/google';
+import GoogleLoginButton from './GoogleLoginButton'; // Import the new component
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -33,37 +33,6 @@ function Login() {
       console.error('Login error:', error);
       alert('An error occurred during login.');
     }
-  };
-
-  const handleGoogleLoginSuccess = async (credentialResponse) => {
-    console.log('Google Login Success:', credentialResponse);
-    try {
-      const response = await fetch('http://localhost:5000/auth/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id_token: credentialResponse.credential }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        login(data.token);
-        alert(data.message);
-        navigate('/');
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error('Google login backend error:', error);
-      alert('An error occurred during Google login.');
-    }
-  };
-
-  const handleGoogleLoginError = () => {
-    console.log('Google Login Failed');
-    alert('Google login failed.');
   };
 
   return (
@@ -98,10 +67,7 @@ function Login() {
       <hr className="my-4" />
 
       <h3>Or login with Google</h3>
-      <GoogleLogin
-        onSuccess={handleGoogleLoginSuccess}
-        onError={handleGoogleLoginError}
-      />
+      <GoogleLoginButton /> {/* Use the new component here */}
     </div>
   );
 }

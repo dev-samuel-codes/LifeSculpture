@@ -2,11 +2,30 @@ import React, { useState } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../firebase/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import ReactQuill from 'react-quill-new'; // Using react-quill-new
+import 'react-quill-new/dist/quill.snow.css'; // Import Quill's CSS
 
 function SettingsWriting() {
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState(''); // content will now hold HTML string
   const [category, setCategory] = useState('study'); // Default category
+
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+      ['link', 'image', 'code-block'],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'code-block'
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,13 +33,21 @@ function SettingsWriting() {
       alert('Please select a category.');
       return;
     }
+    if (!title.trim()) {
+      alert('Please enter a title.');
+      return;
+    }
+    if (!content.trim() || content === '<p><br></p>') { // Check for empty content from Quill
+      alert('Please enter content.');
+      return;
+    }
 
     try {
       const docRef = await addDoc(collection(db, category), {
         title: title,
-        content: content,
+        content: content, // content is now HTML
         createdAt: new Date(),
-        viewCount: 0, // Initialize viewCount to 0
+        viewCount: 0,
       });
       console.log("Document written with ID: ", docRef.id);
       alert(`Content submitted successfully to ${category} collection!`);
@@ -65,14 +92,14 @@ function SettingsWriting() {
             </div>
             <div className="mb-3">
               <label htmlFor="contentInput" className="form-label">Content</label>
-              <textarea 
-                className="form-control" 
-                id="contentInput" 
-                rows="10" 
+              <ReactQuill 
+                theme="snow" 
                 value={content} 
-                onChange={(e) => setContent(e.target.value)} 
-                required 
-              ></textarea>
+                onChange={setContent} 
+                modules={modules} 
+                formats={formats} 
+                style={{ height: '200px', marginBottom: '50px' }} // Added height and margin for editor
+              />
             </div>
             <button type="submit" className="btn btn-primary">Submit</button>
           </form>

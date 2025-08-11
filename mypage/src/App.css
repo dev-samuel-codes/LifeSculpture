@@ -36,3 +36,32 @@
     transform: rotate(360deg);
   }
 }
+
+.profile-pic {
+  border-radius: 50%;
+  width: 30px; /* Adjust size as needed */
+  height: 30px; /* Adjust size as needed */
+  object-fit: cover;
+  margin-right: 5px;
+}
+
+.profile-popup {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 1000;
+  min-width: 300px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  text-align: left;
+}
+
+/* Styles for images within post content */
+.post-content img {
+  max-width: 100%; /* Ensure image doesn't overflow its container */
+  height: auto; /* Maintain aspect ratio */
+  display: block; /* Remove extra space below image */
+  margin: 10px auto; /* Center image and add some vertical margin */
+}
