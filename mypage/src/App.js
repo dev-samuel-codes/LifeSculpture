@@ -7,6 +7,7 @@ import Blog from './components/Blog';
 import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
 import Settings from './components/Settings';
+import PostDetail from './components/PostDetail';
 import { AuthContext } from './context/AuthContext';
 
 function Home() {
@@ -88,7 +89,7 @@ function App() {
         </div>
       </nav>
 
-      <div className="container mt-4">
+      <div className="container mt-4 min-vh-100">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/introduce" element={<Introduce />} />
@@ -99,7 +100,10 @@ function App() {
           {role === 'admin' && (
             <Route path="/admin" element={<AdminDashboard />} />
           )}
-          <Route path="/settings" element={<Settings />} />
+          {role === 'admin' && (
+            <Route path="/settings/*" element={<Settings />} />
+          )}
+          <Route path="/posts/:category/:id" element={<PostDetail />} />
         </Routes>
       </div>
     </div>

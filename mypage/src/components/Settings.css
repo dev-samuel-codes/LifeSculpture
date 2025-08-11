@@ -1,0 +1,14 @@
+.settings-row {
+  min-height: calc(100vh - 100px); /* Adjust 100px based on your header/footer height */
+}
+
+.settings-menu-container {
+  height: 100%;
+  width: 300px;
+  display: flex; /* Use flexbox for the menu container */
+  flex-direction: column; /* Stack items vertically */
+}
+
+.settings-menu {
+  flex-grow: 1; /* Allow the menu to grow and fill available space */
+}

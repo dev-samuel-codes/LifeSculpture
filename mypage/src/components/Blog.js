@@ -1,10 +1,144 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { db } from '../firebase/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+
+const POSTS_PER_PAGE = 6;
+
+// Example keywords - In a real app, these might come from a database or be dynamically generated
+const KEYWORDS = ['Travel', 'Food', 'Photography', 'Life', 'Adventure', 'Tips'];
 
 function Blog() {
+  const [allPosts, setAllPosts] = useState([]); // Stores all fetched posts
+  const [filteredPosts, setFilteredPosts] = useState([]); // Posts after keyword filtering
+  const [currentPosts, setCurrentPosts] = useState([]); // Posts for the current page
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedKeyword, setSelectedKeyword] = useState(null);
+
+  useEffect(() => {
+    const fetchAllPosts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const q = query(collection(db, "blog"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        const fetchedPosts = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setAllPosts(fetchedPosts);
+      } catch (err) {
+        console.error("Error fetching blog posts:", err);
+        setError("Failed to load blog posts.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllPosts();
+  }, []);
+
+  useEffect(() => {
+    // Filter posts based on selectedKeyword
+    let postsToFilter = allPosts;
+    if (selectedKeyword) {
+      postsToFilter = allPosts.filter(post => 
+        post.title.toLowerCase().includes(selectedKeyword.toLowerCase())
+      );
+    }
+    setFilteredPosts(postsToFilter);
+    setCurrentPage(1); // Reset to first page on filter change
+  }, [allPosts, selectedKeyword]);
+
+  useEffect(() => {
+    // Slice posts for the current page whenever filteredPosts or currentPage changes
+    const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+    const endIndex = startIndex + POSTS_PER_PAGE;
+    setCurrentPosts(filteredPosts.slice(startIndex, endIndex));
+  }, [filteredPosts, currentPage]);
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage(prev => prev - 1);
+  };
+
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+
+  if (loading) {
+    return <div className="container mt-4">Loading blog posts...</div>;
+  }
+
+  if (error) {
+    return <div className="container mt-4 text-danger">Error: {error}</div>;
+  }
+
   return (
-    <div>
+    <div className="container mt-4">
       <h2>Blog Page</h2>
-      <p>This is the Blog page content.</p>
+      <div className="row">
+        <div className="col-md-3">
+          <h3>Keywords</h3>
+          <div className="list-group">
+            <button 
+              className={`list-group-item list-group-item-action ${selectedKeyword === null ? 'active' : ''}`}
+              onClick={() => setSelectedKeyword(null)}
+            >
+              All Posts
+            </button>
+            {KEYWORDS.map(keyword => (
+              <button 
+                key={keyword}
+                className={`list-group-item list-group-item-action ${selectedKeyword === keyword ? 'active' : ''}`}
+                onClick={() => setSelectedKeyword(keyword)}
+              >
+                {keyword}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="col-md-9">
+          {currentPosts.length === 0 && filteredPosts.length === 0 ? (
+            <p>No blog posts found.</p>
+          ) : (
+            <div className="row">
+              {currentPosts.map(post => (
+                <div key={post.id} className="col-12 mb-3">
+                  <Link to={`/posts/blog/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div className="card">
+                      <div className="card-body">
+                        <h5 className="card-title">{post.title}</h5>
+                        <p className="card-text"><small className="text-muted">{new Date(post.createdAt.toDate()).toLocaleString()} | Views: {post.viewCount || 0}</small></p>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="d-flex justify-content-between mt-4">
+            <button 
+              className="btn btn-secondary" 
+              onClick={handlePrevPage} 
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span>Page {currentPage} of {totalPages}</span>
+            <button 
+              className="btn btn-primary" 
+              onClick={handleNextPage} 
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
