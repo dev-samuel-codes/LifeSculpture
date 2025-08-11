@@ -68,9 +68,8 @@ function App() {
                   <div className="profile-popup">
                     {isAuthenticated ? (
                       <>
-                        <p>Name: {userName}</p>
-                        <p>Email: {userEmail}</p>
-                        <p>Role: {role}</p>
+                        <p>{userName}</p>
+                        <p>로그인 계정: {userEmail}</p>
                         {role === 'admin' && (
                           <Link to="/settings" className="btn btn-info btn-sm mt-2" onClick={() => setShowProfilePopup(false)}>Settings</Link>
                         )}
