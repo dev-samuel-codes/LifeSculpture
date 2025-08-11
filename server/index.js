@@ -76,6 +76,7 @@ app.post('/auth/google', async (req, res) => {
   const { id_token } = req.body;
 
   try {
+    console.log('Backend GOOGLE_CLIENT_ID:', GOOGLE_CLIENT_ID);
     const ticket = await client.verifyIdToken({
       idToken: id_token,
       audience: GOOGLE_CLIENT_ID,

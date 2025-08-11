@@ -67,6 +67,10 @@ function Study() {
     setCurrentPage(prev => prev - 1);
   };
 
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
 
   if (loading) {
@@ -120,23 +124,21 @@ function Study() {
               ))}
             </div>
           )}
-          <div className="d-flex justify-content-between mt-4">
-            <button 
-              className="btn btn-secondary" 
-              onClick={handlePrevPage} 
-              disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            <span>Page {currentPage} of {totalPages}</span>
-            <button 
-              className="btn btn-primary" 
-              onClick={handleNextPage} 
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
-          </div>
+          <nav aria-label="Page navigation example" className="mt-4">
+            <ul className="d-flex justify-content-center list-unstyled">
+              <li className={`page-item me-1 ${currentPage === 1 || filteredPosts.length === 0 ? 'disabled' : ''}`}>
+                <button className="btn btn-secondary" onClick={handlePrevPage} disabled={currentPage === 1 || filteredPosts.length === 0}>Previous</button>
+              </li>
+              {[...Array(totalPages)].map((_, index) => (
+                <li key={index} className={`page-item me-1 ${currentPage === index + 1 ? 'active' : ''}`}>
+                  <button className="btn btn-outline-primary" onClick={() => handlePageClick(index + 1)}>{index + 1}</button>
+                </li>
+              ))}
+              <li className={`page-item ${currentPage === totalPages || filteredPosts.length === 0 ? 'disabled' : ''}`}>
+                <button className="btn btn-primary" onClick={handleNextPage} disabled={currentPage === totalPages || filteredPosts.length === 0}>Next</button>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
     </div>
