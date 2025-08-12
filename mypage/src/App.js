@@ -1,7 +1,6 @@
-// src/App.js
 import './style/App.css';
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import Introduce from './components/Introduce';
 import Study from './components/Study';
 import Blog from './components/Blog';
@@ -15,6 +14,11 @@ import { AuthContext } from './context/AuthContext';
 import Header from './components/Header';
 import './style/Home.css';
 
+import coding from './assets/coding.jpg';
+import ai from './assets/ai.jpg';
+import travel from './assets/travel.webp';
+import tip from './assets/tip.jpg';
+
 // 홈 화면
 function Home() {
   return (
@@ -27,10 +31,37 @@ function Home() {
         <div className='main-section2-title'>Contents</div>
 
         <div className='main-section2-content'>
-          <div className="main-card"><div className="main-card-body"><h3>Card 1</h3><p>첫 번째 카드</p></div></div>
-          <div className="main-card"><div className="main-card-body"><h3>Card 2</h3><p>두 번째 카드</p></div></div>
-          <div className="main-card"><div className="main-card-body"><h3>Card 3</h3><p>세 번째 카드</p></div></div>
-          <div className="main-card"><div className="main-card-body"><h3>Card 4</h3><p>네 번째 카드</p></div></div>
+          {/* Study 특징 1 */}
+          <Link to="/study" className="main-card" style={{ textDecoration: 'none', backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${coding})` }}>
+            <div className="main-card-body">
+              <h3>웹·앱 개발</h3>
+              <p>React, Node.js, Firebase 등 실전 코딩 기술을 체계적으로 학습.</p>
+            </div>
+          </Link>
+
+          {/* Study 특징 2 */}
+          <Link to="/study" className="main-card" style={{ textDecoration: 'none', backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${ai})` }}>
+            <div className="main-card-body">
+              <h3>최신 기술과 AI</h3>
+              <p>인공지능과 최신 개발 트렌드를 깊이 있게 학습.</p>
+            </div>
+          </Link>
+
+          {/* Blog 특징 1 */}
+          <Link to="/blog" className="main-card" style={{ textDecoration: 'none', backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${travel})` }}>
+            <div className="main-card-body">
+              <h3>여행과 일상</h3>
+              <p>여행기, 에세이, 사진·영상으로 담아낸 소소한 이야기들.</p>
+            </div>
+          </Link>
+
+          {/* Blog 특징 2 */}
+          <Link to="/blog" className="main-card" style={{ textDecoration: 'none', backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${tip})` }}>
+            <div className="main-card-body">
+              <h3>리뷰와 팁</h3>
+              <p>제품 리뷰와 튜토리얼로 일상에 도움 투척.</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
@@ -45,7 +76,6 @@ function Page({ children }) {
 function App() {
   const { role, loading } = React.useContext(AuthContext);
 
-  // 초기 세션 확인 중일 때 라우팅 깜빡임 방지 (원하면 스피너로 교체)
   if (loading) {
     return (
       <div className="App">
@@ -61,18 +91,12 @@ function App() {
       <Header />
 
       <Routes>
-        {/* 홈은 컨테이너 없이 전체폭 */}
         <Route path="/" element={<Home />} />
-
-        {/* 나머지 페이지는 컨테이너로 감싸기 */}
         <Route path="/introduce" element={<Page><Introduce /></Page>} />
         <Route path="/study" element={<Page><Study /></Page>} />
         <Route path="/blog" element={<Page><Blog /></Page>} />
-
-        {/* ✅ settings는 항상 열어두고 내부에서 인증/권한 체크 (Settings* 컴포넌트들이 처리) */}
         <Route path="/settings/*" element={<Page><Settings /></Page>} />
 
-        {/* 관리자 전용 라우트는 그대로 조건부 유지 가능 */}
         {role === 'admin' && (
           <Route path="/admin" element={<Page><AdminDashboard /></Page>} />
         )}

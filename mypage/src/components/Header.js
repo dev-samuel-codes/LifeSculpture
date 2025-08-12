@@ -26,7 +26,7 @@ const Header = () => {
         <div className="my-navbar-collapse" id="navbarNav"> {/* Replaced collapse navbar-collapse */}
           <ul className="my-navbar-nav"> {/* Replaced navbar-nav ms-auto */}
             <li className="my-nav-item"> {/* Replaced nav-item */}
-              <Link className="my-nav-link" to="/introduce">Introduce</Link> {/* Replaced nav-link */}
+              {/*<Link className="my-nav-link" to="/introduce">Introduce</Link> {/* Replaced nav-link */}
             </li>
             <li className="my-nav-item">
               <Link className="my-nav-link" to="/study">Study</Link>

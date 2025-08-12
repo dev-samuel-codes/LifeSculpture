@@ -25,7 +25,7 @@ function GoogleLoginButton({ redirectTo = '/' }) {
 
   return (
     <button className="btn btn-primary" onClick={handleLogin}>
-      Google 로그인
+      Google로 로그인하기
     </button>
   );
 }

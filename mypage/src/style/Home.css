@@ -1,5 +1,3 @@
-/* Home.css */
-
 /* 페이지 전체 여백 제거 */
 html,
 body {
@@ -14,7 +12,6 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  /* 화면 꽉 채우기 */
   min-height: 84.6vh;
   display: flex;
   flex-direction: column;
@@ -25,9 +22,10 @@ body {
   text-align: center;
 }
 
-/* 섹션2: 카드 리스트 */
+/* 섹션2 */
 .main-section2 {
-  height: 100vh;
+  /* 높이를 고정하지 말고 내용에 맞춰 늘어나게 */
+  min-height: 100vh;
   padding: 30px 50px;
   display: flex;
   flex-direction: column;
@@ -45,94 +43,108 @@ body {
   -webkit-background-clip: text;
 }
 
-/* 카드 컨테이너에 원근감 추가 (hover 깊이감) */
+/* 카드 컨테이너 */
 .main-section2-content {
   display: flex;
-  flex-direction: row;
-  width: 100%;
   gap: 50px;
-  align-items: center;
-  justify-content: space-between;
-  perspective: 1200px;
+  align-items: flex-start;   /* 기준선을 위쪽으로 */
+  justify-content: flex-start;
+  flex-wrap: nowrap;         /* 기본은 한 줄 */
 }
 
-/* === 메인 카드 기본 스타일 === */
+/* 카드 기본 스타일 */
 .main-card {
   position: relative;
   width: 300px;
   height: 350px;
+  padding: 20px;
   border-radius: 16px;
-  background: #111;
   color: #fff;
   display: flex;
   align-items: center;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20);
-
-  /* 커스텀 프로퍼티 (변수): main-card 전용 네이밍 */
-  --main-card-base-ty: 0px;        /* 각 카드의 기본 Y 오프셋 */
-  --main-card-hover-lift: -14px;   /* 호버 시 들어올림 정도 */
-
-  transform: translateY(var(--main-card-base-ty)) translateZ(0);
-  transition:
-    transform 800ms cubic-bezier(.2, .8, .2, 1),
-    box-shadow 260ms ease,
-    filter 260ms ease;
-  will-change: transform, box-shadow, filter;
-  overflow: hidden; /* ::after 빛 효과가 밖으로 새지 않도록 */
+  overflow: hidden;
+  transition: transform .3s ease; /* 지그재그/호버 전환 부드럽게 */
+  background-size: cover;
+  background-position: center;
 }
 
-/* 지그재그 배치: 변수로만 제어 (점프 방지) */
-.main-section2-content .main-card:nth-child(odd) {
-  --main-card-base-ty: -30px;
-}
-.main-section2-content .main-card:nth-child(even) {
-  --main-card-base-ty: 50px;
-}
-
-/* === 호버: 커지지 않고(Y만 이동) 들어올림 + 그림자 강화 === */
-.main-card:hover {
-  transform: translateY(calc(var(--main-card-base-ty) + var(--main-card-hover-lift)));
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.32),
-    0 6px 12px rgba(0, 0, 0, 0.18);
-  filter: saturate(1.06);
-}
-
-/* 키보드 포커스 접근성 */
-.main-card:focus-visible {
-  outline: 2px solid #5b7cfa;
-  outline-offset: 3px;
-}
-
-/* 떠오를 때 살짝 빛 번짐 효과 */
-.main-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(120px 60px at 50% 110%, rgba(255,255,255,.06), transparent 70%);
-  opacity: 0;
-  transform: translateZ(-1px);
-  transition: opacity 260ms ease;
-  pointer-events: none;
-}
-.main-card:hover::after {
-  opacity: 1;
+/* 지그재그: 짝수 카드만 아래로 살짝 내리기 */
+.main-card:nth-child(even) {
+  transform: translateY(90px);
 }
 
 /* 카드 내부 레이아웃 */
 .main-card .main-card-body {
   width: 100%;
-  padding: 24px;
+  height: 100%;
+  display: flex;
+  padding: 10px;
+  flex-direction: column;
+  justify-content: center; /* 내용 중앙 */
+  position: relative;
+  text-align: center;
 }
 
-/* 모션 최소화 환경 대응 */
-@media (prefers-reduced-motion: reduce) {
+.main-card .main-card-body h3 {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  margin: 0;
+  font-size: 1.4rem;
+  text-align: left;
+}
+
+.main-card .main-card-body p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.main-card,
+.main-card * {
+  color: #fff !important;
+}
+
+/* ===== 반응형 ===== */
+/* 화면이 좁아지면 줄바꿈 허용 */
+@media (max-width: 1200px) {
+  .main-section2-content {
+    flex-wrap: wrap;
+  }
+}
+
+/* 두 칼럼 정도로 접히면 지그재그가 과해 보일 수 있으니 완화 */
+@media (max-width: 900px) {
   .main-card {
-    transition: none;
-    transform: translateY(var(--main-card-base-ty));
+    width: 300px; /* 유지 */
   }
-  .main-card:hover {
-    transform: translateY(calc(var(--main-card-base-ty) - 6px));
+  .main-card:nth-child(even) {
+    transform: translateY(24px);
   }
+}
+
+/* 모바일: 한 줄 스택 + 지그재그 해제 */
+@media (max-width: 600px) {
+  .main-section2-content {
+    justify-content: center;
+  }
+  .main-card {
+    width: 100%;
+    max-width: 520px;
+  }
+  .main-card:nth-child(even) {
+    transform: none;
+  }
+}
+
+/* 홀수 카드 호버 시 */
+.main-card:nth-child(odd):hover {
+  transform: translateY(-10px); /* 기본보다 10px 위 */
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* 짝수 카드 호버 시 (지그재그 고려) */
+.main-card:nth-child(even):hover {
+  transform: translateY(80px); /* 원래 40px → 30px로 위로 10px */
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
 }
