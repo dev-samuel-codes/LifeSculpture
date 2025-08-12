@@ -87,17 +87,26 @@ body {
 }
 
 .main-card .main-card-body h3 {
-  position: absolute;
-  top: 16px;
-  left: 20px;
   margin: 0;
   font-size: 1.4rem;
-  text-align: left;
+  text-align: center;
+  font-family: 'Nanum Gothic Coding', monospace;
 }
 
 .main-card .main-card-body p {
   margin: 0;
   line-height: 1.5;
+}
+
+.main-card-title-overlay {
+  position: absolute;
+  bottom: 0;
+  left: -20px;
+  right: -20px;
+  width: calc(100% + 40px);
+  background-color: rgba(0, 0, 0, 0.7); /* Opaque background */
+  padding: 20px 0;
+  text-align: center;
 }
 
 .main-card,
