@@ -1,63 +1,118 @@
-/* SettingsWriting.css */
+/* src/style/SettingsWriting.css */
 
+/* ===== Card Shell ===== */
 .settings-writing-container {
-  background-color: #ffffff;
-  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(20,24,35,0.06);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  padding: 1.25rem;
 }
 
-.settings-writing-container h3 {
-  font-size: 1.75rem;
+.writing-header h3 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.25rem;
+}
+
+.writing-subtitle {
+  margin: 0 0 1.1rem;
+  color: #6b7280;
+  font-size: .95rem;
+}
+
+/* ===== Form layout ===== */
+.writing-form { display: block; }
+
+.writing-row {
+  row-gap: .75rem;
+}
+
+.writing-label {
   font-weight: 700;
-  color: #333;
-  margin-bottom: 2rem;
+  color: #374151;
 }
 
-.settings-writing-container .form-label {
-  font-weight: 600;
-  color: #555;
+/* Inputs */
+.writing-input,
+.writing-select {
+  height: 42px;
+  padding: 0 .85rem;
+  border-radius: 10px !important;
+  border: 1px solid #d7dbe7 !important;
+  background: #f9fafc;
+  color: #1f2937;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
 }
 
-.settings-writing-container .form-control,
-.settings-writing-container .form-select {
-  border-radius: 8px;
-  box-shadow: none;
-  border-color: #ddd;
-  padding: 0.75rem 1rem;
+.writing-input:focus,
+.writing-select:focus {
+  border-color: #2746ff !important;
+  box-shadow: 0 0 0 3px rgba(39,70,255,0.12) !important;
+  background: #fff;
 }
 
-.settings-writing-container .form-control:focus,
-.settings-writing-container .form-select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+/* ===== Quill editor wrapper ===== */
+.writing-editor {
+  border-radius: 12px;
+  border: 1px solid #e4e7ee;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  background: #fff;
 }
 
-.settings-writing-container .react-quill {
-  border-radius: 8px;
-  border: 1px solid #ddd;
+/* Quill toolbar */
+.writing-editor .ql-toolbar {
+  background: #f6f7fb;
+  border: none;
+  border-bottom: 1px solid #e4e7ee;
+  padding: 8px 10px;
 }
 
-.settings-writing-container .ql-toolbar {
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  background-color: #f1f1f1;
-}
-
-.settings-writing-container .ql-container {
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
-.settings-writing-container .btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-  padding: 0.75rem 1.5rem;
+/* Quill container & editor */
+.writing-editor .ql-container {
+  border: none !important;
+  min-height: 400px;              /* 기존 inline style → CSS로 이전 */
   font-size: 1rem;
-  font-weight: 600;
-  border-radius: 8px;
-  transition: background-color 0.3s, border-color 0.3s;
 }
 
-.settings-writing-container .btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #0056b3;
+.writing-editor .ql-editor {
+  padding: 14px 16px;
 }
+
+/* Quill buttons hover focus */
+.writing-editor .ql-toolbar .ql-formats button:hover,
+.writing-editor .ql-toolbar .ql-formats button.ql-active {
+  background: rgba(39,70,255,0.08);
+  border-radius: 6px;
+}
+
+/* ===== Actions ===== */
+.writing-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .75rem;
+}
+
+.btn-primary-solid {
+  background: #2746ff !important;
+  border-color: #2746ff !important;
+  color: #fff !important;
+  font-weight: 800;
+  letter-spacing: .2px;
+  border-radius: 10px;
+  height: 42px;
+  padding: 0 16px;
+  transition: transform .12s ease, box-shadow .15s ease, filter .15s ease;
+}
+
+.btn-primary-solid:hover {
+  filter: brightness(1.03);
+  box-shadow: 0 6px 18px rgba(39,70,255,0.22);
+  transform: translateY(-1px);
+}
+
+/* ===== Misc ===== */
+.settings-row { gap: 1rem; } /* 좌측 메뉴와 콘텐츠 카드 사이 여백 */

@@ -1,35 +1,54 @@
-/* SettingsMenu.css */
-
+/* src/style/SettingsMenu.css */
 .settings-menu-container {
-  padding-right: 0;
+  width: 260px;
+  min-width: 220px;
+  position: sticky;
+  top: 1rem;
+  height: fit-content;
 }
 
 .settings-menu {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  padding: 1rem;
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  border: 1px solid rgba(20, 24, 35, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.settings-menu .list-group-item {
-  border: none;
-  padding: 1rem 1.25rem;
-  font-size: 1.1rem;
+.settings-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #374151;
+  text-decoration: none;
   font-weight: 600;
-  color: #555;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
-  transition: background-color 0.3s, color 0.3s, transform 0.3s;
+  transition: background-color .18s ease, color .18s ease, transform .12s ease;
 }
 
-.settings-menu .list-group-item:hover {
-  background-color: #007bff;
-  color: #fff;
-  transform: translateX(5px);
+.settings-menu-item svg {
+  font-size: 18px;
+  opacity: .9;
 }
 
-.settings-menu .list-group-item.active {
-  background-color: #007bff;
-  color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+.settings-menu-item:hover {
+  background: #f3f6ff;
+  color: #2746ff;
+  transform: translateX(2px);
+}
+
+.settings-menu-item.active {
+  background: #e9edff;
+  color: #2746ff;
+  box-shadow: inset 0 0 0 1px rgba(39,70,255,.15);
+}
+
+@media (max-width: 992px) {
+  .settings-menu-container { width: 100%; min-width: unset; position: static; }
+  .settings-menu { flex-direction: row; gap: 8px; }
+  .settings-menu-item { flex: 1; justify-content: center; }
 }

@@ -1,3 +1,4 @@
+// src/components/SettingsWriting.js
 import React, { useState } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../firebase/firebase';
@@ -13,11 +14,11 @@ function SettingsWriting() {
 
   const modules = {
     toolbar: [
-      [{ 'header': [1, 2, false] }],
+      [{ header: [1, 2, false] }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+      [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
       ['link', 'image', 'code-block'],
-      ['clean']
+      ['clean'],
     ],
   };
 
@@ -25,7 +26,7 @@ function SettingsWriting() {
     'header',
     'bold', 'italic', 'underline', 'strike', 'blockquote',
     'list', 'bullet', 'indent',
-    'link', 'image', 'code-block'
+    'link', 'image', 'code-block',
   ];
 
   const handleSubmit = async (e) => {
@@ -38,7 +39,7 @@ function SettingsWriting() {
       alert('Please enter a title.');
       return;
     }
-    if (!content.trim() || content === '<p><br></p>') { // Check for empty content from Quill
+    if (!content.trim() || content === '<p><br></p>') {
       alert('Please enter content.');
       return;
     }
@@ -46,16 +47,16 @@ function SettingsWriting() {
     try {
       const docRef = await addDoc(collection(db, category), {
         title: title,
-        content: content, // content is now HTML
+        content: content,
         createdAt: new Date(),
         viewCount: 0,
       });
-      console.log("Document written with ID: ", docRef.id);
+      console.log('Document written with ID: ', docRef.id);
       alert(`Content submitted successfully to ${category} collection!`);
       setTitle('');
       setContent('');
     } catch (e) {
-      console.error("Error adding document: ", e);
+      console.error('Error adding document: ', e);
       alert('Error submitting content.');
     }
   };
@@ -65,25 +66,27 @@ function SettingsWriting() {
       <div className="row settings-row d-flex h-100">
         <SettingsMenu />
         <div className="col-md-9 h-100 flex-grow-1 settings-writing-container">
-          <form onSubmit={handleSubmit}>
-            <div className="row mb-3">
+
+          <form onSubmit={handleSubmit} className="writing-form">
+            <div className="row mb-3 writing-row">
               <div className="col-md-9">
-                <label htmlFor="titleInput" className="form-label">Title</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  id="titleInput" 
-                  value={title} 
-                  onChange={(e) => setTitle(e.target.value)} 
-                  required 
+                <label htmlFor="titleInput" className="form-label writing-label">Title</label>
+                <input
+                  type="text"
+                  className="form-control writing-input"
+                  id="titleInput"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  placeholder="제목을 입력하세요"
                 />
               </div>
               <div className="col-md-3">
-                <label htmlFor="categorySelect" className="form-label">Category</label>
-                <select 
-                  className="form-select" 
-                  id="categorySelect" 
-                  value={category} 
+                <label htmlFor="categorySelect" className="form-label writing-label">Category</label>
+                <select
+                  className="form-select writing-select"
+                  id="categorySelect"
+                  value={category}
                   onChange={(e) => setCategory(e.target.value)}
                 >
                   <option value="study">Study</option>
@@ -91,20 +94,25 @@ function SettingsWriting() {
                 </select>
               </div>
             </div>
+
             <div className="mb-3">
-              <label htmlFor="contentInput" className="form-label">Content</label>
-              <div className="react-quill">
-                <ReactQuill 
-                  theme="snow" 
-                  value={content} 
-                  onChange={setContent} 
-                  modules={modules} 
-                  formats={formats} 
-                  style={{ height: '400px', marginBottom: '50px' }} // Added height and margin for editor
+              <label htmlFor="contentInput" className="form-label writing-label">Content</label>
+              <div className="writing-editor" id="contentInput">
+                {/* Quill 자체가 toolbar/본체를 렌더링하므로 래퍼만 스타일링 */}
+                <ReactQuill
+                  className="writing-quill"
+                  theme="snow"
+                  value={content}
+                  onChange={setContent}
+                  modules={modules}
+                  formats={formats}
                 />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary">Submit</button>
+
+            <div className="writing-actions">
+              <button type="submit" className="btn btn-primary btn-primary-solid">Submit</button>
+            </div>
           </form>
         </div>
       </div>
