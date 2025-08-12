@@ -57,22 +57,31 @@ app.get('/', (req, res) => {
   res.send('Hello from the backend!');
 });
 
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+app.post('/auth/firebase', async (req, res) => {
+  const { idToken } = req.body; // Expecting Firebase ID Token from frontend
 
-  // Hardcoded credentials for demonstration
-  if (username === 'user' && password === 'password') {
-    const role = 'user'; // Default role for regular login
-    const name = 'Regular User'; // Default name for regular login
-    const email = 'regular@user.com'; // Dummy email for regular user
-    const token = jwt.sign({ username, role, name, email }, SECRET_KEY, { expiresIn: '1h' });
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const email = decodedToken.email;
+    const name = decodedToken.name || email; // Use name from token or email
+    const picture = decodedToken.picture || null; // Use picture from token if available
 
-    // Save/update user in Firestore
-    await saveUserToFirestore({ email, name, role, username });
+    let role = 'user'; // Default role
+    if (email === ADMIN_EMAIL) {
+      role = 'admin';
+    }
 
-    res.json({ message: 'Login successful', token });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials' });
+    // Create a custom JWT for your application's session management
+    const appToken = jwt.sign({ uid, email, name, picture, role }, SECRET_KEY, { expiresIn: '1h' });
+
+    // Save/update user in Firestore (optional, if you need to store user profiles)
+    await saveUserToFirestore({ email, name, role, picture, userid: uid });
+
+    res.json({ message: 'Firebase authentication successful', token: appToken });
+  } catch (error) {
+    console.error('Firebase ID token verification failed:', error);
+    res.status(401).json({ message: 'Firebase authentication failed' });
   }
 });
 
