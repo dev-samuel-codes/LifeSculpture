@@ -62,34 +62,34 @@ function SettingsWriting() {
 
   return (
     <div className="container mt-4 h-100">
-      <h2>Settings</h2>
       <div className="row settings-row d-flex h-100">
         <SettingsMenu />
         <div className="col-md-9 h-100 flex-grow-1 settings-writing-container">
-          <h3>Write New Content</h3>
           <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="categorySelect" className="form-label">Category</label>
-              <select 
-                className="form-select" 
-                id="categorySelect" 
-                value={category} 
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option value="study">Study</option>
-                <option value="blog">Blog</option>
-              </select>
-            </div>
-            <div className="mb-3">
-              <label htmlFor="titleInput" className="form-label">Title</label>
-              <input 
-                type="text" 
-                className="form-control" 
-                id="titleInput" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                required 
-              />
+            <div className="row mb-3">
+              <div className="col-md-9">
+                <label htmlFor="titleInput" className="form-label">Title</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  id="titleInput" 
+                  value={title} 
+                  onChange={(e) => setTitle(e.target.value)} 
+                  required 
+                />
+              </div>
+              <div className="col-md-3">
+                <label htmlFor="categorySelect" className="form-label">Category</label>
+                <select 
+                  className="form-select" 
+                  id="categorySelect" 
+                  value={category} 
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="study">Study</option>
+                  <option value="blog">Blog</option>
+                </select>
+              </div>
             </div>
             <div className="mb-3">
               <label htmlFor="contentInput" className="form-label">Content</label>
@@ -100,7 +100,7 @@ function SettingsWriting() {
                   onChange={setContent} 
                   modules={modules} 
                   formats={formats} 
-                  style={{ height: '200px', marginBottom: '50px' }} // Added height and margin for editor
+                  style={{ height: '400px', marginBottom: '50px' }} // Added height and margin for editor
                 />
               </div>
             </div>
