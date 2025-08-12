@@ -15,6 +15,19 @@ const BLOG_SECTIONS = [
   { title: '개발 블로그', tags: ['개발', 'React', 'Next.js', 'Node', 'Firebase'] },
 ];
 
+const norm = (s) =>
+  (s || '').toString().toLowerCase().replace(/[^\p{L}\p{N}_]+/gu, ' ').trim();
+
+const extractHashtags = (raw) => {
+  const text = String(raw || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  const re = /(^|[^#\p{L}\p{N}_])#([\p{L}\p{N}_]+)/gu;
+  const set = new Set();
+  let m;
+  while ((m = re.exec(text)) !== null) set.add(norm(m[2]));
+  return set;
+};
+
+
 function Blog() {
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,24 +57,13 @@ function Blog() {
     fetchAllPosts();
   }, []);
 
-  const norm = (s) =>
-    (s || '').toString().toLowerCase().replace(/[^\p{L}\p{N}_]+/gu, ' ').trim();
-
-  const extractHashtags = (raw) => {
-    const text = String(raw || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-    const re = /(^|[^#\p{L}\p{N}_])#([\p{L}\p{N}_]+)/gu;
-    const set = new Set();
-    let m;
-    while ((m = re.exec(text)) !== null) set.add(norm(m[2]));
-    return set;
-  };
-
   const visibleChildren = useMemo(() => {
     if (!selectedParent) return [];
     const sec = BLOG_SECTIONS.find((s) => s.title === selectedParent);
     return sec ? sec.tags : [];
   }, [selectedParent]);
 
+  // 상위 변경 시, 보이지 않는 하위 자동 정리
   useEffect(() => {
     setSelectedChildren((prev) => {
       if (!selectedParent) return new Set();
@@ -84,8 +86,11 @@ function Blog() {
 
       let hierarchyOk = true;
       if (hasChild) {
-        // ✅ 하위 선택 시: 해시태그로만 매칭
-        hierarchyOk = [...selectedChildren].some((kw) => hashSet.has(norm(kw)));
+        // ✅ 하위 선택 시: "제목 포함" 또는 "본문 해시태그"에 있으면 OK
+        hierarchyOk = [...selectedChildren].some((kw) => {
+          const k = norm(kw);
+          return titleNorm.includes(k) || hashSet.has(k);
+        });
       } else if (hasParent) {
         // 상위만 선택 시: 해당 카테고리의 키워드가 제목 또는 해시태그에 존재하면 OK
         hierarchyOk = visibleChildren.some((kw) => {
@@ -231,7 +236,7 @@ function Blog() {
             </select>
             <div className="ms-auto small text-muted">
               총 {filteredAndSorted.length}개 결과
-              {(selectedParent || selectedChildren.size > 0) && <> · 하위=해시태그</>}
+              {(selectedParent || selectedChildren.size > 0) && <> · 하위=제목·해시태그</>}
             </div>
           </div>
 

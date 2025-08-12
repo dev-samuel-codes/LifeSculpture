@@ -2,41 +2,74 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../firebase/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import '../style/SettingsUsers.css';
 
 function SettingsUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error,   setError]   = useState(null);
   const [qText, setQText] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
+    const auth = getAuth();
+    const unsub = onAuthStateChanged(auth, async (user) => {
       setError(null);
+      setUsers([]);
+
+      if (!user) {
+        setLoading(false);
+        setError('로그인이 필요합니다.');
+        return;
+      }
+
       try {
-        const q = query(collection(db, 'users'), orderBy('email', 'asc'));
-        const snap = await getDocs(q);
-        const fetched = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setUsers(fetched);
+        setLoading(true);
+
+        // 1) 내 문서에서 admin 여부 확인
+        const meSnap = await getDoc(doc(db, 'users', user.uid));
+        const isAdmin = meSnap.exists() && meSnap.data()?.role === 'admin';
+        if (!isAdmin) {
+          setLoading(false);
+          setError('권한이 없습니다 (admin만 접근).');
+          return;
+        }
+
+        // 2) admin이면 전체 users 읽기
+        const qy = query(collection(db, 'users'), orderBy('email', 'asc'));
+        const snap = await getDocs(qy);
+
+        // ✅ admin 먼저 오도록 정렬(+ 같은 role 내에서 email 오름차순 유지)
+        const sorted = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => {
+            const aIsAdmin = (a.role || '').toLowerCase() === 'admin';
+            const bIsAdmin = (b.role || '').toLowerCase() === 'admin';
+            if (aIsAdmin !== bIsAdmin) return aIsAdmin ? -1 : 1; // admin 우선
+            return (a.email || '').localeCompare(b.email || '');
+          });
+
+        setUsers(sorted);
       } catch (err) {
         console.error('Error fetching users:', err);
         setError('Failed to load users.');
       } finally {
         setLoading(false);
       }
-    };
-    fetchUsers();
+    });
+
+    return () => unsub();
   }, []);
 
+  // 검색/역할 필터
   const filtered = useMemo(() => {
     const term = qText.trim().toLowerCase();
     return users.filter(u => {
       const matchText =
         !term ||
-        (u.name || '').toLowerCase().includes(term) ||
+        (u.name  || '').toLowerCase().includes(term) ||
         (u.email || '').toLowerCase().includes(term);
       const matchRole = roleFilter === 'all' || (u.role || 'user') === roleFilter;
       return matchText && matchRole;
@@ -49,9 +82,7 @@ function SettingsUsers() {
         <SettingsMenu />
         <main className="settings-users-container">
           <header className="users-header">
-            <div>
-              <h3>Users Management</h3>
-            </div>
+            <div><h3>Users Management</h3></div>
             <div className="users-tools">
               <input
                 type="search"

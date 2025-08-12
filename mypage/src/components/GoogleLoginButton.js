@@ -1,48 +1,32 @@
+// src/components/GoogleLoginButton.js
 import React, { useContext } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
-function GoogleLoginButton() {
+function GoogleLoginButton({ redirectTo = '/' }) {
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  const { login, isAuthenticated } = useContext(AuthContext);
 
-  const handleGoogleLoginSuccess = async (credentialResponse) => {
-    console.log('Google Login Success:', credentialResponse);
+  const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:5000/auth/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id_token: credentialResponse.credential }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        login(data.token);
-        alert(data.message);
-        navigate('/'); // Redirect to home page on successful login
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error('Google login backend error:', error);
-      alert('An error occurred during Google login.');
+      const user = await login(); // AuthContext.login -> signInWithPopup 호출
+      console.log('[GoogleLoginButton] login:', user.uid, user.email);
+      navigate(redirectTo);
+    } catch (err) {
+      console.error('[GoogleLoginButton] error:', err);
+      alert('Google 로그인에 실패했어요.');
     }
   };
 
-  const handleGoogleLoginError = () => {
-    console.log('Google Login Failed');
-    alert('Google login failed.');
-  };
+  // 이미 로그인 상태라면 버튼 숨김(원하면 다른 UI 노출)
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
-    <GoogleLogin
-      onSuccess={handleGoogleLoginSuccess}
-      onError={handleGoogleLoginError}
-    />
+    <button className="btn btn-primary" onClick={handleLogin}>
+      Google 로그인
+    </button>
   );
 }
 

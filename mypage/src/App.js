@@ -1,4 +1,4 @@
-// App.js
+// src/App.js
 import './style/App.css';
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
@@ -27,33 +27,10 @@ function Home() {
         <div className='main-section2-title'>Contents</div>
 
         <div className='main-section2-content'>
-          <div className="main-card">
-            <div className="main-card-body">
-              <h3>Card 1</h3>
-              <p>첫 번째 카드</p>
-            </div>
-          </div>
-
-          <div className="main-card">
-            <div className="main-card-body">
-              <h3>Card 2</h3>
-              <p>두 번째 카드</p>
-            </div>
-          </div>
-
-          <div className="main-card">
-            <div className="main-card-body">
-              <h3>Card 3</h3>
-              <p>세 번째 카드</p>
-            </div>
-          </div>
-
-          <div className="main-card">
-            <div className="main-card-body">
-              <h3>Card 4</h3>
-              <p>네 번째 카드</p>
-            </div>
-          </div>
+          <div className="main-card"><div className="main-card-body"><h3>Card 1</h3><p>첫 번째 카드</p></div></div>
+          <div className="main-card"><div className="main-card-body"><h3>Card 2</h3><p>두 번째 카드</p></div></div>
+          <div className="main-card"><div className="main-card-body"><h3>Card 3</h3><p>세 번째 카드</p></div></div>
+          <div className="main-card"><div className="main-card-body"><h3>Card 4</h3><p>네 번째 카드</p></div></div>
         </div>
       </div>
     </div>
@@ -66,7 +43,18 @@ function Page({ children }) {
 }
 
 function App() {
-  const { role } = React.useContext(AuthContext);
+  const { role, loading } = React.useContext(AuthContext);
+
+  // 초기 세션 확인 중일 때 라우팅 깜빡임 방지 (원하면 스피너로 교체)
+  if (loading) {
+    return (
+      <div className="App">
+        <Header />
+        <div style={{ padding: 16 }}>Loading session…</div>
+        <Connect />
+      </div>
+    );
+  }
 
   return (
     <div className="App">
@@ -81,17 +69,20 @@ function App() {
         <Route path="/study" element={<Page><Study /></Page>} />
         <Route path="/blog" element={<Page><Blog /></Page>} />
 
+        {/* ✅ settings는 항상 열어두고 내부에서 인증/권한 체크 (Settings* 컴포넌트들이 처리) */}
+        <Route path="/settings/*" element={<Page><Settings /></Page>} />
+
+        {/* 관리자 전용 라우트는 그대로 조건부 유지 가능 */}
         {role === 'admin' && (
           <Route path="/admin" element={<Page><AdminDashboard /></Page>} />
         )}
         {role === 'admin' && (
-          <Route path="/settings/*" element={<Page><Settings /></Page>} />
-        )}
-        <Route path="/posts/:category/:id" element={<Page><PostDetail /></Page>} />
-        {role === 'admin' && (
           <Route path="/edit-post/:category/:id" element={<Page><EditPost /></Page>} />
         )}
+
+        <Route path="/posts/:category/:id" element={<Page><PostDetail /></Page>} />
       </Routes>
+
       <Connect />
     </div>
   );

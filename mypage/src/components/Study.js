@@ -8,11 +8,30 @@ const POSTS_PER_PAGE = 6;
 
 /** 상위/하위 구조 */
 const TAG_SECTIONS = [
-  { title: '개발 · IT', tags: ['Frontend','React','Next.js','Vue','Angular','Backend','Node.js','Express','Django','Spring','Database','Firebase','MySQL','MongoDB','Git','Docker','DevOps'] },
-  { title: '과학', tags: ['Physics','Chemistry','Biology','Earth Science','Astronomy'] },
-  { title: '수학', tags: ['Basic Math','Algebra','Geometry','Calculus','Statistics','Logic'] },
-  { title: '인문 · 사회', tags: ['History','Philosophy','Psychology','Sociology','Politics','Economics'] }
+  { title: '개발 · IT', tags: ['Frontend', 'React', 'Next.js', 'Vue', 'Angular', 'Backend', 'Node.js', 'Express', 'Django', 'Spring', 'Database', 'Firebase', 'MySQL', 'MongoDB', 'Git', 'Docker', 'DevOps'] },
+  { title: '과학', tags: ['Physics', 'Chemistry', 'Biology', 'Earth Science', 'Astronomy'] },
+  { title: '수학', tags: ['Basic Math', 'Algebra', 'Geometry', 'Calculus', 'Statistics', 'Logic'] },
+  { title: '인문 · 사회', tags: ['History', 'Philosophy', 'Psychology', 'Sociology', 'Politics', 'Economics'] }
 ];
+
+// 문자열 정규화(대소문자/기호차 완화)
+const norm = (s) =>
+  (s || '').toString().toLowerCase().replace(/[^\p{L}\p{N}_]+/gu, ' ').trim();
+
+// 본문에서 #해시태그 추출 → Set(정규화된 태그)
+const extractHashtags = (raw) => {
+  const text = String(raw || '')
+    .replace(/<[^>]+>/g, ' ') // HTML 제거(있다면)
+    .replace(/\s+/g, ' ');
+  // 해시태그: #다음에 문자/숫자/언더스코어가 이어지는 토큰
+  const re = /(^|[^#\p{L}\p{N}_])#([\p{L}\p{N}_]+)/gu;
+  const set = new Set();
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    set.add(norm(m[2]));
+  }
+  return set;
+};
 
 function Study() {
   const [allPosts, setAllPosts] = useState([]);
@@ -44,25 +63,6 @@ function Study() {
     };
     fetchAllPosts();
   }, []);
-
-  // 문자열 정규화(대소문자/기호차 완화)
-  const norm = (s) =>
-    (s || '').toString().toLowerCase().replace(/[^\p{L}\p{N}_]+/gu, ' ').trim();
-
-  // 본문에서 #해시태그 추출 → Set(정규화된 태그)
-  const extractHashtags = (raw) => {
-    const text = String(raw || '')
-      .replace(/<[^>]+>/g, ' ') // HTML 제거(있다면)
-      .replace(/\s+/g, ' ');
-    // 해시태그: #다음에 문자/숫자/언더스코어가 이어지는 토큰
-    const re = /(^|[^#\p{L}\p{N}_])#([\p{L}\p{N}_]+)/gu;
-    const set = new Set();
-    let m;
-    while ((m = re.exec(text)) !== null) {
-      set.add(norm(m[2]));
-    }
-    return set;
-  };
 
   // 선택된 상위의 하위 키워드
   const visibleChildren = useMemo(() => {
@@ -96,8 +96,11 @@ function Study() {
       // 상/하위 규칙
       let hierarchyOk = true;
       if (hasChild) {
-        // ✅ 하위가 선택되면: 본문 #해시태그 중 하나라도 포함되어야 함
-        hierarchyOk = [...selectedChildren].some((kw) => hashSet.has(norm(kw)));
+        // ✅ 하위가 선택되면: "제목 포함" 또는 "본문 해시태그"에 있으면 OK
+        hierarchyOk = [...selectedChildren].some((kw) => {
+          const k = norm(kw);
+          return titleNorm.includes(k) || hashSet.has(k);
+        });
       } else if (hasParent) {
         // 상위만 선택: 그 상위의 하위 키워드가 "제목 포함" 또는 "본문 해시태그"에 있으면 OK
         hierarchyOk = visibleChildren.some((kw) => {
@@ -242,11 +245,11 @@ function Study() {
             </select>
             <div className="ms-auto small text-muted">
               총 {filteredAndSorted.length}개 결과
-              {(selectedParent || selectedChildren.size > 0) && <> · 하위=해시태그</>}
+              {(selectedParent || selectedChildren.size > 0) && <> · 하위=제목·해시태그</>}
             </div>
           </div>
 
-          {/* 목록 (카드 레이아웃 수정) */}
+          {/* 목록 (카드 레이아웃) */}
           {currentPosts.length === 0 ? (
             <p>게시물을 찾을 수 없습니다.</p>
           ) : (
