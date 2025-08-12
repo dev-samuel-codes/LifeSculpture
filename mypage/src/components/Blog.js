@@ -1,120 +1,263 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import '../style/Study.css'; // 스타일 재사용
 
 const POSTS_PER_PAGE = 6;
 
-// Example keywords - In a real app, these might come from a database or be dynamically generated
-const KEYWORDS = ['Travel', 'Food', 'Photography', 'Life', 'Adventure', 'Tips'];
+const BLOG_SECTIONS = [
+  { title: '에세이 · 일상', tags: ['일상', '생각', '회고', '일기'] },
+  { title: '여행', tags: ['여행', '국내여행', '해외여행', '일정', '후기'] },
+  { title: '사진 · 영상', tags: ['사진', '포토', '촬영', '영상', '카메라'] },
+  { title: '튜토리얼 · 팁', tags: ['팁', '가이드', '튜토리얼', '노하우', '설정'] },
+  { title: '리뷰', tags: ['리뷰', '사용기', '언박싱'] },
+  { title: '개발 블로그', tags: ['개발', 'React', 'Next.js', 'Node', 'Firebase'] },
+];
 
 function Blog() {
-  const [allPosts, setAllPosts] = useState([]); // Stores all fetched posts
-  const [filteredPosts, setFilteredPosts] = useState([]); // Posts after keyword filtering
-  const [currentPosts, setCurrentPosts] = useState([]); // Posts for the current page
+  const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [searchText, setSearchText] = useState('');
+  const [selectedParent, setSelectedParent] = useState(null);
+  const [selectedChildren, setSelectedChildren] = useState(new Set());
+  const [sortKey, setSortKey] = useState('createdAt_desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedKeyword, setSelectedKeyword] = useState(null);
 
   useEffect(() => {
     const fetchAllPosts = async () => {
       setLoading(true);
       setError(null);
       try {
-        const q = query(collection(db, "blog"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        const fetchedPosts = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setAllPosts(fetchedPosts);
-      } catch (err) {
-        console.error("Error fetching blog posts:", err);
-        setError("Failed to load blog posts.");
+        const q = query(collection(db, 'blog'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        setAllPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch (e) {
+        console.error('Error fetching blog posts:', e);
+        setError('Failed to load blog posts.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchAllPosts();
   }, []);
 
+  const norm = (s) =>
+    (s || '').toString().toLowerCase().replace(/[^\p{L}\p{N}_]+/gu, ' ').trim();
+
+  const extractHashtags = (raw) => {
+    const text = String(raw || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    const re = /(^|[^#\p{L}\p{N}_])#([\p{L}\p{N}_]+)/gu;
+    const set = new Set();
+    let m;
+    while ((m = re.exec(text)) !== null) set.add(norm(m[2]));
+    return set;
+  };
+
+  const visibleChildren = useMemo(() => {
+    if (!selectedParent) return [];
+    const sec = BLOG_SECTIONS.find((s) => s.title === selectedParent);
+    return sec ? sec.tags : [];
+  }, [selectedParent]);
+
   useEffect(() => {
-    // Filter posts based on selectedKeyword
-    let postsToFilter = allPosts;
-    if (selectedKeyword) {
-      postsToFilter = allPosts.filter(post => 
-        post.title.toLowerCase().includes(selectedKeyword.toLowerCase())
-      );
+    setSelectedChildren((prev) => {
+      if (!selectedParent) return new Set();
+      const allowed = new Set(visibleChildren);
+      const next = new Set();
+      prev.forEach((c) => { if (allowed.has(c)) next.add(c); });
+      return next;
+    });
+  }, [selectedParent, visibleChildren]);
+
+  const filteredAndSorted = useMemo(() => {
+    const text = norm(searchText);
+    const hasParent = !!selectedParent;
+    const hasChild = selectedChildren.size > 0;
+
+    const matches = (post) => {
+      const titleNorm = norm(post.title);
+      const body = post.content ?? post.body ?? post.text ?? ''; // ← 블로그 본문 키 확인
+      const hashSet = extractHashtags(body);
+
+      let hierarchyOk = true;
+      if (hasChild) {
+        // ✅ 하위 선택 시: 해시태그로만 매칭
+        hierarchyOk = [...selectedChildren].some((kw) => hashSet.has(norm(kw)));
+      } else if (hasParent) {
+        // 상위만 선택 시: 해당 카테고리의 키워드가 제목 또는 해시태그에 존재하면 OK
+        hierarchyOk = visibleChildren.some((kw) => {
+          const k = norm(kw);
+          return titleNorm.includes(k) || hashSet.has(k);
+        });
+      }
+
+      const searchOk = text.length === 0 ? true : titleNorm.includes(text);
+      return hierarchyOk && searchOk;
+    };
+
+    let rows = allPosts.filter(matches);
+
+    if (sortKey === 'createdAt_desc') {
+      rows.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+    } else if (sortKey === 'views_desc') {
+      rows.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+    } else if (sortKey === 'title_asc') {
+      rows.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     }
-    setFilteredPosts(postsToFilter);
-    setCurrentPage(1); // Reset to first page on filter change
-  }, [allPosts, selectedKeyword]);
 
-  useEffect(() => {
-    // Slice posts for the current page whenever filteredPosts or currentPage changes
-    const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
-    const endIndex = startIndex + POSTS_PER_PAGE;
-    setCurrentPosts(filteredPosts.slice(startIndex, endIndex));
-  }, [filteredPosts, currentPage]);
+    return rows;
+  }, [allPosts, searchText, selectedParent, selectedChildren, visibleChildren, sortKey]);
 
-  const handleNextPage = () => {
-    setCurrentPage(prev => prev + 1);
+  const totalPages = Math.ceil(filteredAndSorted.length / POSTS_PER_PAGE) || 1;
+  const currentPosts = useMemo(() => {
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    return filteredAndSorted.slice(start, start + POSTS_PER_PAGE);
+  }, [filteredAndSorted, currentPage]);
+
+  const toggleParent = (title) => {
+    setCurrentPage(1);
+    setSelectedParent((prev) => (prev === title ? null : title));
   };
 
-  const handlePrevPage = () => {
-    setCurrentPage(prev => prev - 1);
+  const toggleChild = (tag) => {
+    setCurrentPage(1);
+    setSelectedChildren((prev) => {
+      const next = new Set(prev);
+      next.has(tag) ? next.delete(tag) : next.add(tag);
+      return next;
+    });
   };
 
-  const handlePageClick = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const clearAll = () => {
+    setSelectedParent(null);
+    setSelectedChildren(new Set());
+    setSearchText('');
+    setSortKey('createdAt_desc');
+    setCurrentPage(1);
   };
 
-  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  const formatDate = (ts) =>
+    ts?.toDate ? new Date(ts.toDate()).toLocaleDateString() : '';
 
-  if (loading) {
-    return <div className="container mt-4">Loading blog posts...</div>;
-  }
-
-  if (error) {
-    return <div className="container mt-4 text-danger">Error: {error}</div>;
-  }
+  if (loading) return <div className="container mt-4">Loading blog posts...</div>;
+  if (error) return <div className="container mt-4 text-danger">Error: {error}</div>;
 
   return (
     <div className="container mt-4">
-      <div className="row">
+      <div className="row g-4">
+        {/* 좌측 필터 */}
         <div className="col-md-3">
-          <div className="list-group">
-            <button 
-              className={`list-group-item list-group-item-action ${selectedKeyword === null ? 'active' : ''}`}
-              onClick={() => setSelectedKeyword(null)}
-            >
-              All Posts
+          <div className="mb-2">
+            <button className="btn btn-sm btn-outline-secondary btn-all-posts" onClick={clearAll}>
+              전체 게시물
             </button>
-            {KEYWORDS.map(keyword => (
-              <button 
-                key={keyword}
-                className={`list-group-item list-group-item-action ${selectedKeyword === keyword ? 'active' : ''}`}
-                onClick={() => setSelectedKeyword(keyword)}
-              >
-                {keyword}
-              </button>
-            ))}
           </div>
+
+          <div className="study-filter-section mb-3">
+            <div className="study-filter-title">상위 필터</div>
+            <div className="d-flex flex-wrap gap-2">
+              {BLOG_SECTIONS.map((sec) => {
+                const active = selectedParent === sec.title;
+                return (
+                  <button
+                    key={sec.title}
+                    type="button"
+                    className={`parent-chip ${active ? 'active' : ''}`}
+                    onClick={() => toggleParent(sec.title)}
+                  >
+                    {sec.title}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {selectedParent && (
+            <div className="study-filter-section mb-3">
+              <div className="study-filter-title">하위 필터</div>
+              <div className="d-flex flex-wrap gap-2">
+                {visibleChildren.map((t) => {
+                  const active = selectedChildren.has(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      className={`child-chip ${active ? 'active' : ''}`}
+                      onClick={() => toggleChild(t)}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {(selectedParent || selectedChildren.size > 0) && (
+                <div className="selected-summary mt-2">
+                  {selectedParent && <div className="small text-muted">상위: {selectedParent}</div>}
+                  {selectedChildren.size > 0 && (
+                    <div className="small text-muted">하위: {[...selectedChildren].join(', ')}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* 우측 리스트 */}
         <div className="col-md-9">
-          {currentPosts.length === 0 && filteredPosts.length === 0 ? (
-            <p>No blog posts found.</p>
+          <div className="d-flex flex-wrap gap-2 align-items-center mb-3 study-toolbar">
+            <input
+              className="form-control"
+              style={{ maxWidth: 360 }}
+              placeholder="검색어를 입력하세요 (제목에 포함)"
+              value={searchText}
+              onChange={(e) => {
+                setSearchText(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+            <select
+              className="form-select"
+              style={{ maxWidth: 200 }}
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value)}
+            >
+              <option value="createdAt_desc">최신순</option>
+              <option value="views_desc">조회수순</option>
+              <option value="title_asc">제목 A→Z</option>
+            </select>
+            <div className="ms-auto small text-muted">
+              총 {filteredAndSorted.length}개 결과
+              {(selectedParent || selectedChildren.size > 0) && <> · 하위=해시태그</>}
+            </div>
+          </div>
+
+          {/* 카드 레이아웃 적용 */}
+          {currentPosts.length === 0 ? (
+            <p>게시물을 찾을 수 없습니다.</p>
           ) : (
             <div className="row">
-              {currentPosts.map(post => (
+              {currentPosts.map((post) => (
                 <div key={post.id} className="col-12 mb-3">
                   <Link to={`/posts/blog/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                     <div className="card">
-                      <div className="card-body">
-                        <h5 className="card-title">{post.title}</h5>
-                        <p className="card-text"><small className="text-muted">{new Date(post.createdAt.toDate()).toLocaleString()} | Views: {post.viewCount || 0}</small></p>
+                      <div className="card-body card-row">
+                        <div className="card-left">
+                          <h5 className="card-title">{post.title}</h5>
+                          <div className="card-tags">
+                            {(Array.isArray(post.tags) ? post.tags : []).slice(0, 4).map((tg) => (
+                              <span key={tg} className="badge bg-light text-dark border">{tg}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="card-right">
+                          <div className="meta-date">{formatDate(post.createdAt)}</div>
+                          <div style={{ height: 8 }} />
+                          <div className="meta-views">Views: {post.viewCount || 0}</div>
+                        </div>
                       </div>
                     </div>
                   </Link>
@@ -122,18 +265,38 @@ function Blog() {
               ))}
             </div>
           )}
+
           <nav aria-label="Page navigation example" className="mt-4">
-            <ul className="d-flex justify-content-center list-unstyled">
-              <li className={`page-item me-1 ${currentPage === 1 || filteredPosts.length === 0 ? 'disabled' : ''}`}>
-                <button className="btn btn-secondary" onClick={handlePrevPage} disabled={currentPage === 1 || filteredPosts.length === 0}>Previous</button>
+            <ul className="d-flex justify-content-center list-unstyled study-pagination">
+              <li className={`me-1 ${currentPage === 1 ? 'disabled' : ''}`}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
               </li>
-              {[...Array(totalPages)].map((_, index) => (
-                <li key={index} className={`page-item me-1 ${currentPage === index + 1 ? 'active' : ''}`}>
-                  <button className="btn btn-outline-primary" onClick={() => handlePageClick(index + 1)}>{index + 1}</button>
+
+              {[...Array(totalPages)].map((_, i) => (
+                <li key={i} className={`me-1 ${currentPage === i + 1 ? 'active' : ''}`}>
+                  <button
+                    className={`btn ${currentPage === i + 1 ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
                 </li>
               ))}
-              <li className={`page-item ${currentPage === totalPages || filteredPosts.length === 0 ? 'disabled' : ''}`}>
-                <button className="btn btn-primary" onClick={handleNextPage} disabled={currentPage === totalPages || filteredPosts.length === 0}>Next</button>
+
+              <li className={`${currentPage === totalPages ? 'disabled' : ''}`}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
               </li>
             </ul>
           </nav>
