@@ -1,6 +1,5 @@
 // src/components/SettingsWriting.js
 import React, { useRef, useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import SettingsMenu from './SettingsMenu';
 import { db, storage } from '../firebase/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -14,8 +13,6 @@ function SettingsWriting() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState(''); // HTML string
   const [category, setCategory] = useState('study');
-
-  const navigate = useNavigate();
 
   const quillRef = useRef(null);
 
@@ -182,7 +179,6 @@ function SettingsWriting() {
       alert(`Content submitted successfully to ${category} collection!`);
       setTitle('');
       setContent('');
-      navigate('/');
     } catch (e) {
       console.error('Error adding document: ', e);
       if (e?.code === 'permission-denied') {
