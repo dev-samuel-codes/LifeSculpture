@@ -27,7 +27,7 @@ body {
 
 /* 섹션2: 카드 리스트 */
 .main-section2 {
-  height: 85vh;
+  height: 100vh;
   padding: 30px 50px;
   display: flex;
   flex-direction: column;

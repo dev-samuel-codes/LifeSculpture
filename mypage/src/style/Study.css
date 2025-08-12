@@ -9,6 +9,7 @@
 
 /* Keyword List */
 .list-group {
+    border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -30,17 +31,15 @@
 
 /* Post Cards */
 .card {
-    border: none;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    border-color: #555;
-    border-width: 0.54rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .card-body {

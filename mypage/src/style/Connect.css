@@ -1,0 +1,60 @@
+.connect-section {
+    background-color: #000000;
+    padding: 4rem 4rem;
+    text-align: left;
+}
+
+.connect-title {
+    width: 20rem;
+    font-size: 4.5rem;
+    font-weight: bold;
+    background: linear-gradient(to right top, #c2671d, #1bc9a3);
+  color: transparent;
+  -webkit-background-clip: text;
+    margin-bottom: 3rem;
+}
+
+.connect-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.connect-box {
+    width: 450px;
+    height: 180px;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.connect-box:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.icon-placeholder {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.naver {
+    background-color: #787878;
+}
+
+.gmail {
+    background-color: #787878;
+}
+
+.instagram {
+   background-color: #787878;
+}

@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 import Introduce from './components/Introduce';
 import Study from './components/Study';
 import Blog from './components/Blog';
+import Connect from './components/Connect';
 
 import AdminDashboard from './components/AdminDashboard';
 import Settings from './components/Settings';
@@ -20,7 +21,6 @@ function Home() {
     <div>
       <div className='main-section1'>
         <h2>Every Day, A New Page</h2>
-        <p>This is the main page content.</p>
       </div>
 
       <div className='main-section2'>
@@ -92,6 +92,7 @@ function App() {
           <Route path="/edit-post/:category/:id" element={<Page><EditPost /></Page>} />
         )}
       </Routes>
+      <Connect />
     </div>
   );
 }

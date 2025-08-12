@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { doc, getDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
 import { AuthContext } from '../context/AuthContext';
+import '../style/PostDetail.css';
 
 function PostDetail() {
   const { category, id } = useParams();
@@ -54,23 +55,23 @@ function PostDetail() {
   };
 
   if (loading) {
-    return <div className="container mt-4">Loading post...</div>;
+    return <div className="post-detail-container">Loading post...</div>;
   }
 
   if (error) {
-    return <div className="container mt-4 text-danger">Error: {error}</div>;
+    return <div className="post-detail-container">Error: {error}</div>;
   }
 
   if (!post) {
-    return <div className="container mt-4">Post not found.</div>;
+    return <div className="post-detail-container">Post not found.</div>;
   }
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex align-items-center mb-3">
+    <div className="post-detail-container">
+      <div className="post-header">
         <h2>{post.title}</h2>
         {role === 'admin' && (
-          <div className="ms-3">
+          <div className="post-actions">
             <button className="btn btn-warning btn-sm me-2" onClick={() => navigate(`/edit-post/${category}/${id}`)}>
               Edit
             </button>
@@ -80,10 +81,9 @@ function PostDetail() {
           </div>
         )}
       </div>
-      <p className="text-muted">
+      <p className="post-meta">
         {new Date(post.createdAt.toDate()).toLocaleString()} | Views: {post.viewCount}
       </p>
-      <hr />
       <div className="post-content" dangerouslySetInnerHTML={{ __html: post.content }} />
     </div>
   );
