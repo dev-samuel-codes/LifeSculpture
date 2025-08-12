@@ -198,15 +198,6 @@ function Blog() {
                   );
                 })}
               </div>
-
-              {(selectedParent || selectedChildren.size > 0) && (
-                <div className="selected-summary mt-2">
-                  {selectedParent && <div className="small text-muted">상위: {selectedParent}</div>}
-                  {selectedChildren.size > 0 && (
-                    <div className="small text-muted">하위: {[...selectedChildren].join(', ')}</div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -236,7 +227,6 @@ function Blog() {
             </select>
             <div className="ms-auto small text-muted">
               총 {filteredAndSorted.length}개 결과
-              {(selectedParent || selectedChildren.size > 0) && <> · 하위=제목·해시태그</>}
             </div>
           </div>
 

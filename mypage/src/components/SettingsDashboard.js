@@ -111,7 +111,11 @@ function SettingsDashboard() {
 
   const chartOptions = {
     responsive: true,
-    plugins: { legend: { position: 'top' } },
+    plugins: { legend: {
+      display: false,
+       position: 'top' 
+      } 
+    },
   };
 
   const top5Posts = [...allPostsData]
@@ -129,19 +133,19 @@ function SettingsDashboard() {
       ) : (
         <div className="dashboard-grid">
           <div className="chart-container">
-            <h4>Posts Created by Date</h4>
+            <h4>게시물 수</h4>
             <Line options={chartOptions} data={postsData} />
           </div>
           <div className="chart-container">
-            <h4>Total Views by Date</h4>
+            <h4>총 조회수</h4>
             <Line options={chartOptions} data={viewsData} />
           </div>
           <div className="chart-container">
-            <h4>Site Visitors by Date</h4>
+            <h4>방문자 수</h4>
             <Line options={chartOptions} data={siteVisitorsData} />
           </div>
           <div className="top-posts-container">
-            <h4>Top 5 Most Viewed Posts</h4>
+            <h4>가장 많이 본 게시물</h4>
             {top5Posts.length === 0 ? (
               <p>No posts available.</p>
             ) : (

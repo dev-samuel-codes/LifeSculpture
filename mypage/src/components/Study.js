@@ -245,7 +245,6 @@ function Study() {
             </select>
             <div className="ms-auto small text-muted">
               총 {filteredAndSorted.length}개 결과
-              {(selectedParent || selectedChildren.size > 0) && <> · 하위=제목·해시태그</>}
             </div>
           </div>
 

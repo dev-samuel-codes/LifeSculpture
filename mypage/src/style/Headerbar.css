@@ -1,113 +1,218 @@
+/* ===== Profile Popup — clean & pretty only (with smooth animation) ===== */
+
+/* 프로필 이미지 */
 .profile-pic {
   border-radius: 50%;
-  width: 30px; /* Adjust size as needed */
-  height: 30px; /* Adjust size as needed */
+  width: 32px;
+  height: 32px;
   object-fit: cover;
-  margin-right: 5px;
+  margin-right: 8px;
+  outline: 2px solid transparent;
+  transition: outline-color .25s ease, transform .25s ease;
+}
+.profile-pic:hover {
+  outline-color: #e9eef6;
+  transform: translateY(-1px);
 }
 
+/* 프로필 팝업 */
+.my-profile-nav-item {
+  position: relative; /* 팝업 기준점 */
+}
 .profile-popup {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 10px);
   right: 0;
-  background-color: white;
-  border: 1px solid #ccc;
-  padding: 10px 20px;
   z-index: 1000;
-  min-width: 350px;
-  height: auto;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  text-align: left;
-  border-radius: 10px;
+
+  background: #ffffff;
+  border: 1px solid #e8edf3;
+  border-radius: 14px;
+  min-width: 360px;
+  max-width: 420px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12), 0 3px 8px rgba(15, 23, 42, 0.08);
+
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* 위에서부터 차례대로 */
-  gap: 20px; /* 요소 사이 간격 */
+  gap: 14px;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px) scale(0.96);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0s linear 0.25s; /* 닫힐 때 visibility 지연 */
 }
 
+/* 말풍선 꼬리 */
+.profile-popup::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 14px;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-left: 1px solid #e8edf3;
+  border-top: 1px solid #e8edf3;
+  transform: rotate(45deg);
+}
+
+/* 팝업 텍스트 */
+.profile-popup p {
+  margin: 0;
+  line-height: 1.45;
+  color: #334155;
+  font-size: 14px;
+}
+.profile-popup p:first-of-type {
+  font-weight: 700;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+/* 섹션 간 경계선 */
+.profile-popup > * + * {
+  position: relative;
+}
+.profile-popup > * + *::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: -16px;
+  right: -16px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #eef2f7, transparent);
+}
+
+/* 버튼 영역 */
 .profile-popup-btns {
   display: flex;
-  flex-direction: row;
+  gap: 10px;
   justify-content: space-between;
+  margin-top: 2px;
 }
-
-/* General button styling within the profile popup */
 .profile-popup-btns .btn {
-  padding: 10px 15px;
-  border-radius: 8px; /* Slightly more rounded corners */
-  font-weight: bold;
-  transition: all 0.3s ease; /* Smooth transitions for hover effects */
-  text-decoration: none; /* Ensure links look like buttons */
-  display: inline-flex; /* Align text and potential icon */
-  align-items: center;
-  justify-content: center;
-  gap: 8px; /* Space between text and icon */
-}
-
-.profile-popup-btns .btn:hover {
-  transform: translateY(-2px); /* Slight lift on hover */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow on hover */
-}
-
-/* Google Login Button specific styles */
-.google-login-button {
-  background-color: #eef4fc86; /* Google Blue */
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-weight: bold;
+  flex: 1 1 auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  border: 1px solid #e6ebf2;
+  background: #ffffff;
+  color: #334155;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+}
+.profile-popup-btns .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+  border-color: #d9e1ec;
+  background: #f7f9fc;
+}
+
+/* 개별 버튼 색상 */
+.profile-popup-btns .btn-info {
+  background: #f5f8ff;
+  border-color: #dae6ff;
+  color: #1e3a8a;
+}
+.profile-popup-btns .btn-info:hover {
+  background: #eef4ff;
+  border-color: #cfe0ff;
+}
+.profile-popup-btns .btn-danger {
+  background: #fff7f7;
+  border-color: #ffe1e1;
+  color: #9f1239;
+}
+.profile-popup-btns .btn-danger:hover {
+  background: #ffefef;
+  border-color: #ffd6d6;
+}
+
+/* 구글 로그인 버튼 */
+.google-login-button {
+  width: 100%;
+  border-radius: 10px;
+  background: #f5f7fb;
+  border: 1px solid #e6ebf2;
+  color: #0f172a;
+  font-weight: 700;
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 100%; /* Make it full width within its container */
+  gap: 10px;
 }
-
 .google-login-button:hover {
-  background-color: #cbcbcb7d; /* Darker blue on hover */
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+  border-color: #d9e1ec;
+  background: #eef2f7;
 }
 
-/* Enhance Bootstrap btn-danger (Logout) */
-.profile-popup-btns .btn-danger {
-  color: #444444;
-  background-color: #ffffff; /* Bootstrap red */
-  border-color: #cbcbcb7d;
+/* 팝업 열림 (호버 또는 .is-open 클래스) */
+.my-profile-nav-item:hover .profile-popup,
+.my-profile-nav-item.is-open .profile-popup {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0s;
 }
 
-.profile-popup-btns .btn-danger:hover {
-  background-color: #f0f0f0; /* Darker red on hover */
-  border-color: #ededed;
+/* 팝업 닫힘 (클릭 토글 시) */
+.my-profile-nav-item.is-closing .profile-popup {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px) scale(0.96);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0s linear 0.25s;
 }
 
-/* Enhance Bootstrap btn-info (Settings) */
-.profile-popup-btns .btn-info {
-  color: #444444;
-  background-color: #ffffff; /* Bootstrap info blue */
-  border-color: #cbcbcb7d;
+/* 호버 브릿지 */
+.my-profile-nav-item::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 240px;
+  height: 14px;
 }
 
-.profile-popup-btns .btn-info:hover {
-  background-color: #f0f0f0; /* Darker info blue on hover */
-  border-color: #ededed;
+/* 작은 화면 대응 */
+@media (max-width: 420px) {
+  .profile-popup {
+    min-width: 280px;
+    max-width: calc(100vw - 24px);
+    right: 12px;
+  }
+  .profile-popup::before {
+    right: 22px;
+  }
 }
 
-
-/* Custom Navbar Styles */
+/* ===== Navbar Styles ===== */
 .my-navbar {
-  background-color: #ffffff; /* Light background */
+  background-color: #ffffff;
   padding: 15px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap; /* Allow wrapping for responsiveness */
+  flex-wrap: wrap;
 }
-
 .Header-container {
   width: 100%;
   padding: 15px 30px 15px 50px;
@@ -115,85 +220,66 @@
   align-items: center;
   justify-content: space-between;
 }
-
 .my-navbar-brand {
   font-weight: bold;
   font-size: 35px;
   color: #333;
   text-decoration: none;
-  white-space: nowrap; /* Prevent wrapping */
+  white-space: nowrap;
 }
-
 .my-navbar-toggler {
   padding: .25rem .75rem;
   font-size: 1.25rem;
-  line-height: 1;
   background-color: transparent;
   border: 1px solid rgba(0,0,0,.1);
   border-radius: .25rem;
   cursor: pointer;
-  display: none; /* Hidden by default, shown on smaller screens */
+  display: none;
 }
-
 .my-navbar-toggler-icon {
   display: inline-block;
   width: 1.5em;
   height: 1.5em;
-  vertical-align: middle;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100%;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg ... %3e");
 }
-
 .my-navbar-collapse {
   flex-basis: 100%;
   flex-grow: 1;
   align-items: center;
-  display: none; /* Hidden by default, shown when toggled */
+  display: none;
 }
-
 @media (min-width: 992px) {
-  .my-navbar-toggler {
-    display: none; /* Hide toggler on large screens */
-  }
+  .my-navbar-toggler { display: none; }
   .my-navbar-collapse {
-    display: flex !important; /* Show collapse content on large screens */
+    display: flex !important;
     flex-basis: auto;
     justify-content: flex-end;
   }
 }
-
 .my-navbar-nav {
   display: flex;
-  flex-direction: column; /* Stack items vertically on small screens */
+  flex-direction: column;
   padding-left: 0;
   margin-bottom: 0;
   list-style: none;
-  margin-left: auto; /* Push items to the right */
+  margin-left: auto;
 }
-
 @media (min-width: 992px) {
-  .my-navbar-nav {
-    flex-direction: row; /* Arrange items horizontally on large screens */
-  }
+  .my-navbar-nav { flex-direction: row; }
 }
-
 .my-nav-item {
-  margin-bottom: 5px; /* Spacing between stacked items */
+  margin-bottom: 5px;
 }
-
 @media (min-width: 992px) {
   .my-nav-item {
-    margin-left: 15px; /* Spacing between horizontal items */
+    margin-left: 15px;
     margin-bottom: 0;
   }
-
-  .my-profile-nav-item {
-    margin-left: 30px; /* Increased spacing for the profile item */
-  }
+  .my-profile-nav-item { margin-left: 30px; }
 }
-
 .my-nav-link {
   display: block;
   padding: 10px 15px;
@@ -202,7 +288,6 @@
   text-decoration: none;
   transition: color 0.3s ease;
 }
-
 .my-nav-link:hover {
   color: #007bff;
 }
