@@ -238,7 +238,7 @@ function SettingsWriting() {
             </div>
 
             <div className="writing-actions">
-              <button type="submit" className="btn btn-primary btn-primary-solid">Submit</button>
+              <button type="submit" className="btn btn-primary btn-primary-solid">게시하기</button>
             </div>
           </form>
         </div>
