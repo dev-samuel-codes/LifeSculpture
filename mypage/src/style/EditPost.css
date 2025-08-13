@@ -1,0 +1,122 @@
+/* src/style/EditPost.css */
+
+/* ===== Card Shell ===== */
+.editpost-container {
+  background: #ffffff;
+  border: 1px solid rgba(20,24,35,0.06);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  padding: 1.25rem;
+}
+
+.editpost-header h3 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.25rem;
+}
+
+.editpost-subtitle {
+  margin: 0 0 1.1rem;
+  color: #6b7280;
+  font-size: .95rem;
+}
+
+/* ===== Form layout ===== */
+.editpost-form { display: block; }
+
+.editpost-row {
+  row-gap: .75rem;
+}
+
+.editpost-label {
+  font-weight: 700;
+  color: #374151;
+}
+
+/* Inputs */
+.editpost-input {
+  height: 42px;
+  padding: 0 .85rem;
+  border-radius: 10px !important;
+  border: 1px solid #d7dbe7 !important;
+  background: #f9fafc;
+  color: #1f2937;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.editpost-input:focus {
+  border-color: #2746ff !important;
+  box-shadow: 0 0 0 3px rgba(39,70,255,0.12) !important;
+  background: #fff;
+}
+
+/* ===== Quill editor wrapper ===== */
+.editpost-editor {
+  border-radius: 12px;
+  border: 1px solid #e4e7ee;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  background: #fff;
+}
+
+/* Quill toolbar */
+.editpost-editor .ql-toolbar {
+  background: #f6f7fb;
+  border: none;
+  border-bottom: 1px solid #e4e7ee;
+  padding: 8px 10px;
+}
+
+/* Quill container & editor */
+.editpost-editor .ql-container {
+  border: none !important;
+  min-height: 400px;
+  font-size: 1rem;
+}
+
+.editpost-editor .ql-editor {
+  padding: 14px 16px;
+}
+
+/* Quill buttons hover/focus */
+.editpost-editor .ql-toolbar .ql-formats button:hover,
+.editpost-editor .ql-toolbar .ql-formats button.ql-active {
+  background: rgba(39,70,255,0.08);
+  border-radius: 6px;
+}
+
+/* ===== Actions ===== */
+.editpost-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .75rem;
+}
+
+.btn-primary-solid {
+  background: #2746ff !important;
+  border-color: #2746ff !important;
+  color: #fff !important;
+  font-weight: 800;
+  letter-spacing: .2px;
+  border-radius: 10px;
+  height: 42px;
+  padding: 0 16px;
+  transition: transform .12s ease, box-shadow .15s ease, filter .15s ease;
+}
+
+.btn-primary-solid:hover {
+  filter: brightness(1.03);
+  box-shadow: 0 6px 18px rgba(39,70,255,0.22);
+  transform: translateY(-1px);
+}
+
+/* ===== Misc ===== */
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px auto;
+  object-fit: contain;
+}
