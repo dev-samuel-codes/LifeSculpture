@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import GoogleLoginButton from './GoogleLoginButton';
 import { AuthContext } from '../context/AuthContext';
 import '../style/Headerbar.css';
-
-const DEFAULT_PROFILE_PIC = '../assets/download.png';
+import defaultProfilePic from '../assets/download.png';
 
 const Header = () => {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
@@ -102,7 +101,7 @@ const Header = () => {
                 {isAuthenticated && userPicture ? (
                   <img src={userPicture} alt="Profile" className="profile-pic" />
                 ) : (
-                  <img src={DEFAULT_PROFILE_PIC} alt="Default Profile" className="profile-pic" />
+                  <img src={defaultProfilePic} alt="Default Profile" className="profile-pic" />
                 )}
               </span>
 
@@ -143,7 +142,7 @@ const Header = () => {
                   {isAuthenticated && userPicture ? (
                     <img src={userPicture} alt="Profile" className="profile-pic" />
                   ) : (
-                    <img src={DEFAULT_PROFILE_PIC} alt="Default Profile" className="profile-pic" />
+                    <img src={defaultProfilePic} alt="Default Profile" className="profile-pic" />
                   )}
                   <div>
                     <p className="mobile-profile-name">

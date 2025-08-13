@@ -1,4 +1,5 @@
 /* src/style/EditPost.css */
+@import url('./QuillToolbar.css');
 
 /* ===== Card Shell ===== */
 .editpost-container {
@@ -59,32 +60,154 @@
   overflow: hidden;
   box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
   background: #fff;
+  height: 400px;
+  position: relative;
 }
 
 /* Quill toolbar */
 .editpost-editor .ql-toolbar {
-  background: #f6f7fb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
-  border-bottom: 1px solid #e4e7ee;
-  padding: 8px 10px;
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 /* Quill container & editor */
 .editpost-editor .ql-container {
   border: none !important;
-  min-height: 400px;
+  height: 400px !important;
+  max-height: 400px !important;
   font-size: 1rem;
+  overflow: hidden !important;
+  position: relative;
 }
 
 .editpost-editor .ql-editor {
   padding: 14px 16px;
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 /* Quill buttons hover/focus */
-.editpost-editor .ql-toolbar .ql-formats button:hover,
+.editpost-editor .ql-toolbar .ql-formats button {
+  color: rgba(255,255,255,0.9) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  margin: 2px;
+  padding: 6px 8px;
+}
+
+.editpost-editor .ql-toolbar .ql-formats button:hover {
+  background: rgba(255,255,255,0.2) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+}
+
 .editpost-editor .ql-toolbar .ql-formats button.ql-active {
-  background: rgba(39,70,255,0.08);
-  border-radius: 6px;
+  background: rgba(255,255,255,0.25) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(255,255,255,0.4);
+}
+
+.editpost-editor .ql-toolbar .ql-formats button svg {
+  filter: brightness(0) invert(1);
+}
+
+/* Quill 드롭다운 스타일 */
+.editpost-editor .ql-toolbar .ql-picker {
+  color: rgba(255,255,255,0.9) !important;
+  font-weight: 600;
+  margin: 2px;
+}
+
+.editpost-editor .ql-toolbar .ql-picker-label {
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.9) !important;
+  transition: all 0.3s ease;
+}
+
+.editpost-editor .ql-toolbar .ql-picker-label:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.5);
+  transform: translateY(-1px);
+}
+
+.editpost-editor .ql-toolbar .ql-picker-options {
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  margin-top: 8px;
+}
+
+.editpost-editor .ql-toolbar .ql-picker-options .ql-picker-item {
+  color: #333;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.editpost-editor .ql-toolbar .ql-picker-options .ql-picker-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+/* Quill 색상 선택기 스타일 */
+.editpost-editor .ql-color .ql-picker-options,
+.editpost-editor .ql-background .ql-picker-options {
+  width: 200px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+.editpost-editor .ql-color .ql-picker-options .ql-picker-item,
+.editpost-editor .ql-background .ql-picker-options .ql-picker-item {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.editpost-editor .ql-color .ql-picker-options .ql-picker-item:hover,
+.editpost-editor .ql-background .ql-picker-options .ql-picker-item:hover {
+  transform: scale(1.2);
+  border-color: rgba(255,255,255,0.8);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Quill 테이블 스타일 */
+.editpost-editor .ql-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.editpost-editor .ql-editor table td,
+.editpost-editor .ql-editor table th {
+  border: 1px solid #dee2e6;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.editpost-editor .ql-editor table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
 }
 
 /* ===== Actions ===== */
@@ -113,10 +236,42 @@
 }
 
 /* ===== Misc ===== */
-.ql-editor img {
+.editpost-editor .ql-editor img {
   max-width: 100%;
   height: auto;
   display: block;
   margin: 10px auto;
   object-fit: contain;
+}
+
+/* ReactQuill 높이 고정 및 스크롤 설정 - 강제 적용 */
+.editpost-editor .ql-container,
+.editpost-editor .ql-editor,
+.editpost-editor .ql-editor.ql-blank::before {
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow: hidden !important;
+}
+
+/* ReactQuill 에디터 영역 스크롤 설정 */
+.editpost-editor .ql-editor {
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  resize: none !important;
+  padding-top: 0;
+}
+
+/* ReactQuill 루트 요소 높이 고정 */
+.editpost-editor .ql-editor.ql-blank::before {
+  height: 400px !important;
+  max-height: 400px !important;
+}
+
+/* ReactQuill 컨테이너 전체 높이 고정 */
+.editpost-editor .ql-container.ql-snow {
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow: hidden !important;
 }

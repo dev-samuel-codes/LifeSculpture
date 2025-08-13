@@ -1,5 +1,5 @@
 // PostDetail.js
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { doc, getDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
@@ -14,35 +14,48 @@ function PostDetail() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
-    const fetchPostAndIncrementView = async () => {
+    const fetchPost = async () => {
       try {
         const docRef = doc(db, category, id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          const currentViewCount = data.viewCount || 0;
-
-          // 조회수 증가
-          await updateDoc(docRef, { viewCount: increment(1) });
-
-          // 로컬 상태는 +1 적용
-          setPost({ id: docSnap.id, ...data, viewCount: currentViewCount + 1 });
+          setPost({ id: docSnap.id, ...data });
         } else {
           setError('Post not found.');
         }
       } catch (err) {
-        console.error('Error fetching or updating post:', err);
+        console.error('Error fetching post:', err);
         setError('Failed to load post.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPostAndIncrementView();
+    fetchPost();
   }, [category, id]);
+
+  // 조회수 증가는 별도로 처리 (관리자만)
+  useEffect(() => {
+    const incrementViewCount = async () => {
+      if (role === 'admin' && post) {
+        try {
+          const docRef = doc(db, category, id);
+          await updateDoc(docRef, { viewCount: increment(1) });
+          // 로컬 상태 업데이트
+          setPost(prev => ({ ...prev, viewCount: (prev.viewCount || 0) + 1 }));
+        } catch (err) {
+          console.warn('Failed to increment view count:', err);
+        }
+      }
+    };
+
+    incrementViewCount();
+  }, [role, post, category, id]);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
@@ -56,6 +69,66 @@ function PostDetail() {
       alert('Error deleting post.');
     }
   };
+
+  const handleImageClick = useCallback((imageSrc) => {
+    console.log('handleImageClick called with:', imageSrc);
+    setSelectedImage(imageSrc);
+  }, []);
+
+  const closeImageModal = useCallback(() => {
+    setSelectedImage(null);
+  }, []);
+
+  // 게시물 내용의 이미지에 클릭 이벤트 추가
+  useEffect(() => {
+    if (post && post.content) {
+      const contentElement = document.querySelector('.post-content');
+      if (contentElement) {
+        // post-content에 클릭 이벤트 추가
+        const handleContentClick = (event) => {
+          if (event.target.tagName === 'IMG') {
+            console.log('Image clicked:', event.target.src); // 디버깅용
+            event.preventDefault();
+            event.stopPropagation();
+            handleImageClick(event.target.src);
+          }
+        };
+        
+        contentElement.addEventListener('click', handleContentClick);
+        
+        // 이미지 스타일 적용
+        const images = contentElement.querySelectorAll('img');
+        images.forEach(img => {
+          img.style.cursor = 'pointer';
+          img.style.maxWidth = '100%';
+          img.style.height = 'auto';
+          img.style.borderRadius = '8px';
+        });
+        
+        // 클린업 함수
+        return () => {
+          contentElement.removeEventListener('click', handleContentClick);
+        };
+      }
+    }
+  }, [post, handleImageClick]);
+
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && selectedImage) {
+        closeImageModal();
+      }
+    };
+
+    if (selectedImage) {
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [selectedImage, closeImageModal]);
 
   // 날짜만 표시 (YYYY-MM-DD)
   const formatDateOnly = (value) => {
@@ -135,6 +208,21 @@ function PostDetail() {
         className="post-content"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+
+      {selectedImage && (
+        <div className="image-modal-overlay" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedImage} alt="Enlarged" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+            <button 
+              className="btn btn-light position-absolute top-0 end-0 m-2" 
+              onClick={closeImageModal}
+              style={{ zIndex: 1001 }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </article>
   );
 }

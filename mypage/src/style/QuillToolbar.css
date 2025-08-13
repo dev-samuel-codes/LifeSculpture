@@ -1,0 +1,163 @@
+/* src/style/QuillToolbar.css - 공통 툴바 스타일 */
+
+/* ===== Quill Toolbar 공통 스타일 ===== */
+.ql-toolbar {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: none;
+  border-bottom: 2px solid #dee2e6;
+  padding: 16px 20px;
+  position: relative;
+  z-index: 1;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  backdrop-filter: blur(10px);
+}
+
+/* ===== Quill 버튼 스타일 ===== */
+.ql-toolbar .ql-formats button {
+  color: #495057 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  margin: 2px;
+  padding: 6px 8px;
+}
+
+.ql-toolbar .ql-formats button:hover {
+  background: rgba(39, 70, 255, 0.1) !important;
+  color: #2746ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 70, 255, 0.2);
+}
+
+.ql-toolbar .ql-formats button.ql-active {
+  background: rgba(39, 70, 255, 0.15) !important;
+  color: #2746ff !important;
+  box-shadow: 0 2px 8px rgba(39, 70, 255, 0.25);
+}
+
+.ql-toolbar .ql-formats button svg {
+  filter: none;
+}
+
+/* ===== Quill 드롭다운 스타일 ===== */
+.ql-toolbar .ql-picker {
+  color: #495057 !important;
+  font-weight: 600;
+  margin: 2px;
+}
+
+.ql-toolbar .ql-picker-label {
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #ffffff;
+  color: #495057 !important;
+  transition: all 0.3s ease;
+}
+
+.ql-toolbar .ql-picker-label:hover {
+  background: rgba(39, 70, 255, 0.05);
+  border-color: #2746ff;
+  transform: translateY(-1px);
+}
+
+.ql-toolbar .ql-picker-options {
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  margin-top: 8px;
+}
+
+.ql-toolbar .ql-picker-options .ql-picker-item {
+  color: #333;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.ql-toolbar .ql-picker-options .ql-picker-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+
+
+/* ===== Quill 테이블 스타일 ===== */
+.ql-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.ql-editor table td,
+.ql-editor table th {
+  border: 1px solid #dee2e6;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.ql-editor table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* ===== Quill 에디터 이미지 스타일 ===== */
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* ===== Quill 에디터 높이 고정 및 스크롤 설정 ===== */
+.ql-container {
+  border: none !important;
+  height: 400px !important;
+  max-height: 400px !important;
+  font-size: 1rem;
+  overflow: hidden !important;
+  position: relative;
+  margin-top: 0;
+}
+
+.ql-editor {
+  padding: 14px 16px;
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  margin-top: 0;
+}
+
+/* ===== ReactQuill 높이 고정 강제 적용 ===== */
+.ql-container,
+.ql-editor,
+.ql-editor.ql-blank::before {
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow: hidden !important;
+}
+
+.ql-editor {
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  resize: none !important;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.ql-editor.ql-blank::before {
+  height: 400px !important;
+  max-height: 400px !important;
+}
+
+.ql-container.ql-snow {
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow: hidden !important;
+}
