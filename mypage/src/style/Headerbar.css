@@ -1,4 +1,4 @@
-/* ===== Profile Popup — clean & pretty only (with smooth animation) ===== */
+/* ===== Profile Popup — desktop (기존 유지) ===== */
 
 /* 프로필 이미지 */
 .profile-pic {
@@ -133,7 +133,7 @@
   border-color: #ffd6d6;
 }
 
-/* 구글 로그인 버튼 */
+/* 구글 로그인 버튼(공용) */
 .google-login-button {
   width: 100%;
   border-radius: 10px;
@@ -191,15 +191,14 @@
   height: 14px;
 }
 
-
-/* ===== Navbar Styles ===== */
+/* ===== Navbar ===== */
 .my-navbar {
   background-color: #ffffff;
   padding: 15px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
 }
 .Header-container {
@@ -216,14 +215,21 @@
   text-decoration: none;
   white-space: nowrap;
 }
+
+/* 햄버거 버튼 */
 .my-navbar-toggler {
-  padding: .25rem .75rem;
+  padding: .5rem .75rem;
   font-size: 1.25rem;
   background-color: transparent;
-  border: 1px solid rgba(0,0,0,.1);
-  border-radius: .25rem;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: .5rem;
   cursor: pointer;
-  display: none;
+  display: none; /* 기본: 데스크탑에서 숨김 */
+  line-height: 1;
+}
+.my-navbar-toggler:focus {
+  outline: 3px solid rgba(59,130,246,.35);
+  outline-offset: 2px;
 }
 .my-navbar-toggler-icon {
   display: inline-block;
@@ -232,17 +238,18 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100%;
-  background-image: url("data:image/svg+xml,%3csvg ... %3e");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0,0,0,0.7)' stroke-width='2' stroke-linecap='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
 }
+
+/* 접힘 영역 */
 .my-navbar-collapse {
   flex-basis: 100%;
   flex-grow: 1;
   align-items: center;
-  display: none;
+  display: none; /* 기본은 숨김 */
 }
-
 .my-navbar-collapse.show {
-    display: block;
+  display: block;
 }
 
 .my-navbar-nav {
@@ -253,10 +260,7 @@
   list-style: none;
   margin-left: auto;
 }
-
-.my-nav-item {
-  margin-bottom: 5px;
-}
+.my-nav-item { margin-bottom: 5px; }
 
 .my-nav-link {
   display: block;
@@ -264,27 +268,132 @@
   font-size: 20px;
   color: #555;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color 0.25s ease, transform 0.2s ease;
 }
 .my-nav-link:hover {
   color: #007bff;
+  transform: translateY(-1px);
 }
 
-/* ===== Responsive Styles ===== */
+/* 공용 표시 제어 */
+.mobile-only { display: none; }
+.desktop-only { display: block; }
 
+/* ===== Responsive: 모바일 ~ 태블릿 (991px 이하) ===== */
 @media (max-width: 991px) {
-    .my-navbar-toggler {
-        display: block;
-    }
-    .my-navbar-collapse {
-        width: 100%;
-        text-align: center;
-    }
-    .my-navbar-nav {
-        width: 100%;
-    }
+  /* 햄버거를 가장 오른쪽으로 */
+  .Header-container {
+    padding: 14px 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .my-navbar-brand { font-size: 28px; order: 1; }
+  .my-navbar-toggler {
+    display: inline-flex;
+    order: 3;
+    margin-left: auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+  }
+  .my-navbar-collapse { order: 4; width: 100%; }
+
+  /* 오버레이 */
+  .my-navbar-collapse.show {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 999;
+    padding: 80px 16px 24px;
+    animation: navbarOverlayFade .25s ease;
+  }
+  @keyframes navbarOverlayFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* 시트 카드 */
+  .my-navbar-collapse.show .my-navbar-nav {
+    margin: auto;
+    width: min(520px, 92vw);
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16), 0 4px 10px rgba(15, 23, 42, 0.08);
+    padding: 8px;
+    gap: 6px;
+    overflow: hidden;
+    transform: translateY(-8px);
+    opacity: 0;
+    animation: sheetIn .3s cubic-bezier(.22,.61,.36,1) .05s forwards;
+  }
+  @keyframes sheetIn {
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .my-navbar-nav .my-nav-item { margin: 0; }
+  .my-navbar-nav .my-nav-link {
+    font-size: 18px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    color: #0f172a;
+  }
+  .my-navbar-nav .my-nav-link:hover { background: #f7f9fc; color: #0b5ed7; }
+
+  /* 구분선 */
+  .my-navbar-nav > .my-nav-item + .my-nav-item {
+    border-top: 1px solid #f0f4f8;
+  }
+
+  /* 모바일 전용 프로필 카드 */
+  .mobile-only { display: block; }
+  .desktop-only { display: none !important; }
+
+  .mobile-profile-card {
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 12px;
+    padding: 14px;
+    margin: 6px 4px 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mobile-profile-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .mobile-profile-row .profile-pic {
+    width: 40px;
+    height: 40px;
+    margin-right: 0;
+  }
+  .mobile-profile-name {
+    margin: 0;
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 15px;
+  }
+  .mobile-profile-email {
+    margin: 2px 0 0 0;
+    color: #475569;
+    font-size: 13px;
+  }
+
+  /* 버튼 재사용 (공용 .profile-popup-btns, .btn 스타일 그대로) */
+  .mobile-profile-card .profile-popup-btns .btn {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
 }
 
+/* 데스크탑: 992px 이상 — 기존 동작 유지 */
 @media (min-width: 992px) {
   .my-navbar-toggler { display: none; }
   .my-navbar-collapse {
@@ -300,26 +409,12 @@
   .my-profile-nav-item { margin-left: 30px; }
 }
 
-/* 작은 화면 대응 */
-@media (max-width: 768px) {
-    .Header-container {
-        padding: 15px 20px;
-    }
-    .my-navbar-brand {
-        font-size: 28px;
-    }
-    .my-nav-link {
-        font-size: 18px;
-    }
-}
-
+/* 더 작은 화면 대응 */
 @media (max-width: 420px) {
   .profile-popup {
     min-width: 280px;
     max-width: calc(100vw - 24px);
     right: 12px;
   }
-  .profile-popup::before {
-    right: 22px;
-  }
+  .profile-popup::before { right: 22px; }
 }
