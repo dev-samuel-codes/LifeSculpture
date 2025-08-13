@@ -11,7 +11,9 @@ const Header = () => {
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const { isAuthenticated, role, userName, userEmail, userPicture, logout } = useContext(AuthContext);
 
-  const profileRef = useRef(null); // 🔹 프로필 팝업 영역 ref
+  const profileRef = useRef(null);
+  const navRef = useRef(null);
+  const togglerRef = useRef(null);
 
   const handleNavCollapse = () => setIsNavCollapsed(!isNavCollapsed);
   const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
@@ -19,12 +21,11 @@ const Header = () => {
   const handleLogout = () => {
     logout();
     setIsProfilePopupOpen(false);
-    setIsNavCollapsed(true); // 모바일 시트 닫기
+    setIsNavCollapsed(true);
   };
 
   const closeNav = () => setIsNavCollapsed(true);
 
-  // 🔹 바깥 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -38,21 +39,37 @@ const Header = () => {
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isProfilePopupOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        navRef.current && !navRef.current.contains(event.target) &&
+        togglerRef.current && !togglerRef.current.contains(event.target)
+      ) {
+        setIsNavCollapsed(true);
+      }
+    };
+
+    if (!isNavCollapsed) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isProfilePopupOpen]);
+  }, [isNavCollapsed]);
 
   return (
     <nav className="my-navbar">
       <div className="Header-container">
         <Link className="my-navbar-brand" to="/" onClick={closeNav}>LifeSculpture</Link>
 
-        {/* 모바일에서 항상 오른쪽 끝 */}
         <button
+          ref={togglerRef}
           className="my-navbar-toggler"
           type="button"
           onClick={handleNavCollapse}
@@ -64,7 +81,7 @@ const Header = () => {
         </button>
 
         <div className={`${isNavCollapsed ? '' : 'show'} my-navbar-collapse`} id="navbarNav">
-          <ul className="my-navbar-nav">
+          <ul ref={navRef} className="my-navbar-nav">
             <li className="my-nav-item">
               <Link className="my-nav-link" to="/study" onClick={closeNav}>Study</Link>
             </li>
@@ -72,11 +89,10 @@ const Header = () => {
               <Link className="my-nav-link" to="/blog" onClick={closeNav}>Blog</Link>
             </li>
 
-            {/* 데스크탑용 프로필 */}
             <li
               className="my-nav-item my-profile-nav-item desktop-only"
               style={{ position: 'relative' }}
-              ref={profileRef} // 🔹 ref 연결
+              ref={profileRef}
             >
               <span
                 className="my-nav-link"
@@ -122,7 +138,6 @@ const Header = () => {
               )}
             </li>
 
-            {/* 모바일 전용 프로필 카드 */}
             <li className="my-nav-item mobile-only">
               <div className="mobile-profile-card">
                 <div className="mobile-profile-row">
