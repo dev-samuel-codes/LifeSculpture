@@ -4,7 +4,7 @@ import GoogleLoginButton from './GoogleLoginButton';
 import { AuthContext } from '../context/AuthContext';
 import '../style/Headerbar.css';
 
-const DEFAULT_PROFILE_PIC = 'http://localhost:5000/assets/download.png';
+const DEFAULT_PROFILE_PIC = '/download.png';
 
 const Header = () => {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);

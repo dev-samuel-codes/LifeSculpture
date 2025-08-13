@@ -8,7 +8,7 @@ body {
 
 /* 홈 히어로 섹션 */
 .main-section1 {
-  background-image: url('http://localhost:5000/assets/MainBackgroundImage.png');
+  background-image: url('/MainBackgroundImage.png');
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -62,7 +62,7 @@ body {
 
 /* 홈 히어로 섹션 */
 .main-section1 {
-  background-image: url('http://localhost:5000/assets/MainBackgroundImage.png');
+  background-image: url('/MainBackgroundImage.png');
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
