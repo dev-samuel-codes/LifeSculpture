@@ -55,116 +55,122 @@
   background: #fff;
 }
 
+/* ===== 분리된 툴바와 에디터 영역 ===== */
+.writing-toolbar-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #e4e7ee;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  backdrop-filter: blur(10px);
+  margin-bottom: 0;
+}
+
+.writing-editor-container {
+  border: 1px solid #e4e7ee;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  background: #fff;
+  height: 400px;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+}
+
 /* ===== Quill editor wrapper ===== */
 .writing-editor {
-  border-radius: 12px;
-  border: 1px solid #e4e7ee;
-  overflow: hidden;               /* 내용이 넘치지 않도록 변경 */
-  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  border-radius: 0;
+  border: none;
+  overflow: hidden;
   background: #fff;
-  height: 400px;                  /* 고정 높이 */
+  height: 400px;
   position: relative;
 }
 
-/* Quill toolbar */
-.writing-editor .ql-toolbar {
-  background: #f6f7fb;
+/* Quill toolbar - 분리된 컨테이너에 적용 */
+.writing-toolbar-container .ql-toolbar {
+  background: transparent;
   border: none;
-  border-bottom: 1px solid #e4e7ee;
-  padding: 8px 10px;
-  position: sticky;
-  top: 0;
+  padding: 0;
+  position: relative;
   z-index: 10;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 /* Quill container & editor */
 .writing-editor .ql-container {
   border: none !important;
-  height: 400px !important;       /* 고정 높이 */
-  max-height: 400px !important;   /* 최대 높이 제한 */
+  height: 400px !important;
+  max-height: 400px !important;
   font-size: 1rem;
-  overflow: hidden !important;    /* 오버플로우 숨김 */
+  overflow: hidden !important;
   position: relative;
 }
 
 .writing-editor .ql-editor {
   padding: 14px 16px;
-  height: 400px !important;       /* 고정 높이 */
-  max-height: 400px !important;   /* 최대 높이 제한 */
-  overflow-y: auto !important;    /* 세로 스크롤바 표시 */
-  overflow-x: hidden !important;  /* 가로 스크롤바 숨김 */
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 /* Quill buttons hover focus */
-.writing-editor .ql-toolbar .ql-formats button {
-  color: rgba(255,255,255,0.9) !important;
+.writing-toolbar-container .ql-toolbar .ql-formats button {
+  color: #495057 !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 8px;
   margin: 2px;
   padding: 6px 8px;
 }
 
-.writing-editor .ql-toolbar .ql-formats button:hover {
-  background: rgba(255,255,255,0.2) !important;
-  color: #ffffff !important;
+.writing-toolbar-container .ql-toolbar .ql-formats button:hover {
+  background: rgba(0,0,0,0.08) !important;
+  color: #212529 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.writing-editor .ql-toolbar .ql-formats button.ql-active {
-  background: rgba(255,255,255,0.25) !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(255,255,255,0.4);
+.writing-toolbar-container .ql-toolbar .ql-formats button.ql-active {
+  background: rgba(0,0,0,0.12) !important;
+  color: #000000 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-.writing-editor .ql-toolbar .ql-formats button svg {
-  filter: brightness(0) invert(1);
-}
-
-/* Quill toolbar 개선된 스타일 */
-.writing-editor .ql-toolbar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-bottom: 2px solid rgba(255,255,255,0.2);
-  padding: 16px 20px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-  backdrop-filter: blur(10px);
+.writing-toolbar-container .ql-toolbar .ql-formats button svg {
+  filter: none;
 }
 
 /* Quill 버튼 그룹 간격 조정 */
-.writing-editor .ql-toolbar .ql-formats {
+.writing-toolbar-container .ql-toolbar .ql-formats {
   margin-right: 15px;
 }
 
 /* Quill 드롭다운 스타일 */
-.writing-editor .ql-toolbar .ql-picker {
-  color: rgba(255,255,255,0.9) !important;
+.writing-toolbar-container .ql-toolbar .ql-picker {
+  color: #495057 !important;
   font-weight: 600;
   margin: 2px;
 }
 
-.writing-editor .ql-toolbar .ql-picker-label {
-  border: 1px solid rgba(255,255,255,0.3);
+.writing-toolbar-container .ql-toolbar .ql-picker-label {
+  border: 1px solid rgba(0,0,0,0.15);
   border-radius: 8px;
   padding: 6px 10px;
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.9) !important;
+  background: rgba(255,255,255,0.8);
+  color: #495057 !important;
   transition: all 0.3s ease;
 }
 
-.writing-editor .ql-toolbar .ql-picker-label:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.5);
+.writing-toolbar-container .ql-toolbar .ql-picker-label:hover {
+  background: rgba(255,255,255,1);
+  border-color: rgba(0,0,0,0.25);
   transform: translateY(-1px);
 }
 
-.writing-editor .ql-toolbar .ql-picker-options {
+.writing-toolbar-container .ql-toolbar .ql-picker-options {
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
@@ -173,20 +179,20 @@
   margin-top: 8px;
 }
 
-.writing-editor .ql-toolbar .ql-picker-options .ql-picker-item {
+.writing-toolbar-container .ql-toolbar .ql-picker-options .ql-picker-item {
   color: #333;
   padding: 8px 12px;
   transition: all 0.2s ease;
 }
 
-.writing-editor .ql-toolbar .ql-picker-options .ql-picker-item:hover {
+.writing-toolbar-container .ql-toolbar .ql-picker-options .ql-picker-item:hover {
   background: rgba(102, 126, 234, 0.1);
   color: #667eea;
 }
 
 /* Quill 색상 선택기 스타일 */
-.writing-editor .ql-color .ql-picker-options,
-.writing-editor .ql-background .ql-picker-options {
+.writing-toolbar-container .ql-color .ql-picker-options,
+.writing-toolbar-container .ql-background .ql-picker-options {
   width: 200px;
   padding: 12px;
   display: grid;
@@ -194,8 +200,8 @@
   gap: 4px;
 }
 
-.writing-editor .ql-color .ql-picker-options .ql-picker-item,
-.writing-editor .ql-background .ql-picker-options .ql-picker-item {
+.writing-toolbar-container .ql-color .ql-picker-options .ql-picker-item,
+.writing-toolbar-container .ql-background .ql-picker-options .ql-picker-item {
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -204,8 +210,8 @@
   cursor: pointer;
 }
 
-.writing-editor .ql-color .ql-picker-options .ql-picker-item:hover,
-.writing-editor .ql-background .ql-picker-options .ql-picker-item:hover {
+.writing-toolbar-container .ql-color .ql-picker-options .ql-picker-item:hover,
+.writing-toolbar-container .ql-background .ql-picker-options .ql-picker-item:hover {
   transform: scale(1.2);
   border-color: rgba(255,255,255,0.8);
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -256,15 +262,15 @@
 }
 
 /* ===== Misc ===== */
-.settings-row { gap: 1rem; } /* 좌측 메뉴와 콘텐츠 카드 사이 여백 */
+.settings-row { gap: 1rem; }
 
 /* Quill 에디터 안 이미지 크기 조절 - 가로·세로 제한, 비율 유지 */
 .ql-editor img {
-  max-width: 100%;    /* 최대 가로폭 */
-  height: auto;        /* 세로 크기 자동 (비율 유지) */
-  display: block;      /* 한 줄 차지 */
-  margin: 10px auto;   /* 중앙 정렬 + 여백 */
-  object-fit: contain; /* 비율 유지하며 잘림 없이 맞춤 */
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px auto;
+  object-fit: contain;
 }
 
 /* ReactQuill 높이 고정 및 스크롤 설정 - 강제 적용 */

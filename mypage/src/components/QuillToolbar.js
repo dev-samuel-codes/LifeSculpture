@@ -3,6 +3,7 @@ import { useMemo, useCallback } from 'react';
 import { getAuth } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase/firebase';
+import 'katex/dist/katex.min.css';
 
 // 이미지 업로드 함수 (Hook이 아닌 일반 함수)
 export const handleImageUpload = async (file) => {
@@ -107,26 +108,69 @@ export const useTableHandler = () => {
   }, []);
 };
 
-// Quill 모듈 설정
+// 네이버 블로그 수준의 고급 툴바 설정
 export const useQuillModules = (imageHandler, tableHandler) => {
   return useMemo(
     () => ({
-      toolbar: {
-        container: [
-          [{ header: [1, 2, 3, 4, 5, 6, false] }],
-          [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ script: 'sub' }, { script: 'super' }],
-          ['blockquote', 'code-block'],
-          [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-          [{ direction: 'rtl' }, { align: [] }],
-          ['link', 'image', 'video'],
-          ['clean'],
-        ],
-        handlers: { image: imageHandler, table: tableHandler },
+      toolbar: [
+        // 1행: 제목 스타일, 폰트, 크기
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', '맑은 고딕', '나눔고딕', '나눔바른고딕'] }],
+        [{ 'size': ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'] }],
+        
+        // 2행: 텍스트 스타일
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'script': 'sub' }, { 'script': 'super' }],
+        
+        // 3행: 문단 스타일
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+        [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
+        
+        // 4행: 미디어 및 고급 기능
+        ['link', 'image', 'video', 'table'],
+        ['emoji'],
+        
+        // 5행: 특수 기능
+        ['clean', 'undo', 'redo'],
+      ],
+      handlers: { 
+        image: imageHandler, 
+        table: tableHandler,
+        emoji: () => {
+          // 이모지 선택기 구현
+          const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊', '💌', '💘', '💝', '💖', '💗', '💙', '💚', '🧡', '💛', '💜', '🖤', '💟', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔'];
+          const emoji = prompt('이모지를 입력하거나 선택하세요:', emojis.slice(0, 20).join(' '));
+          if (emoji) {
+            const editor = window.quillEditor;
+            if (editor) {
+              const range = editor.getSelection(true) || { index: editor.getLength() };
+              editor.insertText(range.index, emoji, 'user');
+              editor.setSelection(range.index + emoji.length, 0);
+            }
+          }
+        }
       },
-      clipboard: { matchVisual: false },
-      table: true,
+      clipboard: { 
+        matchVisual: false,
+        matchers: [
+          ['table', (node, delta) => {
+            // 테이블 붙여넣기 지원
+            return delta;
+          }]
+        ]
+      },
+      table: {
+        operation: {
+          insertRowAbove: true,
+          insertRowBelow: true,
+          insertColumnLeft: true,
+          insertColumnRight: true,
+          deleteRow: true,
+          deleteColumn: true,
+          deleteTable: true,
+        }
+      },
       keyboard: {
         bindings: {
           tab: {
@@ -134,15 +178,41 @@ export const useQuillModules = (imageHandler, tableHandler) => {
             handler: function() {
               return true;
             }
+          },
+          'ctrl+b': {
+            key: 66,
+            ctrlKey: true,
+            handler: function(range, context) {
+              this.quill.format('bold', !this.quill.getFormat(range).bold);
+            }
+          },
+          'ctrl+i': {
+            key: 73,
+            ctrlKey: true,
+            handler: function(range, context) {
+              this.quill.format('italic', !this.quill.getFormat(range).italic);
+            }
+          },
+          'ctrl+u': {
+            key: 85,
+            ctrlKey: true,
+            handler: function(range, context) {
+              this.quill.format('underline', !this.quill.getFormat(range).underline);
+            }
           }
         }
       },
+      history: {
+        delay: 1000,
+        maxStack: 500,
+        userOnly: true
+      }
     }),
     [imageHandler, tableHandler]
   );
 };
 
-// Quill 포맷 설정
+// 확장된 Quill 포맷 설정
 export const quillFormats = [
   'header', 'font', 'size',
   'bold', 'italic', 'underline', 'strike',
@@ -152,6 +222,8 @@ export const quillFormats = [
   'direction', 'align',
   'link', 'image', 'video',
   'table', 'tableHeader', 'tableCell',
+  'emoji', 'formula',
+  'code', 'pre'
 ];
 
 // 툴바 설정을 위한 커스텀 훅

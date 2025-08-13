@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import 'katex/dist/katex.min.css';
 import { useQuillToolbar, handleImageUpload } from './QuillToolbar';
 import '../style/EditPost.css';
 import '../style/QuillToolbar.css';
@@ -18,6 +19,8 @@ function EditPost() {
   const [content, setContent] = useState(''); // HTML string
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showFormulaModal, setShowFormulaModal] = useState(false);
+  const [formulaInput, setFormulaInput] = useState('');
 
   const quillRef = useRef(null);
 
@@ -90,17 +93,80 @@ function EditPost() {
     editor.setSelection(range.index + 1, 0);
   };
 
+  // 커스텀 이모지 핸들러
+  const customEmojiHandler = () => {
+    const editor = quillRef.current?.getEditor?.();
+    if (!editor) {
+      console.error('[QUILL] editor not ready');
+      return;
+    }
+
+    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊', '💌', '💘', '💝', '💖', '💗', '💙', '💚', '🧡', '💛', '💜', '🖤', '💟', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔'];
+    const emoji = prompt('이모지를 입력하거나 선택하세요:', emojis.slice(0, 20).join(' '));
+    if (emoji) {
+      const range = editor.getSelection(true) || { index: editor.getLength() };
+      editor.insertText(range.index, emoji, 'user');
+      editor.setSelection(range.index + emoji.length, 0);
+    }
+  };
+
   // 커스텀 핸들러로 모듈 업데이트
   const modules = {
     ...baseModules,
-    toolbar: {
-      ...baseModules.toolbar,
-      handlers: { 
-        image: customImageHandler, 
-        table: customTableHandler 
+    toolbar: [
+      // 1행: 제목 스타일, 폰트, 크기
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      [{ 'font': ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', '맑은 고딕', '나눔고딕', '나눔바른고딕'] }],
+      [{ 'size': ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'] }],
+      
+      // 2행: 텍스트 스타일
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'script': 'sub' }, { 'script': 'super' }],
+      
+      // 3행: 문단 스타일
+      ['blockquote', 'code-block'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+      [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
+      
+      // 4행: 미디어 및 고급 기능
+      ['link', 'image', 'video', 'table'],
+      ['emoji', 'formula'],
+      
+      // 5행: 특수 기능
+      ['clean', 'undo', 'redo'],
+    ],
+    handlers: { 
+      image: customImageHandler, 
+      table: customTableHandler,
+      emoji: customEmojiHandler,
+      formula: () => {
+        setFormulaInput('');
+        setShowFormulaModal(true);
+      }
+    },
+    formula: {
+      // KaTeX를 사용한 Formula 모듈 설정
+      library: 'katex',
+      katex: {
+        throwOnError: false,
+        errorColor: '#cc0000'
       }
     }
   };
+
+  // 에디터가 준비되면 전역 참조 설정
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (quillRef.current) {
+        const editor = quillRef.current.getEditor();
+        if (editor) {
+          window.quillEditor = editor;
+        }
+      }
+    }, 100); // 100ms 지연으로 에디터 초기화 완료 대기
+
+    return () => clearTimeout(timer);
+  }, []); // 빈 의존성 배열로 수정
 
   // ====== Submit update ======
   const handleSubmit = async (e) => {
@@ -181,6 +247,69 @@ function EditPost() {
           </div>
         </form>
       </div>
+
+      {/* 수식 입력 모달 */}
+      {showFormulaModal && (
+        <div className="formula-modal-overlay">
+          <div className="formula-modal">
+            <div className="formula-modal-header">
+              <h5>수식 입력</h5>
+            </div>
+            <div className="formula-modal-body">
+              <label htmlFor="formulaInput" className="formula-label">Enter formula:</label>
+              <input
+                type="text"
+                id="formulaInput"
+                className="formula-input"
+                value={formulaInput}
+                onChange={(e) => setFormulaInput(e.target.value)}
+                placeholder="e=mc^2"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const editor = quillRef.current?.getEditor?.();
+                    if (editor) {
+                      const range = editor.getSelection(true) || { index: editor.getLength() };
+                      editor.insertText(range.index, `$${formulaInput.trim()}$`, 'user');
+                      editor.setSelection(range.index + formulaInput.trim().length + 2, 0);
+                    }
+                    setShowFormulaModal(false);
+                    setFormulaInput('');
+                  }
+                }}
+              />
+            </div>
+            <div className="formula-modal-footer">
+              <button 
+                type="button" 
+                className="btn btn-secondary me-2"
+                onClick={() => {
+                  setShowFormulaModal(false);
+                  setFormulaInput('');
+                }}
+              >
+                취소
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-primary"
+                onClick={() => {
+                  const editor = quillRef.current?.getEditor?.();
+                  if (editor) {
+                    const range = editor.getSelection(true) || { index: editor.getLength() };
+                    editor.insertText(range.index, `$${formulaInput.trim()}$`, 'user');
+                    editor.setSelection(range.index + formulaInput.trim().length + 2, 0);
+                  }
+                  setShowFormulaModal(false);
+                  setFormulaInput('');
+                }}
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

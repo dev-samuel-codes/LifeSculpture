@@ -1,163 +1,182 @@
-/* src/style/QuillToolbar.css - 공통 툴바 스타일 */
-
-/* ===== Quill Toolbar 공통 스타일 ===== */
-.ql-toolbar {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: none;
-  border-bottom: 2px solid #dee2e6;
-  padding: 16px 20px;
-  position: relative;
-  z-index: 1;
+/* =========================
+   Toolbar / Editor Shell
+   ========================= */
+.ql-toolbar.ql-snow {
+  border: 1px solid #e5e7eb;
   border-radius: 12px 12px 0 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  backdrop-filter: blur(10px);
-}
-
-/* ===== Quill 버튼 스타일 ===== */
-.ql-toolbar .ql-formats button {
-  color: #495057 !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 8px;
-  margin: 2px;
-  padding: 6px 8px;
-}
-
-.ql-toolbar .ql-formats button:hover {
-  background: rgba(39, 70, 255, 0.1) !important;
-  color: #2746ff !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(39, 70, 255, 0.2);
-}
-
-.ql-toolbar .ql-formats button.ql-active {
-  background: rgba(39, 70, 255, 0.15) !important;
-  color: #2746ff !important;
-  box-shadow: 0 2px 8px rgba(39, 70, 255, 0.25);
-}
-
-.ql-toolbar .ql-formats button svg {
-  filter: none;
-}
-
-/* ===== Quill 드롭다운 스타일 ===== */
-.ql-toolbar .ql-picker {
-  color: #495057 !important;
-  font-weight: 600;
-  margin: 2px;
-}
-
-.ql-toolbar .ql-picker-label {
-  border: 1px solid #ced4da;
-  border-radius: 8px;
-  padding: 6px 10px;
   background: #ffffff;
-  color: #495057 !important;
-  transition: all 0.3s ease;
 }
-
-.ql-toolbar .ql-picker-label:hover {
-  background: rgba(39, 70, 255, 0.05);
-  border-color: #2746ff;
-  transform: translateY(-1px);
-}
-
-.ql-toolbar .ql-picker-options {
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(20px);
-  margin-top: 8px;
-}
-
-.ql-toolbar .ql-picker-options .ql-picker-item {
-  color: #333;
-  padding: 8px 12px;
-  transition: all 0.2s ease;
-}
-
-.ql-toolbar .ql-picker-options .ql-picker-item:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-}
-
-
-
-/* ===== Quill 테이블 스타일 ===== */
-.ql-editor table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 16px 0;
-}
-
-.ql-editor table td,
-.ql-editor table th {
-  border: 1px solid #dee2e6;
-  padding: 8px 12px;
-  text-align: left;
-}
-
-.ql-editor table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
-
-/* ===== Quill 에디터 이미지 스타일 ===== */
-.ql-editor img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 10px auto;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-/* ===== Quill 에디터 높이 고정 및 스크롤 설정 ===== */
-.ql-container {
-  border: none !important;
-  height: 400px !important;
-  max-height: 400px !important;
-  font-size: 1rem;
-  overflow: hidden !important;
-  position: relative;
-  margin-top: 0;
-}
-
-.ql-editor {
-  padding: 14px 16px;
-  height: 400px !important;
-  max-height: 400px !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  margin-top: 0;
-}
-
-/* ===== ReactQuill 높이 고정 강제 적용 ===== */
-.ql-container,
-.ql-editor,
-.ql-editor.ql-blank::before {
-  height: 400px !important;
-  max-height: 400px !important;
-  overflow: hidden !important;
-}
-
-.ql-editor {
-  height: 400px !important;
-  max-height: 400px !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  resize: none !important;
-  padding-top: 0;
-  margin-top: 0;
-}
-
-.ql-editor.ql-blank::before {
-  height: 400px !important;
-  max-height: 400px !important;
-}
-
 .ql-container.ql-snow {
-  height: 400px !important;
-  max-height: 400px !important;
-  overflow: hidden !important;
+  border: 1px solid #e5e7eb;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
 }
+.ql-toolbar.ql-snow .ql-formats { margin-right: 12px; }
+.ql-snow .ql-picker { height: 34px; }
+.ql-snow .ql-picker-label { display: flex; align-items: center; padding: 0 10px; }
+.ql-snow .ql-picker-options { border-radius: 10px; }
+
+/* =========================
+   Font labels & apply
+   ========================= */
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before { content: "Arial"; font-family: Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before { content: "Times New Roman"; font-family: "Times New Roman", serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Courier New"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Courier New"]::before { content: "Courier New"; font-family: "Courier New", monospace; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before { content: "Georgia"; font-family: Georgia, serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before { content: "Verdana"; font-family: Verdana, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="맑은 고딕"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="맑은 고딕"]::before { content: "맑은 고딕"; font-family: "Malgun Gothic","맑은 고딕", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="나눔고딕"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="나눔고딕"]::before { content: "나눔고딕"; font-family: "Nanum Gothic","나눔고딕", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="나눔바른고딕"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="나눔바른고딕"]::before { content: "나눔바른고딕"; font-family: "NanumBarunGothic","나눔바른고딕", sans-serif; }
+
+/* 본문 적용 */
+.ql-editor .ql-font-Arial { font-family: Arial, sans-serif; }
+.ql-editor .ql-font-Times\ New\ Roman { font-family: "Times New Roman", serif; }
+.ql-editor .ql-font-Courier\ New { font-family: "Courier New", monospace; }
+.ql-editor .ql-font-Georgia { font-family: Georgia, serif; }
+.ql-editor .ql-font-Verdana { font-family: Verdana, sans-serif; }
+.ql-editor .ql-font-맑은\ 고딕 { font-family: "Malgun Gothic","맑은 고딕", sans-serif; }
+.ql-editor .ql-font-나눔고딕 { font-family: "Nanum Gothic","나눔고딕", sans-serif; }
+.ql-editor .ql-font-나눔바른고딕 { font-family: "NanumBarunGothic","나눔바른고딕", sans-serif; }
+
+/* =========================
+   Size labels & apply
+   ========================= */
+:root {
+  --ql-size-8: "8"; --ql-size-9: "9"; --ql-size-10: "10"; --ql-size-11: "11"; --ql-size-12: "12";
+  --ql-size-14: "14"; --ql-size-16: "16"; --ql-size-18: "18"; --ql-size-20: "20"; --ql-size-22: "22";
+  --ql-size-24: "24"; --ql-size-26: "26"; --ql-size-28: "28"; --ql-size-36: "36"; --ql-size-48: "48"; --ql-size-72: "72";
+}
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="8"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="8"]::before { content: var(--ql-size-8); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="9"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="9"]::before { content: var(--ql-size-9); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="10"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="10"]::before { content: var(--ql-size-10); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="11"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="11"]::before { content: var(--ql-size-11); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12"]::before { content: var(--ql-size-12); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="14"]::before { content: var(--ql-size-14); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="16"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="16"]::before { content: var(--ql-size-16); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="18"]::before { content: var(--ql-size-18); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20"]::before { content: var(--ql-size-20); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="22"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="22"]::before { content: var(--ql-size-22); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="24"]::before { content: var(--ql-size-24); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="26"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="26"]::before { content: var(--ql-size-26); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28"]::before { content: var(--ql-size-28); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="36"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="36"]::before { content: var(--ql-size-36); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="48"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="48"]::before { content: var(--ql-size-48); }
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="72"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="72"]::before { content: var(--ql-size-72); }
+
+.ql-editor .ql-size-8  { font-size: 8px;  }
+.ql-editor .ql-size-9  { font-size: 9px;  }
+.ql-editor .ql-size-10 { font-size: 10px; }
+.ql-editor .ql-size-11 { font-size: 11px; }
+.ql-editor .ql-size-12 { font-size: 12px; }
+.ql-editor .ql-size-14 { font-size: 14px; }
+.ql-editor .ql-size-16 { font-size: 16px; }
+.ql-editor .ql-size-18 { font-size: 18px; }
+.ql-editor .ql-size-20 { font-size: 20px; }
+.ql-editor .ql-size-22 { font-size: 22px; }
+.ql-editor .ql-size-24 { font-size: 24px; }
+.ql-editor .ql-size-26 { font-size: 26px; }
+.ql-editor .ql-size-28 { font-size: 28px; }
+.ql-editor .ql-size-36 { font-size: 36px; }
+.ql-editor .ql-size-48 { font-size: 48px; }
+.ql-editor .ql-size-72 { font-size: 72px; }
+
+/* =========================
+   Formula tooltip – JS가 배치한 좌표를 그대로 사용
+   ========================= */
+.ql-snow .ql-tooltip {
+  position: absolute;         /* container(.ql-container) 기준 */
+  transform: none !important; /* 예전 translate 제거 */
+  opacity: 1;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
+  white-space: nowrap;
+}
+.ql-snow .ql-tooltip::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: calc(50% - 6px); /* 중앙 화살표 */
+  width: 12px; height: 12px;
+  background: #fff;
+  border-left: 1px solid #e5e7eb;
+  border-top: 1px solid #e5e7eb;
+  transform: rotate(45deg);
+}
+.ql-snow .ql-tooltip:before {
+  content: "Enter formula:";
+  font-size: 14px;
+  color: #6b7280;
+  margin-right: 6px;
+}
+.ql-snow .ql-tooltip input {
+  width: clamp(220px, 28vw, 340px);
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.ql-snow .ql-tooltip input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.2);
+}
+.ql-snow .ql-tooltip a.ql-action,
+.ql-snow .ql-tooltip a.ql-remove {
+  min-width: 68px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform .05s ease;
+}
+.ql-snow .ql-tooltip a.ql-action { background: #4f46e5; color: #fff; }
+.ql-snow .ql-tooltip a.ql-remove { background: #f3f4f6; color: #374151; }
+.ql-snow .ql-tooltip a:hover { transform: translateY(-1px); }
+.ql-snow .ql-tooltip a:active { transform: translateY(0); }

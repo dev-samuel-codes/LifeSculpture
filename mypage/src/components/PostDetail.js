@@ -85,7 +85,7 @@ function PostDetail() {
     setSelectedImage(null);
   }, []);
 
-  // 게시물 내용의 이미지에 클릭 이벤트 추가
+  // 게시물 내용의 이미지에 클릭 이벤트 추가 및 고급 스타일링
   useEffect(() => {
     if (post && post.content) {
       const contentElement = document.querySelector('.post-content');
@@ -109,6 +109,106 @@ function PostDetail() {
           img.style.maxWidth = '60%';
           img.style.height = 'auto';
           img.style.borderRadius = '8px';
+          img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+          img.style.transition = 'transform 0.2s ease';
+          
+          // 호버 효과 추가
+          img.addEventListener('mouseenter', () => {
+            img.style.transform = 'scale(1.02)';
+          });
+          img.addEventListener('mouseleave', () => {
+            img.style.transform = 'scale(1)';
+          });
+        });
+
+        // 테이블 스타일링
+        const tables = contentElement.querySelectorAll('table');
+        tables.forEach(table => {
+          table.style.width = '100%';
+          table.style.borderCollapse = 'collapse';
+          table.style.margin = '1rem 0';
+          table.style.border = '1px solid #ddd';
+          
+          // 테이블 셀 스타일링
+          const cells = table.querySelectorAll('td, th');
+          cells.forEach(cell => {
+            cell.style.padding = '8px 12px';
+            cell.style.border = '1px solid #ddd';
+            cell.style.textAlign = 'left';
+          });
+          
+          // 테이블 헤더 스타일링
+          const headers = table.querySelectorAll('th');
+          headers.forEach(header => {
+            header.style.backgroundColor = '#f8f9fa';
+            header.style.fontWeight = 'bold';
+          });
+        });
+
+        // 코드 블록 스타일링
+        const codeBlocks = contentElement.querySelectorAll('pre, code');
+        codeBlocks.forEach(code => {
+          if (code.tagName === 'PRE') {
+            code.style.backgroundColor = '#f8f9fa';
+            code.style.border = '1px solid #e9ecef';
+            code.style.borderRadius = '4px';
+            code.style.padding = '1rem';
+            code.style.overflowX = 'auto';
+            code.style.fontFamily = 'Consolas, Monaco, "Courier New", monospace';
+            code.style.fontSize = '14px';
+            code.style.lineHeight = '1.5';
+          } else {
+            code.style.backgroundColor = '#f8f9fa';
+            code.style.padding = '2px 4px';
+            code.style.borderRadius = '3px';
+            code.style.fontFamily = 'Consolas, Monaco, "Courier New", monospace';
+            code.style.fontSize = '0.9em';
+          }
+        });
+
+        // 인용구 스타일링
+        const blockquotes = contentElement.querySelectorAll('blockquote');
+        blockquotes.forEach(quote => {
+          quote.style.borderLeft = '4px solid #007bff';
+          quote.style.paddingLeft = '1rem';
+          quote.style.margin = '1rem 0';
+          quote.style.fontStyle = 'italic';
+          quote.style.color = '#6c757d';
+          quote.style.backgroundColor = '#f8f9fa';
+          quote.style.padding = '1rem';
+          quote.style.borderRadius = '4px';
+        });
+
+        // 수식 스타일링 (LaTeX 스타일)
+        const formulas = contentElement.querySelectorAll('*');
+        formulas.forEach(element => {
+          if (element.textContent && element.textContent.includes('$')) {
+            element.style.fontFamily = 'Georgia, serif';
+            element.style.fontStyle = 'italic';
+          }
+        });
+
+        // 리스트 스타일링
+        const lists = contentElement.querySelectorAll('ul, ol');
+        lists.forEach(list => {
+          list.style.paddingLeft = '2rem';
+          list.style.margin = '1rem 0';
+        });
+
+        // 링크 스타일링
+        const links = contentElement.querySelectorAll('a');
+        links.forEach(link => {
+          link.style.color = '#007bff';
+          link.style.textDecoration = 'none';
+          link.style.borderBottom = '1px solid transparent';
+          link.style.transition = 'border-bottom-color 0.2s ease';
+          
+          link.addEventListener('mouseenter', () => {
+            link.style.borderBottomColor = '#007bff';
+          });
+          link.addEventListener('mouseleave', () => {
+            link.style.borderBottomColor = 'transparent';
+          });
         });
         
         // 클린업 함수
@@ -159,7 +259,7 @@ function PostDetail() {
     // 한국 표준(yyyy. MM. dd.) 대신 고정형식 YYYY-MM-DD 원하시면 아래로 사용
     // return date.toISOString().slice(0, 10);
 
-    // “날짜까지만” + 로캘: ko-KR (예: 2025. 8. 12.)
+    // "날짜까지만" + 로캘: ko-KR (예: 2025. 8. 12.)
     // 필요시 위의 ISO 형식 주석 해제해 사용하세요.
     return new Intl.DateTimeFormat('ko-KR', {
       year: 'numeric',
@@ -209,7 +309,7 @@ function PostDetail() {
         <span>Views: {post.viewCount}</span>
       </div>
 
-      {/* 서버에서 전달된 HTML을 렌더링 (기존 기능 유지) */}
+      {/* 서버에서 전달된 HTML을 렌더링 (고급 스타일링 적용) */}
       <section
         className="post-content"
         dangerouslySetInnerHTML={{ __html: post.content }}

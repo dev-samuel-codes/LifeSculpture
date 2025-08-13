@@ -1,5 +1,5 @@
 // src/components/SettingsWriting.js
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../firebase/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -65,17 +65,85 @@ function SettingsWriting() {
     editor.setSelection(range.index + 1, 0);
   };
 
+  // 커스텀 이모지 핸들러
+  const customEmojiHandler = () => {
+    const editor = quillRef.current?.getEditor?.();
+    if (!editor) {
+      console.error('[QUILL] editor not ready');
+      return;
+    }
+
+    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊', '💌', '💘', '💝', '💖', '💗', '💙', '💚', '🧡', '💛', '💜', '🖤', '💟', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔'];
+    const emoji = prompt('이모지를 입력하거나 선택하세요:', emojis.slice(0, 20).join(' '));
+    if (emoji) {
+      const range = editor.getSelection(true) || { index: editor.getLength() };
+      editor.insertText(range.index, emoji, 'user');
+      editor.setSelection(range.index + emoji.length, 0);
+    }
+  };
+
+  // 커스텀 수식 핸들러
+  const customFormulaHandler = () => {
+    const editor = quillRef.current?.getEditor?.();
+    if (!editor) {
+      console.error('[QUILL] editor not ready');
+      return;
+    }
+
+    const formula = prompt('수식을 입력하세요 (예: x^2 + y^2 = z^2):');
+    if (formula) {
+      const range = editor.getSelection(true) || { index: editor.getLength() };
+      editor.insertText(range.index, `$${formula}$`, 'user');
+      editor.setSelection(range.index + formula.length + 2, 0);
+    }
+  };
+
   // 커스텀 핸들러로 모듈 업데이트
   const modules = {
     ...baseModules,
-    toolbar: {
-      ...baseModules.toolbar,
-      handlers: { 
-        image: customImageHandler, 
-        table: customTableHandler 
-      }
+    toolbar: [
+      // 1행: 제목 스타일, 폰트, 크기
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      [{ 'font': ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', '맑은 고딕', '나눔고딕', '나눔바른고딕'] }],
+      [{ 'size': ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'] }],
+      
+      // 2행: 텍스트 스타일
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'script': 'sub' }, { 'script': 'super' }],
+      
+      // 3행: 문단 스타일
+      ['blockquote', 'code-block'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+      [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
+      
+      // 4행: 미디어 및 고급 기능
+      ['link', 'image', 'video', 'table'],
+      ['emoji', 'formula'],
+      
+      // 5행: 특수 기능
+      ['clean', 'undo', 'redo'],
+    ],
+    handlers: { 
+      image: customImageHandler, 
+      table: customTableHandler,
+      emoji: customEmojiHandler,
+      formula: customFormulaHandler
     }
   };
+
+  // 에디터가 준비되면 전역 참조 설정
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (quillRef.current) {
+        const editor = quillRef.current.getEditor();
+        if (editor) {
+          window.quillEditor = editor;
+        }
+      }
+    }, 100); // 100ms 지연으로 에디터 초기화 완료 대기
+
+    return () => clearTimeout(timer);
+  }, []); // 빈 의존성 배열로 수정
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -158,7 +226,7 @@ function SettingsWriting() {
 
             <div className="mb-3">
               <label htmlFor="contentInput" className="form-label writing-label">Content</label>
-              <div className="writing-editor" id="contentInput">
+              <div className="writing-editor-container">
                 <ReactQuill
                   ref={quillRef}
                   className="writing-quill"
