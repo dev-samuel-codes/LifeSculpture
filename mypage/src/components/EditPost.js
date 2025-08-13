@@ -19,8 +19,6 @@ function EditPost() {
   const [content, setContent] = useState(''); // HTML string
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showFormulaModal, setShowFormulaModal] = useState(false);
-  const [formulaInput, setFormulaInput] = useState('');
 
   const quillRef = useRef(null);
 
@@ -130,7 +128,7 @@ function EditPost() {
       
       // 4행: 미디어 및 고급 기능
       ['link', 'image', 'video', 'table'],
-      ['emoji', 'formula'],
+      ['emoji'],
       
       // 5행: 특수 기능
       ['clean', 'undo', 'redo'],
@@ -138,19 +136,7 @@ function EditPost() {
     handlers: { 
       image: customImageHandler, 
       table: customTableHandler,
-      emoji: customEmojiHandler,
-      formula: () => {
-        setFormulaInput('');
-        setShowFormulaModal(true);
-      }
-    },
-    formula: {
-      // KaTeX를 사용한 Formula 모듈 설정
-      library: 'katex',
-      katex: {
-        throwOnError: false,
-        errorColor: '#cc0000'
-      }
+      emoji: customEmojiHandler
     }
   };
 
@@ -247,69 +233,6 @@ function EditPost() {
           </div>
         </form>
       </div>
-
-      {/* 수식 입력 모달 */}
-      {showFormulaModal && (
-        <div className="formula-modal-overlay">
-          <div className="formula-modal">
-            <div className="formula-modal-header">
-              <h5>수식 입력</h5>
-            </div>
-            <div className="formula-modal-body">
-              <label htmlFor="formulaInput" className="formula-label">Enter formula:</label>
-              <input
-                type="text"
-                id="formulaInput"
-                className="formula-input"
-                value={formulaInput}
-                onChange={(e) => setFormulaInput(e.target.value)}
-                placeholder="e=mc^2"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const editor = quillRef.current?.getEditor?.();
-                    if (editor) {
-                      const range = editor.getSelection(true) || { index: editor.getLength() };
-                      editor.insertText(range.index, `$${formulaInput.trim()}$`, 'user');
-                      editor.setSelection(range.index + formulaInput.trim().length + 2, 0);
-                    }
-                    setShowFormulaModal(false);
-                    setFormulaInput('');
-                  }
-                }}
-              />
-            </div>
-            <div className="formula-modal-footer">
-              <button 
-                type="button" 
-                className="btn btn-secondary me-2"
-                onClick={() => {
-                  setShowFormulaModal(false);
-                  setFormulaInput('');
-                }}
-              >
-                취소
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-primary"
-                onClick={() => {
-                  const editor = quillRef.current?.getEditor?.();
-                  if (editor) {
-                    const range = editor.getSelection(true) || { index: editor.getLength() };
-                    editor.insertText(range.index, `$${formulaInput.trim()}$`, 'user');
-                    editor.setSelection(range.index + formulaInput.trim().length + 2, 0);
-                  }
-                  setShowFormulaModal(false);
-                  setFormulaInput('');
-                }}
-              >
-                저장
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
