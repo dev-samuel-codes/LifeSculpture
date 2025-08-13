@@ -165,7 +165,7 @@
 
 .image-modal-content {
   position: relative;
-  max-width: 90%;
+  max-width: 60%;
   max-height: 90%;
   display: flex;
   justify-content: center;
