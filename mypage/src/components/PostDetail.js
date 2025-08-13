@@ -100,7 +100,7 @@ function PostDetail() {
         const images = contentElement.querySelectorAll('img');
         images.forEach(img => {
           img.style.cursor = 'pointer';
-          img.style.maxWidth = '100%';
+          img.style.maxWidth = '60%';
           img.style.height = 'auto';
           img.style.borderRadius = '8px';
         });
