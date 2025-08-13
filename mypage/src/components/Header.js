@@ -4,7 +4,7 @@ import GoogleLoginButton from './GoogleLoginButton';
 import { AuthContext } from '../context/AuthContext';
 import '../style/Headerbar.css';
 
-const DEFAULT_PROFILE_PIC = '/download.png';
+const DEFAULT_PROFILE_PIC = '../assets/download.png';
 
 const Header = () => {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
@@ -104,7 +104,6 @@ const Header = () => {
                 ) : (
                   <img src={DEFAULT_PROFILE_PIC} alt="Default Profile" className="profile-pic" />
                 )}
-                <span style={{ fontSize: 16 }}>Profile</span>
               </span>
 
               {isProfilePopupOpen && (
