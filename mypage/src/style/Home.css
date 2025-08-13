@@ -52,6 +52,60 @@ body {
   flex-wrap: nowrap;         /* 기본은 한 줄 */
 }
 
+/* 페이지 전체 여백 제거 */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* 홈 히어로 섹션 */
+.main-section1 {
+  background-image: url('http://localhost:5000/assets/MainBackgroundImage.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 84.6vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+/* 섹션2 */
+.main-section2 {
+  /* 높이를 고정하지 말고 내용에 맞춰 늘어나게 */
+  min-height: 100vh;
+  padding: 30px 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.main-section2-title {
+  margin-bottom: 50px;
+  font-size: 70px;
+  font-weight: 900;
+  background: linear-gradient(to right top, #1d25c2, #c9291b);
+  color: transparent;
+  -webkit-background-clip: text;
+}
+
+/* 카드 컨테이너 */
+.main-section2-content {
+  display: flex;
+  gap: 50px;
+  align-items: flex-start;   /* 기준선을 위쪽으로 */
+  justify-content: flex-start;
+  flex-wrap: nowrap;         /* 기본은 한 줄 */
+}
+
 /* 카드 기본 스타일 */
 .main-card {
   position: relative;
@@ -67,6 +121,100 @@ body {
   transition: transform .3s ease; /* 지그재그/호버 전환 부드럽게 */
   background-size: cover;
   background-position: center;
+}
+
+/* 지그재그: 짝수 카드만 아래로 살짝 내리기 */
+.main-card:nth-child(even) {
+  transform: translateY(90px);
+}
+
+/* 카드 내부 레이아웃 */
+.main-card .main-card-body {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  padding: 10px;
+  flex-direction: column;
+  justify-content: center; /* 내용 중앙 */
+  position: relative;
+  text-align: center;
+}
+
+.main-card .main-card-body h3 {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  margin: 0;
+  font-size: 1.4rem;
+  text-align: left;
+}
+
+.main-card .main-card-body p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.main-card,
+.main-card * {
+  color: #fff !important;
+}
+
+/* ===== 반응형 ===== */
+/* 화면이 좁아지면 줄바꿈 허용 */
+@media (max-width: 1200px) {
+  .main-section2-content {
+    flex-wrap: wrap;
+  }
+}
+
+/* 두 칼럼 정도로 접히면 지그재그가 과해 보일 수 있으니 완화 */
+@media (max-width: 900px) {
+  .main-card {
+    width: 300px; /* 유지 */
+  }
+  .main-card:nth-child(even) {
+    transform: translateY(24px);
+  }
+}
+
+/* 모바일: 한 줄 스택 + 지그재그 해제 */
+@media (max-width: 600px) {
+  .main-section2-content {
+    justify-content: center;
+  }
+  .main-card {
+    width: 100%;
+    max-width: 520px;
+  }
+  .main-card:nth-child(even) {
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+    .main-section1 h2 {
+      font-size: 2rem;
+      padding: 0 20px;
+    }
+  
+    .main-section2-title {
+      font-size: 40px;
+    }
+    .main-section2 {
+      padding: 30px 20px;
+    }
+  }
+
+/* 홀수 카드 호버 시 */
+.main-card:nth-child(odd):hover {
+  transform: translateY(-10px); /* 기본보다 10px 위 */
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* 짝수 카드 호버 시 (지그재그 고려) */
+.main-card:nth-child(even):hover {
+  transform: translateY(80px); /* 원래 40px → 30px로 위로 10px */
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
 }
 
 /* 지그재그: 짝수 카드만 아래로 살짝 내리기 */

@@ -58,3 +58,24 @@
 .instagram {
    background-color: #787878;
 }
+
+@media (max-width: 768px) {
+    .connect-section {
+        padding: 2rem 1rem;
+    }
+
+    .connect-title {
+        font-size: 3rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    .connect-container {
+        flex-direction: column;
+    }
+
+    .connect-box {
+        width: 100%;
+        max-width: 450px;
+    }
+}

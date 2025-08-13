@@ -119,9 +119,7 @@
 
 /* Quill 에디터 안 이미지 크기 조절 - 가로·세로 제한, 비율 유지 */
 .ql-editor img {
-  max-width: 400px;    /* 최대 가로폭 */
-  max-height: 300px;   /* 최대 세로높이 */
-  width: auto;         /* 가로 크기 자동 */
+  max-width: 100%;    /* 최대 가로폭 */
   height: auto;        /* 세로 크기 자동 (비율 유지) */
   display: block;      /* 한 줄 차지 */
   margin: 10px auto;   /* 중앙 정렬 + 여백 */
