@@ -1,5 +1,5 @@
 // PostDetail.js
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { doc, getDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
@@ -15,6 +15,7 @@ function PostDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const viewCountIncremented = useRef(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -39,15 +40,20 @@ function PostDetail() {
     fetchPost();
   }, [category, id]);
 
-  // 조회수 증가는 별도로 처리 (관리자만)
+  // 조회수 증가는 한 번만 처리 (관리자만)
   useEffect(() => {
     const incrementViewCount = async () => {
-      if (role === 'admin' && post) {
+      if (role === 'admin' && post && !viewCountIncremented.current) {
         try {
           const docRef = doc(db, category, id);
           await updateDoc(docRef, { viewCount: increment(1) });
           // 로컬 상태 업데이트
-          setPost(prev => ({ ...prev, viewCount: (prev.viewCount || 0) + 1 }));
+          setPost(prev => ({ 
+            ...prev, 
+            viewCount: (prev.viewCount || 0) + 1
+          }));
+          // 플래그 설정하여 중복 실행 방지
+          viewCountIncremented.current = true;
         } catch (err) {
           console.warn('Failed to increment view count:', err);
         }
