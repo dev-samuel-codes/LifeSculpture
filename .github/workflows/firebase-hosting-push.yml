@@ -1,0 +1,34 @@
+name: Deploy to Firebase Hosting on push
+
+on:
+  push:
+    branches: [ main ]   # main에 푸시될 때마다 실행
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # monorepo: 앱이 mypage/에 있으므로 거기서 설치/빌드
+      - name: Install deps
+        run: npm ci
+        working-directory: mypage
+
+      - name: Build
+        run: npm run build
+        working-directory: mypage
+
+      # firebase.json은 루트에 있고, "public": "mypage/build" 로 설정되어 있어야 함
+      - name: Deploy to Firebase Hosting (live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_LIFESCULPTURE_220B3 }}'
+          channelId: live
+          projectId: lifesculpture-220b3
