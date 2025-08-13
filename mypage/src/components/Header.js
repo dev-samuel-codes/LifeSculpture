@@ -92,11 +92,12 @@ const Header = () => {
               className="my-nav-item my-profile-nav-item desktop-only"
               style={{ position: 'relative' }}
               ref={profileRef}
+              onMouseEnter={() => setIsProfilePopupOpen(true)}
+              onMouseLeave={() => setIsProfilePopupOpen(false)}
             >
               <span
                 className="my-nav-link"
                 style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                onClick={toggleProfilePopup}
               >
                 {isAuthenticated && userPicture ? (
                   <img src={userPicture} alt="Profile" className="profile-pic" />

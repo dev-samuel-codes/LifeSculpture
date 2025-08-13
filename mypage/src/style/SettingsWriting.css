@@ -341,3 +341,44 @@
   overflow: hidden !important;
   margin-bottom: 0;
 }
+
+@media (hover: none) and (pointer: coarse) {
+  /* .btn-primary-solid 호버 애니메이션 제거 */
+  .btn-primary-solid:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    transition: none !important; /* 모든 transition 제거 */
+  }
+
+  .btn-primary-solid:hover::before {
+    left: -100% !important; /* 원래 위치로 되돌림 */
+    transition: none !important; /* transition 제거 */
+  }
+
+  /* .btn-primary-solid:active 애니메이션 제거 (모바일 터치 시) */
+  .btn-primary-solid:active {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* Quill 버튼 호버 애니메이션 제거 */
+  .writing-toolbar-container .ql-toolbar .ql-formats button:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    transition: none !important;
+  }
+
+  /* Quill 드롭다운 라벨 호버 애니메이션 제거 */
+  .writing-toolbar-container .ql-toolbar .ql-picker-label:hover {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* Quill 색상/배경 선택기 아이템 호버 애니메이션 제거 */
+  .writing-toolbar-container .ql-color .ql-picker-options .ql-picker-item:hover,
+  .writing-toolbar-container .ql-background .ql-picker-options .ql-picker-item:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    transition: none !important;
+  }
+}
