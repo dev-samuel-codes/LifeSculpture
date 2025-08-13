@@ -4,7 +4,7 @@
 /* ===== Card Shell ===== */
 .settings-writing-container {
   background: #ffffff;
-  border: 1px solid transparent;
+  border: none;
   border-radius: 14px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
   padding: 1.25rem;
@@ -24,10 +24,18 @@
 }
 
 /* ===== Form layout ===== */
-.writing-form { display: block; }
+.writing-form { 
+  display: flex;
+  flex-direction: column;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding-bottom: 1rem;
+}
 
 .writing-row {
   row-gap: .75rem;
+  margin-bottom: 1.5rem;
 }
 
 .writing-label {
@@ -68,15 +76,15 @@
 }
 
 .writing-editor-container {
-  border: 1px solid #e4e7ee;
-  border-top: none;
-  border-radius: 0 0 12px 12px;
+  border: none !important;  /* 기존 border 제거 */
+  border-radius: 12px;       /* 모서리 둥글게 유지 */
   background: #fff;
   height: 400px;
   position: relative;
   box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
 }
+
 
 /* ===== Quill editor wrapper ===== */
 .writing-editor {
@@ -241,9 +249,10 @@
 .writing-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 1.5rem;
+  margin-top: 3rem;
   padding-top: 1rem;
-  border-top: 1px solid #f0f0f0;
+  border-top: none;
+  flex-shrink: 0;
 }
 
 .btn-primary-solid {
@@ -316,6 +325,7 @@
   overflow-x: hidden !important;
   resize: none !important;
   padding-top: 0;
+  margin-bottom: 0;
 }
 
 /* ReactQuill 루트 요소 높이 고정 */
@@ -329,4 +339,5 @@
   height: 400px !important;
   max-height: 400px !important;
   overflow: hidden !important;
+  margin-bottom: 0;
 }

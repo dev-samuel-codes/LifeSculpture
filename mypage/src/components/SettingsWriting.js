@@ -182,46 +182,48 @@ function SettingsWriting() {
         <SettingsMenu />
         <div className="col-md-9 h-100 flex-grow-1 settings-writing-container">
           <form onSubmit={handleSubmit} className="writing-form">
-            <div className="row mb-3 writing-row">
-              <div className="col-md-9">
-                <label htmlFor="titleInput" className="form-label writing-label">Title</label>
-                <input
-                  type="text"
-                  className="form-control writing-input"
-                  id="titleInput"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                  placeholder="제목을 입력하세요"
-                />
+            <div className="writing-fields-group">
+              <div className="row mb-3 writing-row">
+                <div className="col-md-9">
+                  <label htmlFor="titleInput" className="form-label writing-label">Title</label>
+                  <input
+                    type="text"
+                    className="form-control writing-input"
+                    id="titleInput"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                    placeholder="제목을 입력하세요"
+                  />
+                </div>
+                <div className="col-md-3">
+                  <label htmlFor="categorySelect" className="form-label writing-label">Category</label>
+                  <select
+                    className="form-select writing-select"
+                    id="categorySelect"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    <option value="study">Study</option>
+                    <option value="blog">Blog</option>
+                  </select>
+                </div>
               </div>
-              <div className="col-md-3">
-                <label htmlFor="categorySelect" className="form-label writing-label">Category</label>
-                <select
-                  className="form-select writing-select"
-                  id="categorySelect"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                >
-                  <option value="study">Study</option>
-                  <option value="blog">Blog</option>
-                </select>
-              </div>
-            </div>
 
-            <div className="mb-3">
-              <label htmlFor="contentInput" className="form-label writing-label">Content</label>
-              <div className="writing-editor-container">
-                <ReactQuill
-                  ref={quillRef}
-                  className="writing-quill"
-                  theme="snow"
-                  value={content}
-                  onChange={setContent}
-                  modules={modules}
-                  formats={formats}
-                  style={{ height: '400px' }}
-                />
+              <div className="mb-3">
+                <label htmlFor="contentInput" className="form-label writing-label">Content</label>
+                <div className="writing-editor-container">
+                  <ReactQuill
+                    ref={quillRef}
+                    className="writing-quill"
+                    theme="snow"
+                    value={content}
+                    onChange={setContent}
+                    modules={modules}
+                    formats={formats}
+                    style={{ height: '400px' }}
+                  />
+                </div>
               </div>
             </div>
 
