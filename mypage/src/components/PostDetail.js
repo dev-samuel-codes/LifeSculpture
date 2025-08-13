@@ -179,14 +179,7 @@ function PostDetail() {
           quote.style.borderRadius = '4px';
         });
 
-        // 수식 스타일링 (LaTeX 스타일)
-        const formulas = contentElement.querySelectorAll('*');
-        formulas.forEach(element => {
-          if (element.textContent && element.textContent.includes('$')) {
-            element.style.fontFamily = 'Georgia, serif';
-            element.style.fontStyle = 'italic';
-          }
-        });
+
 
         // 리스트 스타일링
         const lists = contentElement.querySelectorAll('ul, ol');

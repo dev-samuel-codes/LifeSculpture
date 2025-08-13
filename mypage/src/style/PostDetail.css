@@ -404,16 +404,7 @@
 .post-content .ql-indent-7 { padding-left: 14rem; }
 .post-content .ql-indent-8 { padding-left: 16rem; }
 
-/* 수식 스타일 (LaTeX) */
-.post-content .formula {
-  font-family: 'Georgia', serif;
-  font-style: italic;
-  background: #f8f9fa;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
-  margin: 0.5rem 0;
-}
+
 
 /* 이모지 스타일 */
 .post-content .emoji {

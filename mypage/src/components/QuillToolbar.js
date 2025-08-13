@@ -222,7 +222,7 @@ export const quillFormats = [
   'direction', 'align',
   'link', 'image', 'video',
   'table', 'tableHeader', 'tableCell',
-  'emoji', 'formula',
+  'emoji',
   'code', 'pre'
 ];
 

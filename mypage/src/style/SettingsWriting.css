@@ -4,7 +4,7 @@
 /* ===== Card Shell ===== */
 .settings-writing-container {
   background: #ffffff;
-  border: 1px solid rgba(20,24,35,0.06);
+  border: 1px solid transparent;
   border-radius: 14px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
   padding: 1.25rem;
@@ -75,6 +75,7 @@
   height: 400px;
   position: relative;
   box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  margin-bottom: 1rem;
 }
 
 /* ===== Quill editor wrapper ===== */
@@ -240,7 +241,9 @@
 .writing-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: .75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f0f0f0;
 }
 
 .btn-primary-solid {
@@ -252,13 +255,36 @@
   border-radius: 10px;
   height: 42px;
   padding: 0 16px;
-  transition: transform .12s ease, box-shadow .15s ease, filter .15s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary-solid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .btn-primary-solid:hover {
-  filter: brightness(1.03);
-  box-shadow: 0 6px 18px rgba(39,70,255,0.22);
-  transform: translateY(-1px);
+  background: #1e3a8a !important;
+  border-color: #1e3a8a !important;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(39,70,255,0.3), 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-primary-solid:hover::before {
+  left: 100%;
+}
+
+.btn-primary-solid:active {
+  transform: translateY(-1px) scale(0.98);
+  transition: all 0.1s ease;
 }
 
 /* ===== Misc ===== */

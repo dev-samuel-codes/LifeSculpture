@@ -82,21 +82,7 @@ function SettingsWriting() {
     }
   };
 
-  // 커스텀 수식 핸들러
-  const customFormulaHandler = () => {
-    const editor = quillRef.current?.getEditor?.();
-    if (!editor) {
-      console.error('[QUILL] editor not ready');
-      return;
-    }
 
-    const formula = prompt('수식을 입력하세요 (예: x^2 + y^2 = z^2):');
-    if (formula) {
-      const range = editor.getSelection(true) || { index: editor.getLength() };
-      editor.insertText(range.index, `$${formula}$`, 'user');
-      editor.setSelection(range.index + formula.length + 2, 0);
-    }
-  };
 
   // 커스텀 핸들러로 모듈 업데이트
   const modules = {
@@ -118,7 +104,7 @@ function SettingsWriting() {
       
       // 4행: 미디어 및 고급 기능
       ['link', 'image', 'video', 'table'],
-      ['emoji', 'formula'],
+      ['emoji'],
       
       // 5행: 특수 기능
       ['clean', 'undo', 'redo'],
@@ -126,8 +112,7 @@ function SettingsWriting() {
     handlers: { 
       image: customImageHandler, 
       table: customTableHandler,
-      emoji: customEmojiHandler,
-      formula: customFormulaHandler
+      emoji: customEmojiHandler
     }
   };
 
