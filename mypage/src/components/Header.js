@@ -15,6 +15,7 @@ const Header = () => {
   const togglerRef = useRef(null);
 
   const handleNavCollapse = () => setIsNavCollapsed(!isNavCollapsed);
+  // eslint-disable-next-line no-unused-vars
   const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
 
   const handleLogout = () => {

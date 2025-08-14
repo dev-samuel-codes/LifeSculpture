@@ -137,6 +137,7 @@
 .post-content img {
   height: auto;
   border-radius: 12px;
+  max-width: 50%;
   margin: 1.5rem 0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -165,8 +166,8 @@
 
 .image-modal-content {
   position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
+  max-width: 80vw;
+  max-height: 80vh;
   background: white;
   border-radius: 12px;
   padding: 1rem;
