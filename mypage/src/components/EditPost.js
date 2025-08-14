@@ -7,13 +7,13 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
-import { useQuillToolbar, handleImageUpload } from './QuillToolbar';
-import ImageBlot from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
+import { useQuillToolbar } from './QuillToolbar';
+import CustomImageBlot from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 
 // 사용자 정의 블롯 등록
-ReactQuill.Quill.register(ImageBlot);
+ReactQuill.Quill.register(CustomImageBlot);
 
 
 function EditPost() {
@@ -51,119 +51,34 @@ function EditPost() {
   }, [category, id]);
 
   // 공통 툴바 훅 사용
-  const { modules: baseModules, formats } = useQuillToolbar();
-
-  // 커스텀 이미지 핸들러 (에디터 참조 필요)
-  const customImageHandler = () => {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
-
-    input.onchange = async () => {
-      const file = input.files && input.files[0];
-      if (!file) return;
-
-      try {
-        const url = await handleImageUpload(file);
-        if (!url) return;
-
-        const editor = quillRef.current?.getEditor?.();
-        if (!editor) {
-          alert('에디터가 아직 준비되지 않았어요. 새로고침 후 다시 시도해보세요.');
-          return;
-        }
-        const range = editor.getSelection(true) || { index: editor.getLength() };
-        editor.insertEmbed(range.index, 'image', url, 'user');
-        editor.setSelection(range.index + 1, 0);
-      } catch (err) {
-        console.error('[HANDLER] failed:', err);
-        alert('이미지 삽입에 실패했어요.');
-      }
-    };
-  };
-
-  // 커스텀 테이블 핸들러 (에디터 참조 필요)
-  const customTableHandler = () => {
-    const editor = quillRef.current?.getEditor?.();
-    if (!editor) {
-      console.error('[QUILL] editor not ready');
-      return;
-    }
-
-    const range = editor.getSelection(true) || { index: editor.getLength() };
-    editor.insertTable(3, 3, range.index);
-    editor.setSelection(range.index + 1, 0);
-  };
-
-  // 커스텀 이모지 핸들러
-  const customEmojiHandler = () => {
-    const editor = quillRef.current?.getEditor?.();
-    if (!editor) {
-      console.error('[QUILL] editor not ready');
-      return;
-    }
-
-    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊', '💌', '💘', '💝', '💖', '💗', '💙', '💚', '🧡', '💛', '💜', '🖤', '💟', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔'];
-    const emoji = prompt('이모지를 입력하거나 선택하세요:', emojis.slice(0, 20).join(' '));
-    if (emoji) {
-      const range = editor.getSelection(true) || { index: editor.getLength() };
-      editor.insertText(range.index, emoji, 'user');
-      editor.setSelection(range.index + emoji.length, 0);
-    }
-  };
-
-  // 커스텀 핸들러로 모듈 업데이트
-  const modules = {
-    ...baseModules,
-    toolbar: [
-      // 1행: 제목 스타일, 폰트, 크기
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'font': ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', '맑은 고딕', '나눔고딕', '나눔바른고딕'] }],
-      [{ 'size': ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'] }],
-      
-      // 2행: 텍스트 스타일
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'script': 'sub' }, { 'script': 'super' }],
-      
-      // 3행: 문단 스타일
-      ['blockquote', 'code-block'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-      [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
-      
-      // 4행: 미디어 및 고급 기능
-      ['link', 'image', 'video', 'table'],
-      ['emoji'],
-      
-      // 5행: 특수 기능
-      ['clean', 'undo', 'redo'],
-    ],
-    handlers: { 
-      image: customImageHandler, 
-      table: customTableHandler,
-      emoji: customEmojiHandler,
-      'align': function(value) {
-        const range = this.quill.getSelection();
-        if (range) {
-          this.quill.formatLine(range.index, range.length, 'align', value);
-        }
-      }
-    }
-  };
+  const { modules, formats } = useQuillToolbar();
 
   // 에디터가 준비되면 전역 참조 설정
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const setupEditor = () => {
       if (quillRef.current) {
         const editor = quillRef.current.getEditor();
         if (editor) {
+          console.log('[EditPost] editor ready, setting global reference');
           window.quillEditor = editor;
+          return true;
         }
       }
-    }, 100); // 100ms 지연으로 에디터 초기화 완료 대기
+      return false;
+    };
 
-    return () => clearTimeout(timer);
-  }, []); // 빈 의존성 배열로 수정
+    // 즉시 시도
+    if (!setupEditor()) {
+      // 지연 후 다시 시도
+      const timer = setTimeout(() => {
+        if (!setupEditor()) {
+          console.warn('[EditPost] editor setup failed after delay');
+        }
+      }, 200);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // ====== Submit update ======
   const handleSubmit = async (e) => {
@@ -249,3 +164,4 @@ function EditPost() {
 }
 
 export default EditPost;
+

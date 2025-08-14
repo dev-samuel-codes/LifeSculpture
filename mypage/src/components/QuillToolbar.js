@@ -7,21 +7,29 @@ import 'katex/dist/katex.min.css';
 
 // 이미지 업로드 함수 (Hook이 아닌 일반 함수)
 export const handleImageUpload = async (file) => {
+  console.log('[handleImageUpload] start with file:', file);
+  
   const auth = getAuth();
   const user = auth.currentUser;
 
   if (!user) {
+    console.error('[handleImageUpload] no user found');
     alert('로그인이 필요합니다. 관리자 계정으로 로그인 후 다시 시도하세요.');
     return null;
   }
-  if (!file) return null;
+  if (!file) {
+    console.error('[handleImageUpload] no file provided');
+    return null;
+  }
 
   const MAX_MB = 15;
   if (!file.type?.startsWith('image/')) {
+    console.error('[handleImageUpload] invalid file type:', file.type);
     alert('이미지 파일만 업로드할 수 있어요.');
     return null;
   }
   if (file.size > MAX_MB * 1024 * 1024) {
+    console.error('[handleImageUpload] file too large:', file.size);
     alert(`이미지 용량이 큽니다. 최대 ${MAX_MB}MB까지 업로드할 수 있어요.`);
     return null;
   }
@@ -40,6 +48,7 @@ export const handleImageUpload = async (file) => {
     const imgRef = storageRef(storage, path);
     const metadata = { contentType: file.type };
 
+    console.log('[UPLOAD] uploading to path:', path);
     const snap = await uploadBytes(imgRef, file, metadata);
     console.log('[UPLOAD] done:', {
       fullPath: snap.metadata.fullPath,
@@ -47,8 +56,15 @@ export const handleImageUpload = async (file) => {
       size: snap.metadata.size,
     });
 
+    console.log('[UPLOAD] getting download URL...');
     const url = await getDownloadURL(snap.ref);
     console.log('[URL] generated:', url);
+    
+    if (!url) {
+      console.error('[handleImageUpload] no URL returned from getDownloadURL');
+      return null;
+    }
+    
     return url;
   } catch (err) {
     console.error('[UPLOAD] failed:', {
@@ -62,14 +78,41 @@ export const handleImageUpload = async (file) => {
     } else {
       alert('이미지 업로드에 실패했어요. 콘솔의 [UPLOAD] failed 로그를 캡처해서 알려주세요!');
     }
-    return null;
+    throw err;
   }
 };
 
 // Quill 이미지 핸들러
-export const useImageHandler = (handleImageUpload) => {
+export const useImageHandler = () => {
   return useCallback(() => {
     console.log('[imageHandler] called');
+    
+    // 에디터 참조 가져오기 (여러 방법 시도)
+    let editor = null;
+    if (window.quillEditor) {
+      editor = window.quillEditor;
+    } else {
+      // DOM에서 직접 찾기
+      const quillElement = document.querySelector('.ql-editor');
+      if (quillElement && quillElement.__quill) {
+        editor = quillElement.__quill;
+      }
+    }
+    
+    if (!editor) {
+      console.error('[imageHandler] editor not found, trying to find...');
+      // 약간의 지연 후 다시 시도
+      setTimeout(() => {
+        if (window.quillEditor) {
+          console.log('[imageHandler] editor found after delay');
+        } else {
+          alert('에디터가 준비되지 않았습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+          return;
+        }
+      }, 500);
+      return;
+    }
+
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
@@ -87,29 +130,57 @@ export const useImageHandler = (handleImageUpload) => {
         console.log('[imageHandler] uploading file:', file.name);
         const url = await handleImageUpload(file);
         console.log('[imageHandler] upload result url:', url);
-        if (!url) return;
+        if (!url) {
+          console.error('[imageHandler] no URL returned');
+          return;
+        }
 
-        // 에디터 참조는 외부에서 전달받아야 함
-        return url;
+        // 에디터 참조 다시 확인
+        let currentEditor = window.quillEditor;
+        if (!currentEditor) {
+          const quillElement = document.querySelector('.ql-editor');
+          if (quillElement && quillElement.__quill) {
+            currentEditor = quillElement.__quill;
+          }
+        }
+
+        if (currentEditor) {
+          const range = currentEditor.getSelection(true) || { index: currentEditor.getLength() };
+          console.log('[imageHandler] inserting image at index:', range.index);
+          
+          // 기본 이미지 삽입 방식 사용
+          currentEditor.insertEmbed(range.index, 'image', url, 'user');
+          currentEditor.setSelection(range.index + 1, 0);
+          console.log('[imageHandler] image inserted successfully');
+        } else {
+          console.error('[imageHandler] editor still not found after upload');
+          alert('에디터를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+        }
       } catch (err) {
         console.error('[HANDLER] failed:', err);
-        alert('이미지 삽입에 실패했어요.');
-        return null;
+        alert('이미지 삽입에 실패했어요: ' + err.message);
       }
     };
-  }, [handleImageUpload]);
-};
-
-// 테이블 삽입 핸들러
-export const useTableHandler = () => {
-  return useCallback(() => {
-    // 에디터 참조는 외부에서 전달받아야 함
-    return true;
   }, []);
 };
 
+// 테이블 삽입 핸들러 (제거됨 - Quill 기본 테이블 모듈이 없음)
+// export const useTableHandler = () => {
+//   return useCallback(() => {
+//     const editor = window.quillEditor;
+//     if (editor) {
+//       const range = editor.getSelection(true) || { index: editor.getLength() };
+//       editor.insertTable(3, 3, range.index);
+//       editor.setSelection(range.index + 1, 0);
+//     } else {
+//       console.error('[tableHandler] editor not found');
+//       alert('에디터가 준비되지 않았습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+//     }
+//   }, []);
+// };
+
 // 네이버 블로그 수준의 고급 툴바 설정
-export const useQuillModules = (imageHandler, tableHandler) => {
+export const useQuillModules = (imageHandler) => {
   return useMemo(
     () => ({
       toolbar: [
@@ -128,48 +199,16 @@ export const useQuillModules = (imageHandler, tableHandler) => {
         [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
         
         // 4행: 미디어 및 고급 기능
-        ['link', 'image', 'video', 'table'],
-        ['emoji'],
+        ['link', 'image', 'video'],
         
         // 5행: 특수 기능
-        ['clean', 'undo', 'redo'],
+        ['clean'],
       ],
       handlers: { 
         image: imageHandler, 
-        table: tableHandler,
-        emoji: () => {
-          // 이모지 선택기 구현
-          const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊', '💌', '💘', '💝', '💖', '💗', '💙', '💚', '🧡', '💛', '💜', '🖤', '💟', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💔'];
-          const emoji = prompt('이모지를 입력하거나 선택하세요:', emojis.slice(0, 20).join(' '));
-          if (emoji) {
-            const editor = window.quillEditor;
-            if (editor) {
-              const range = editor.getSelection(true) || { index: editor.getLength() };
-              editor.insertText(range.index, emoji, 'user');
-              editor.setSelection(range.index + emoji.length, 0);
-            }
-          }
-        }
       },
       clipboard: { 
-        matchVisual: false,
-        matchers: [
-          ['table', (node, delta) => {
-            // 테이블 붙여넣기 지원
-            return delta;
-          }]
-        ]
-      },
-      table: {
-        operation: {
-          insertRowAbove: true,
-          insertRowBelow: true,
-          insertColumnLeft: true,
-          insertColumnRight: true,
-          deleteRow: true,
-          deleteColumn: true,
-          deleteTable: true,
-        }
+        matchVisual: false
       },
       keyboard: {
         bindings: {
@@ -208,35 +247,30 @@ export const useQuillModules = (imageHandler, tableHandler) => {
         userOnly: true
       }
     }),
-    [imageHandler, tableHandler]
+    [imageHandler]
   );
 };
 
-// 확장된 Quill 포맷 설정
+// 확장된 Quill 포맷 설정 (지원되는 포맷만 포함)
 export const quillFormats = [
   'header', 'font', 'size',
   'bold', 'italic', 'underline', 'strike',
   'script',
   'blockquote', 'code-block',
-  'list', 'bullet', 'indent',
+  'list', 'indent',
   'direction', 'align',
-  'link', 'image', 'video',
-  'table', 'tableHeader', 'tableCell',
-  'emoji',
-  'code', 'pre'
+  'link', 'image', 'video'
 ];
 
 // 툴바 설정을 위한 커스텀 훅
 export const useQuillToolbar = () => {
-  const imageHandler = useImageHandler(handleImageUpload);
-  const tableHandler = useTableHandler();
-  const modules = useQuillModules(imageHandler, tableHandler);
+  const imageHandler = useImageHandler();
+  const modules = useQuillModules(imageHandler);
 
   return {
     modules,
     formats: quillFormats,
     handleImageUpload,
     imageHandler,
-    tableHandler,
   };
 };
