@@ -5,8 +5,26 @@ service cloud.firestore {
       return request.auth != null &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
-    match /blog/{postId}  { allow read: if true;  allow write: if isAdmin(); }
-    match /study/{postId} { allow read: if true;  allow write: if isAdmin(); }
+    
+    // 조회수 증가를 위한 함수
+    function isViewCountUpdate() {
+      return request.auth != null && 
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
+             request.resource.data.viewCount == resource.data.viewCount + 1;
+    }
+    
+    match /blog/{postId}  { 
+      allow read: if true;  
+      allow write: if isAdmin();
+      allow update: if isViewCountUpdate(); // 조회수 증가만 허용
+    }
+    
+    match /study/{postId} { 
+      allow read: if true;  
+      allow write: if isAdmin();
+      allow update: if isViewCountUpdate(); // 조회수 증가만 허용
+    }
+    
     match /users/{uid}    { allow read, write: if isAdmin(); }
     match /{document=**}  { allow read, write: if false; }
   }

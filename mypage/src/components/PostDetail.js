@@ -26,9 +26,18 @@ function PostDetail() {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setPost({ id: docSnap.id, ...data });
-          // isPublic 상태 초기화 (기본값: true)
+          const postData = { id: docSnap.id, ...data };
+          
+          // 조회수 초기값 설정
+          if (typeof postData.viewCount !== 'number') {
+            postData.viewCount = 0;
+          }
+          
+          setPost(postData);
           setIsPublic(typeof data.isPublic === 'boolean' ? data.isPublic : true);
+          
+          console.log('게시물 로드됨:', postData);
+          console.log('현재 조회수:', postData.viewCount);
         } else {
           setError('게시물을 찾을 수 없습니다.');
         }
@@ -43,28 +52,79 @@ function PostDetail() {
     fetchPost();
   }, [category, id]);
 
-  // 조회수 증가는 한 번만 처리 (관리자만)
+  // 조회수 증가는 한 번만 처리 (관리자 제외)
   useEffect(() => {
     const incrementViewCount = async () => {
-      if (role === 'admin' && post && !viewCountIncremented.current) {
+      // post가 로드되었고, 관리자가 아니며, 아직 조회수가 증가되지 않았을 때만 실행
+      if (post && post.id && role !== 'admin' && !viewCountIncremented.current) {
         try {
+          console.log('조회수 증가 시도...');
+          console.log('현재 게시물:', post);
+          
           const docRef = doc(db, category, id);
-          await updateDoc(docRef, { viewCount: increment(1) });
+          
+          // 현재 조회수 확인
+          const currentViewCount = post.viewCount || 0;
+          console.log('현재 조회수:', currentViewCount);
+          
+          // Firestore 업데이트
+          await updateDoc(docRef, { 
+            viewCount: increment(1) 
+          });
+          
+          console.log('Firestore 업데이트 성공');
+          
           // 로컬 상태 업데이트
-          setPost(prev => ({ 
-            ...prev, 
-            viewCount: (prev.viewCount || 0) + 1
-          }));
+          setPost(prev => {
+            const newViewCount = (prev.viewCount || 0) + 1;
+            console.log('로컬 상태 업데이트:', newViewCount);
+            return { 
+              ...prev, 
+              viewCount: newViewCount
+            };
+          });
+          
           // 플래그 설정하여 중복 실행 방지
           viewCountIncremented.current = true;
+          
+          console.log('조회수가 성공적으로 증가되었습니다:', currentViewCount + 1);
         } catch (err) {
-          console.warn('Failed to increment view count:', err);
+          console.error('조회수 증가 실패:', err);
+          console.error('에러 상세:', err.message, err.code);
+          
+          // 특정 에러 코드에 대한 처리
+          if (err.code === 'permission-denied') {
+            console.error('권한이 거부되었습니다. 보안 규칙을 확인해주세요.');
+          } else if (err.code === 'not-found') {
+            console.error('문서를 찾을 수 없습니다.');
+          }
+          
+          // 에러가 발생해도 플래그를 설정하여 무한 재시도 방지
+          viewCountIncremented.current = true;
+        }
+      } else {
+        if (role === 'admin') {
+          console.log('관리자이므로 조회수 증가하지 않음');
+        } else {
+          console.log('조회수 증가 조건 미충족:', {
+            hasPost: !!post,
+            hasId: post?.id,
+            alreadyIncremented: viewCountIncremented.current
+          });
         }
       }
     };
 
-    incrementViewCount();
-  }, [role, post, category, id]);
+    // post가 완전히 로드된 후에만 실행
+    if (post && post.id) {
+      // 약간의 지연을 두어 안정성 향상
+      const timer = setTimeout(() => {
+        incrementViewCount();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [post, category, id, role]); // role도 의존성에 추가
 
   const handlePublicToggle = async () => {
     const newPublicState = !isPublic;
@@ -332,7 +392,7 @@ function PostDetail() {
       <div className="post-meta">
         <span>{createdAtText}</span>
         <span>·</span>
-        <span>Views: {post.viewCount}</span>
+        <span>Views: {post.viewCount || 0}</span>
       </div>
 
       {/* 서버에서 전달된 HTML을 렌더링 (고급 스타일링 적용) */}
