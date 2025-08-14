@@ -248,7 +248,14 @@ function Blog() {
                     <div className="card">
                       <div className="card-body card-row">
                         <div className="card-left">
-                          <h5 className="card-title">{post.title}</h5>
+                          <h5 className="card-title">
+                            {post.title}
+                            {role === 'admin' && (
+                              <span style={{ color: post.isPublic === false ? 'red' : 'green', fontSize: '0.8rem', marginLeft: '8px' }}>
+                                {post.isPublic === false ? '(비공개)' : '(공개)'}
+                              </span>
+                            )}
+                          </h5>
                           <div className="card-tags">
                             {(Array.isArray(post.tags) ? post.tags : []).slice(0, 4).map((tg) => (
                               <span key={tg} className="badge bg-light text-dark border">{tg}</span>
