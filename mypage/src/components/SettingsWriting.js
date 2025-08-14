@@ -18,11 +18,33 @@ function SettingsWriting() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState(''); // HTML string
   const [category, setCategory] = useState('study');
+  const [editorHeight, setEditorHeight] = useState('400px');
 
   const quillRef = useRef(null);
 
   // 공통 툴바 훅 사용
   const { modules, formats } = useQuillToolbar();
+
+  // 화면 크기에 따른 에디터 높이 조정
+  useEffect(() => {
+    const updateEditorHeight = () => {
+      if (window.innerWidth <= 480) {
+        setEditorHeight('300px');
+      } else if (window.innerWidth <= 768) {
+        setEditorHeight('350px');
+      } else {
+        setEditorHeight('400px');
+      }
+    };
+
+    // 초기 설정
+    updateEditorHeight();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', updateEditorHeight);
+
+    return () => window.removeEventListener('resize', updateEditorHeight);
+  }, []);
 
   // 에디터가 준비되면 전역 참조 설정
   useEffect(() => {
@@ -142,7 +164,7 @@ function SettingsWriting() {
                     onChange={setContent}
                     modules={modules}
                     formats={formats}
-                    style={{ height: '400px' }}
+                    style={{ height: editorHeight }}
                   />
                 </div>
               </div>
