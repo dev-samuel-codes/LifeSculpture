@@ -450,6 +450,10 @@
   .post-content table td {
     padding: 8px 12px;
   }
+
+  .post-content img {
+    max-width: 100%;
+  }
 }
 
 /* Public/Private Switch Styles */
