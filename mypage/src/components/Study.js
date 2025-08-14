@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { AuthContext } from '../context/AuthContext';
 import '../style/Study.css';
 
 const POSTS_PER_PAGE = 6;
@@ -34,6 +35,7 @@ const extractHashtags = (raw) => {
 };
 
 function Study() {
+  const { role } = useContext(AuthContext);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -84,6 +86,11 @@ function Study() {
 
   // 필터링 & 정렬
   const filteredAndSorted = useMemo(() => {
+    const visiblePosts = allPosts.filter(post => {
+      const isPostPublic = post.isPublic !== false;
+      return role === 'admin' || isPostPublic;
+    });
+
     const text = norm(searchText);
     const hasParent = !!selectedParent;
     const hasChild = selectedChildren.size > 0;
@@ -115,7 +122,7 @@ function Study() {
       return hierarchyOk && searchOk;
     };
 
-    let rows = allPosts.filter(matches);
+    let rows = visiblePosts.filter(matches);
 
     // 정렬
     if (sortKey === 'createdAt_desc') {
@@ -127,7 +134,7 @@ function Study() {
     }
 
     return rows;
-  }, [allPosts, searchText, selectedParent, selectedChildren, visibleChildren, sortKey]);
+  }, [allPosts, searchText, selectedParent, selectedChildren, visibleChildren, sortKey, role]);
 
   // 페이징
   const totalPages = Math.ceil(filteredAndSorted.length / POSTS_PER_PAGE) || 1;

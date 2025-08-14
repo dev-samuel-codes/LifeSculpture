@@ -8,8 +8,13 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import { useQuillToolbar, handleImageUpload } from './QuillToolbar';
+import ImageBlot from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
 import '../style/EditPost.css';
 import '../style/QuillToolbar.css';
+
+// 사용자 정의 블롯 등록
+ReactQuill.Quill.register(ImageBlot);
+
 
 function EditPost() {
   const { category, id } = useParams();
@@ -136,7 +141,13 @@ function EditPost() {
     handlers: { 
       image: customImageHandler, 
       table: customTableHandler,
-      emoji: customEmojiHandler
+      emoji: customEmojiHandler,
+      'align': function(value) {
+        const range = this.quill.getSelection();
+        if (range) {
+          this.quill.formatLine(range.index, range.length, 'align', value);
+        }
+      }
     }
   };
 

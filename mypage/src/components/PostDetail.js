@@ -13,8 +13,9 @@ function PostDetail() {
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState(null);
+  const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isPublic, setIsPublic] = useState(true); // 게시물 공개 상태
   const viewCountIncremented = useRef(false);
 
   useEffect(() => {
@@ -26,12 +27,14 @@ function PostDetail() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setPost({ id: docSnap.id, ...data });
+          // isPublic 상태 초기화 (기본값: true)
+          setIsPublic(typeof data.isPublic === 'boolean' ? data.isPublic : true);
         } else {
-          setError('Post not found.');
+          setError('게시물을 찾을 수 없습니다.');
         }
       } catch (err) {
         console.error('Error fetching post:', err);
-        setError('Failed to load post.');
+        setError('게시물을 불러오는 데 실패했습니다.');
       } finally {
         setLoading(false);
       }
@@ -63,16 +66,31 @@ function PostDetail() {
     incrementViewCount();
   }, [role, post, category, id]);
 
+  const handlePublicToggle = async () => {
+    const newPublicState = !isPublic;
+    setIsPublic(newPublicState); // UI 즉시 업데이트
+
+    try {
+      const docRef = doc(db, category, id);
+      await updateDoc(docRef, { isPublic: newPublicState });
+      alert(`게시물 상태가 ${newPublicState ? '공개' : '비공개'}(으)로 변경되었습니다.`);
+    } catch (err) {
+      console.error('Error updating post status:', err);
+      alert('게시물 상태를 업데이트하는 데 실패했습니다.');
+      setIsPublic(!newPublicState); // 에러 시 UI 롤백
+    }
+  };
+
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    if (!window.confirm('정말로 이 게시물을 삭제하시겠습니까?')) return;
 
     try {
       await deleteDoc(doc(db, category, id));
-      alert('Post deleted successfully!');
+      alert('게시물이 성공적으로 삭제되었습니다.');
       navigate(`/${category}`);
     } catch (e) {
       console.error('Error deleting document: ', e);
-      alert('Error deleting post.');
+      alert('게시물을 삭제하는 중 오류가 발생했습니다.');
     }
   };
 
@@ -265,9 +283,13 @@ function PostDetail() {
       .trim();
   };
 
-  if (loading) return <div className="post-status">Loading post...</div>;
-  if (error)   return <div className="post-status">Error: {error}</div>;
-  if (!post)   return <div className="post-status">Post not found.</div>;
+  if (loading) return <div className="post-status">게시물을 불러오는 중...</div>;
+  if (error)   return <div className="post-status">오류: {error}</div>;
+  if (!post)   return <div className="post-status">게시물을 찾을 수 없습니다.</div>;
+
+  if (post.isPublic === false && role !== 'admin') {
+    return <div className="post-status">비공개 게시물입니다.</div>;
+  }
 
   const createdAtText = formatDateOnly(post?.createdAt);
 
@@ -278,19 +300,30 @@ function PostDetail() {
 
         {role === 'admin' && (
           <div className="post-actions">
+            <div className="public-switch-container">
+              <label className="switch">
+                <input 
+                  type="checkbox" 
+                  checked={isPublic} 
+                  onChange={handlePublicToggle} 
+                />
+                <span className="slider round"></span>
+              </label>
+              <span>{isPublic ? '공개' : '비공개'}</span>
+            </div>
             <button
               className="btn btn-warning btn-sm"
               onClick={() => navigate(`/edit-post/${category}/${id}`)}
               aria-label="Edit post"
             >
-              Edit
+              수정
             </button>
             <button
               className="btn btn-danger btn-sm"
               onClick={handleDelete}
               aria-label="Delete post"
             >
-              Delete
+              삭제
             </button>
           </div>
         )}

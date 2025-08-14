@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { AuthContext } from '../context/AuthContext';
 import '../style/Study.css'; // 스타일 재사용
 
 const POSTS_PER_PAGE = 6;
@@ -29,6 +30,7 @@ const extractHashtags = (raw) => {
 
 
 function Blog() {
+  const { role } = useContext(AuthContext);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -75,6 +77,11 @@ function Blog() {
   }, [selectedParent, visibleChildren]);
 
   const filteredAndSorted = useMemo(() => {
+    const visiblePosts = allPosts.filter(post => {
+      const isPostPublic = post.isPublic !== false;
+      return role === 'admin' || isPostPublic;
+    });
+
     const text = norm(searchText);
     const hasParent = !!selectedParent;
     const hasChild = selectedChildren.size > 0;
@@ -103,7 +110,7 @@ function Blog() {
       return hierarchyOk && searchOk;
     };
 
-    let rows = allPosts.filter(matches);
+    let rows = visiblePosts.filter(matches);
 
     if (sortKey === 'createdAt_desc') {
       rows.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
@@ -114,7 +121,7 @@ function Blog() {
     }
 
     return rows;
-  }, [allPosts, searchText, selectedParent, selectedChildren, visibleChildren, sortKey]);
+  }, [allPosts, searchText, selectedParent, selectedChildren, visibleChildren, sortKey, role]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / POSTS_PER_PAGE) || 1;
   const currentPosts = useMemo(() => {
