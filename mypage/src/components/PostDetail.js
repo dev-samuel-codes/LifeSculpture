@@ -311,20 +311,22 @@ function PostDetail() {
               </label>
               <span>{isPublic ? '공개' : '비공개'}</span>
             </div>
-            <button
-              className="btn btn-warning btn-sm"
-              onClick={() => navigate(`/edit-post/${category}/${id}`)}
-              aria-label="Edit post"
-            >
-              수정
-            </button>
-            <button
-              className="btn btn-danger btn-sm"
-              onClick={handleDelete}
-              aria-label="Delete post"
-            >
-              삭제
-            </button>
+            <div className="edit-delete-buttons">
+              <button
+                className="btn btn-warning btn-sm"
+                onClick={() => navigate(`/edit-post/${category}/${id}`)}
+                aria-label="Edit post"
+              >
+                수정
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={handleDelete}
+                aria-label="Delete post"
+              >
+                삭제
+              </button>
+            </div>
           </div>
         )}
       </header>
