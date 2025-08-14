@@ -73,10 +73,8 @@ function PostDetail() {
     try {
       const docRef = doc(db, category, id);
       await updateDoc(docRef, { isPublic: newPublicState });
-      alert(`게시물 상태가 ${newPublicState ? '공개' : '비공개'}(으)로 변경되었습니다.`);
     } catch (err) {
       console.error('Error updating post status:', err);
-      alert('게시물 상태를 업데이트하는 데 실패했습니다.');
       setIsPublic(!newPublicState); // 에러 시 UI 롤백
     }
   };
