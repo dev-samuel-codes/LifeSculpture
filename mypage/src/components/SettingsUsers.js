@@ -12,6 +12,18 @@ function SettingsUsers() {
   const [error,   setError]   = useState(null);
   const [qText, setQText] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const auth = getAuth();
@@ -76,14 +88,61 @@ function SettingsUsers() {
     });
   }, [users, qText, roleFilter]);
 
+  // 모바일용 카드 렌더링
+  const renderMobileCards = () => (
+    <div className="users-mobile-cards">
+      {filtered.map((user) => (
+        <div key={user.id} className="user-card">
+          <div className="user-card-header">
+            <div className="user-card-name">{user.name || 'N/A'}</div>
+            <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
+              {user.role || 'user'}
+            </span>
+          </div>
+          <div className="user-card-email">{user.email}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // 데스크탑용 테이블 렌더링
+  const renderDesktopTable = () => (
+    <div className="table-wrap">
+      <table className="table users-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((user) => (
+            <tr key={user.id}>
+              <td>{user.name || 'N/A'}</td>
+              <td>{user.email}</td>
+              <td>
+                <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
+                  {user.role || 'user'}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
   return (
     <div className="container mt-4 h-100">
       <div className="settings-layout">
         <SettingsMenu />
         <main className="settings-users-container">
-          <header className="users-header">
-            <div><h3>Users Management</h3></div>
-            <div className="users-tools">
+          <header className={`users-header ${isMobile ? 'users-header-mobile' : ''}`}>
+            <div className="users-header-title">
+              <h3>Users Management</h3>
+            </div>
+            <div className={`users-tools ${isMobile ? 'users-tools-mobile' : ''}`}>
               <input
                 type="search"
                 className="users-search"
@@ -128,30 +187,7 @@ function SettingsUsers() {
                   <p>검색 결과가 없습니다.</p>
                 </div>
               ) : (
-                <div className="table-wrap">
-                  <table className="table users-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((user) => (
-                        <tr key={user.id}>
-                          <td>{user.name || 'N/A'}</td>
-                          <td>{user.email}</td>
-                          <td>
-                            <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
-                              {user.role || 'user'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                isMobile ? renderMobileCards() : renderDesktopTable()
               )}
             </>
           )}
