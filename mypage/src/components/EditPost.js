@@ -149,7 +149,10 @@ function EditPost() {
                 onChange={setContent}
                 modules={modules}
                 formats={formats}
-                style={{ height: '400px' }}
+                style={{ 
+                  height: window.innerWidth <= 768 ? '350px' : '400px',
+                  marginBottom: window.innerWidth <= 480 ? '6rem' : '4rem'
+                }}
               />
             </div>
           </div>
