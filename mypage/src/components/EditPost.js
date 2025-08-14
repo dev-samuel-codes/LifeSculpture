@@ -9,7 +9,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import { useQuillToolbar, handleImageUpload } from './QuillToolbar';
 import ImageBlot from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
-import '../style/EditPost.css';
+import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 
 // 사용자 정의 블롯 등록
@@ -199,22 +199,22 @@ function EditPost() {
 
   return (
     <div className="container mt-4 h-100">
-      <div className="editpost-container">
-        <div className="editpost-header">
-          <h3>Edit Post</h3>
-          <p className="editpost-subtitle">
-            카테고리: <strong>{category}</strong> · 문서를 깔끔하게 다듬어 보세요.
+      <div className="settings-writing-container">
+        <div className="writing-header">
+          <h3>글 수정하기</h3>
+          <p className="writing-subtitle">
+            카테고리: <strong>{category}</strong>
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="editpost-form">
-          <div className="row mb-3 editpost-row">
+        <form onSubmit={handleSubmit} className="writing-form">
+          <div className="row mb-3 writing-row">
             <div className="col-12">
-              <label htmlFor="titleInput" className="form-label editpost-label">Title</label>
+              <label htmlFor="titleInput" className="form-label writing-label">Title</label>
               <input
                 type="text"
                 id="titleInput"
-                className="form-control editpost-input"
+                className="form-control writing-input"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="제목을 입력하세요"
@@ -224,11 +224,11 @@ function EditPost() {
           </div>
 
           <div className="mb-3">
-            <label htmlFor="contentInput" className="form-label editpost-label">Content</label>
-            <div className="editpost-editor" id="contentInput">
+            <label htmlFor="contentInput" className="form-label writing-label">Content</label>
+            <div className="writing-editor-container" id="contentInput">
               <ReactQuill
                 ref={quillRef}
-                className="editpost-quill"
+                className="writing-quill"
                 theme="snow"
                 value={content}
                 onChange={setContent}
@@ -239,7 +239,7 @@ function EditPost() {
             </div>
           </div>
 
-          <div className="editpost-actions">
+          <div className="writing-actions">
             <button type="submit" className="btn btn-primary btn-primary-solid">수정하기</button>
           </div>
         </form>
