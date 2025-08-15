@@ -155,30 +155,24 @@ function SettingsWriting() {
                 </div>
               </div>
 
-              <div className="row mb-3 writing-row">
-                <div className="col-md-9">
-                  <div className="d-flex align-items-center">
-                    <span className="me-3">공개 설정:</span>
-                    <div className="public-switch-container">
-                      <label className="switch">
-                        <input 
-                          type="checkbox" 
-                          checked={isPublic} 
-                          onChange={(e) => setIsPublic(e.target.checked)} 
-                        />
-                        <span className="slider round"></span>
-                      </label>
-                      <span className="ms-2">{isPublic ? '공개' : '비공개'}</span>
-                    </div>
+              <div className="row writing-row d-md-none">
+                <div className="col-12">
+                  <div className="mb-3" style={{ marginTop: '10px' }}>
+                    <label htmlFor="publicSelect" className="form-label writing-label">공개 설정</label>
+                    <select
+                      className="form-select writing-select"
+                      id="publicSelect"
+                      value={isPublic ? 'public' : 'private'}
+                      onChange={(e) => setIsPublic(e.target.value === 'public')}
+                    >
+                      <option value="public">공개</option>
+                      <option value="private">비공개</option>
+                    </select>
                   </div>
-                </div>
-                <div className="col-md-3 d-none d-md-block">
-                  {/* 데스크톱에서는 여기에 공개/비공개 토글을 숨김 */}
                 </div>
               </div>
 
               <div className="mb-3">
-                <label htmlFor="contentInput" className="form-label writing-label">Content</label>
                 <div className="writing-editor-container">
                   <ReactQuill
                     ref={quillRef}
@@ -194,9 +188,20 @@ function SettingsWriting() {
               </div>
             </div>
 
-            <div className="writing-actions">
-              <button type="submit" className="btn btn-primary btn-primary-solid">게시하기</button>
-            </div>
+                          <div className="writing-actions">
+                <div className="public-switch-container d-none d-md-flex">
+                  <label className="switch">
+                    <input 
+                      type="checkbox" 
+                      checked={isPublic} 
+                      onChange={(e) => setIsPublic(e.target.checked)} 
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                  <span className="ms-2">{isPublic ? '공개' : '비공개'}</span>
+                </div>
+                <button type="submit" className="btn btn-primary btn-primary-solid">게시하기</button>
+              </div>
           </form>
         </div>
       </div>

@@ -250,7 +250,7 @@
 /* ===== Actions ===== */
 .writing-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* 데스크탑에서 양쪽 끝 정렬 */
   align-items: center;
   margin-top: 2rem;
   padding-top: 1rem;
@@ -315,7 +315,8 @@
 }
 
 /* 공개 설정 라벨 스타일 */
-.writing-row .d-flex .me-3 {
+.writing-actions .public-switch-container .me-2,
+.writing-row .me-3 {
   font-weight: 600;
   color: #374151;
   font-size: 0.95rem;
@@ -527,13 +528,18 @@ input:checked + .slider:before {
   }
   
   /* 모바일에서 공개 설정을 카테고리 오른쪽에 배치 */
-  .writing-row .col-md-9 .d-flex {
+  .writing-row .d-flex {
     justify-content: space-between;
     align-items: center;
   }
   
-  .writing-row .col-md-9 .me-3 {
+  .writing-row .me-3 {
     margin-right: 0 !important;
+  }
+  
+  /* 모바일에서 게시하기 버튼을 중앙 정렬 */
+  .writing-actions {
+    justify-content: center;
   }
 }
 
@@ -552,7 +558,7 @@ input:checked + .slider:before {
   .writing-actions {
     margin-top: 1.5rem;
     padding: 2rem 0;
-    justify-content: center; /* 작은 모바일에서도 중앙 정렬 */
+    justify-content: center;
   }
   
   .writing-form {
