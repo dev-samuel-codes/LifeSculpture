@@ -17,11 +17,12 @@ ReactQuill.Quill.register(CustomImageBlot);
 
 
 function EditPost() {
-  const { category, id } = useParams();
+  const { category: categoryParam, id } = useParams();
   const navigate = useNavigate();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState(''); // HTML string
+  const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -31,7 +32,7 @@ function EditPost() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const docRef = doc(db, category, id);
+        const docRef = doc(db, categoryParam, id);
         const snap = await getDoc(docRef);
         if (!snap.exists()) {
           setError('Post not found.');
@@ -39,6 +40,7 @@ function EditPost() {
           const data = snap.data();
           setTitle(data.title || '');
           setContent(data.content || '');
+          setCategory(data.category || categoryParam);
         }
       } catch (err) {
         console.error('[EDIT] fetch error:', err);
@@ -48,7 +50,7 @@ function EditPost() {
       }
     };
     fetchPost();
-  }, [category, id]);
+  }, [categoryParam, id]);
 
   // 공통 툴바 훅 사용
   const { modules, formats } = useQuillToolbar();
@@ -96,10 +98,11 @@ function EditPost() {
     }
 
     try {
-      const docRef = doc(db, category, id);
+      const docRef = doc(db, categoryParam, id);
       await updateDoc(docRef, {
         title: title.trim(),
         content, // HTML
+        category: category.trim(),
       });
       alert('Post updated successfully!');
       navigate(`/posts/${category}/${id}`);
@@ -119,24 +122,36 @@ function EditPost() {
         </div>
 
         <form onSubmit={handleSubmit} className="writing-form">
-          <div className="row mb-3 writing-row">
-            <div className="col-12">
-              <label htmlFor="titleInput" className="form-label writing-label">Title</label>
-              <input
-                type="text"
-                id="titleInput"
-                className="form-control writing-input"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="제목을 입력하세요"
-                required
-              />
+          <div className="writing-fields-group">
+            <div className="row mb-3 writing-row">
+              <div className="col-md-9">
+                <label htmlFor="titleInput" className="form-label writing-label">Title</label>
+                <input
+                  type="text"
+                  className="form-control writing-input"
+                  id="titleInput"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  placeholder="제목을 입력하세요"
+                />
+              </div>
+              <div className="col-md-3">
+                <label htmlFor="categorySelect" className="form-label writing-label">Category</label>
+                <select
+                  className="form-select writing-select"
+                  id="categorySelect"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="study">Study</option>
+                  <option value="blog">Blog</option>
+                </select>
+              </div>
             </div>
-          </div>
 
           <div className="mb-3">
-            <label htmlFor="contentInput" className="form-label writing-label">Content</label>
-            <div className="writing-editor-container" id="contentInput">
+            <div className="writing-editor-container">
               <ReactQuill
                 ref={quillRef}
                 className="writing-quill"
@@ -152,6 +167,7 @@ function EditPost() {
               />
             </div>
           </div>
+        </div>
 
           <div className="writing-actions d-flex justify-content-end">
             <button type="submit" className="btn btn-primary btn-primary-solid">수정하기</button>
