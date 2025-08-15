@@ -19,6 +19,7 @@ function SettingsWriting() {
   const [content, setContent] = useState(''); // HTML string
   const [category, setCategory] = useState('study');
   const [editorHeight, setEditorHeight] = useState('400px');
+  const [isPublic, setIsPublic] = useState(true); // 공개/비공개 상태
 
   const quillRef = useRef(null);
 
@@ -104,6 +105,7 @@ function SettingsWriting() {
         content,                // 이미지 URL 포함된 HTML
         createdAt: serverTimestamp(), // 서버 시간
         viewCount: 0,
+        isPublic: isPublic,    // 공개/비공개 상태 추가
       });
       console.log('Document written with ID: ', docRef.id);
       alert(`Content submitted successfully to ${category} collection!`);
@@ -150,6 +152,28 @@ function SettingsWriting() {
                     <option value="study">Study</option>
                     <option value="blog">Blog</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="row mb-3 writing-row">
+                <div className="col-md-9">
+                  <div className="d-flex align-items-center">
+                    <span className="me-3">공개 설정:</span>
+                    <div className="public-switch-container">
+                      <label className="switch">
+                        <input 
+                          type="checkbox" 
+                          checked={isPublic} 
+                          onChange={(e) => setIsPublic(e.target.checked)} 
+                        />
+                        <span className="slider round"></span>
+                      </label>
+                      <span className="ms-2">{isPublic ? '공개' : '비공개'}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-3 d-none d-md-block">
+                  {/* 데스크톱에서는 여기에 공개/비공개 토글을 숨김 */}
                 </div>
               </div>
 

@@ -250,7 +250,8 @@
 /* ===== Actions ===== */
 .writing-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 2rem;
   padding-top: 1rem;
   border-top: none;
@@ -304,6 +305,85 @@
 
 /* ===== Misc ===== */
 .settings-row { gap: 1rem; }
+
+/* ===== Public/Private Switch Styles ===== */
+.public-switch-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+/* 공개 설정 라벨 스타일 */
+.writing-row .d-flex .me-3 {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.public-switch-container span {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
 
 /* Quill 에디터 안 이미지 크기 조절 - 가로·세로 제한, 비율 유지 */
 .ql-editor img {
@@ -433,6 +513,7 @@
     position: relative;
     z-index: 10;
     box-shadow: none;
+    justify-content: center; /* 모바일에서 중앙 정렬 */
   }
   
   .btn-primary-solid {
@@ -443,6 +524,16 @@
   
   .writing-form {
     padding-bottom: 3rem; /* 모바일에서 폼 하단 여백 증가 */
+  }
+  
+  /* 모바일에서 공개 설정을 카테고리 오른쪽에 배치 */
+  .writing-row .col-md-9 .d-flex {
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .writing-row .col-md-9 .me-3 {
+    margin-right: 0 !important;
   }
 }
 
@@ -461,6 +552,7 @@
   .writing-actions {
     margin-top: 1.5rem;
     padding: 2rem 0;
+    justify-content: center; /* 작은 모바일에서도 중앙 정렬 */
   }
   
   .writing-form {
