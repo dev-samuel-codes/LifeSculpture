@@ -111,4 +111,13 @@
 .ql-editor .ql-size-48 { font-size: 48px; }
 .ql-editor .ql-size-72 { font-size: 72px; }
 
-
+/* =========================
+   이미지 크기 제한
+   ========================= */
+.ql-editor img {
+  max-width: 60% !important;
+  height: auto !important;
+  display: block;
+  margin: 10px auto;
+  object-fit: contain;
+}

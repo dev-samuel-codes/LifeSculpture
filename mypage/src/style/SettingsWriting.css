@@ -307,8 +307,8 @@
 
 /* Quill 에디터 안 이미지 크기 조절 - 가로·세로 제한, 비율 유지 */
 .ql-editor img {
-  max-width: 100%;
-  height: auto;
+  max-width: 60% !important;
+  height: auto !important;
   display: block;
   margin: 10px auto;
   object-fit: contain;
