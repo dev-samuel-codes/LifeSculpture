@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [userName, setUserName] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
   const [userPicture, setUserPicture] = useState(null);
+  const [uid, setUid] = useState(null); // UID 추가
   const [loading, setLoading] = useState(true); // 초기 세션 로딩
 
   // Firebase 세션 구독 + Firestore의 users/{uid}에서 role 로드
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }) => {
           setUserName(null);
           setUserEmail(null);
           setUserPicture(null);
+          setUid(null); // UID 초기화
           return;
         }
 
@@ -35,6 +37,7 @@ export const AuthProvider = ({ children }) => {
         setUserName(u.displayName || null);
         setUserEmail(u.email || null);
         setUserPicture(u.photoURL || null);
+        setUid(u.uid); // UID 설정
 
         // Firestore: users/{uid}.role 읽어 admin 여부 판단
         try {
@@ -66,11 +69,12 @@ export const AuthProvider = ({ children }) => {
     setUserName(null);
     setUserEmail(null);
     setUserPicture(null);
+    setUid(null); // UID 초기화
   }, []);
 
   const value = useMemo(
-    () => ({ isAuthenticated, role, userName, userEmail, userPicture, loading, login, logout }),
-    [isAuthenticated, role, userName, userEmail, userPicture, loading, login, logout]
+    () => ({ isAuthenticated, role, userName, userEmail, userPicture, uid, loading, login, logout }),
+    [isAuthenticated, role, userName, userEmail, userPicture, uid, loading, login, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

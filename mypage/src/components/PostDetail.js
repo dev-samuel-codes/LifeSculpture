@@ -1,15 +1,16 @@
 // PostDetail.js
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db } from '../firebase/firebase';
+import { db, storage } from '../firebase/firebase';
 import { doc, getDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
+import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
 import '../style/PostDetail.css';
 
 function PostDetail() {
   const { category, id } = useParams();
   const navigate = useNavigate();
-  const { role } = useContext(AuthContext);
+  const { role, uid } = useContext(AuthContext); // uid 추가
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -139,12 +140,158 @@ function PostDetail() {
     }
   };
 
+  // 게시물 내용에서 이미지 URL을 추출하는 함수
+  const extractImageUrls = (content) => {
+    if (!content) return [];
+    
+    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/g;
+    const urls = [];
+    let match;
+    
+    while ((match = imgRegex.exec(content)) !== null) {
+      urls.push(match[1]);
+    }
+    
+    return urls;
+  };
+
+  // Firebase Storage에서 이미지 삭제하는 함수
+  const deleteImagesFromStorage = async (imageUrls) => {
+    if (!imageUrls || imageUrls.length === 0) return;
+    
+    console.log('Storage 삭제 시작. 총 이미지 수:', imageUrls.length);
+    console.log('현재 사용자 UID:', uid);
+    console.log('현재 사용자 역할:', role);
+    
+    const deletePromises = imageUrls.map(async (imageUrl) => {
+      try {
+        console.log('이미지 URL 처리 중:', imageUrl);
+        
+        // Firebase Storage URL에서 경로 추출
+        if (imageUrl.includes('firebasestorage.googleapis.com')) {
+          console.log('Firebase Storage URL 감지됨');
+          
+          // URL 객체 생성하여 파싱
+          try {
+            const url = new URL(imageUrl);
+            console.log('파싱된 URL:', url);
+            console.log('URL 경로:', url.pathname);
+            
+            // pathname에서 /o/ 이후의 경로 추출
+            const pathParts = url.pathname.split('/');
+            const oIndex = pathParts.findIndex(part => part === 'o');
+            
+            if (oIndex !== -1 && oIndex + 1 < pathParts.length) {
+              // /o/ 이후의 경로를 모두 결합
+              let filePath = pathParts.slice(oIndex + 1).join('/');
+              console.log('추출된 파일 경로 (인코딩됨):', filePath);
+              
+              // 이중 인코딩 문제 해결 (%252F -> %2F -> /)
+              if (filePath.includes('%252F')) {
+                filePath = filePath.replace(/%252F/g, '/');
+                console.log('이중 인코딩 해결 후:', filePath);
+              }
+              
+              // URL 디코딩
+              const decodedPath = decodeURIComponent(filePath);
+              console.log('최종 디코딩된 파일 경로:', decodedPath);
+              
+              if (decodedPath && decodedPath !== 'media' && !decodedPath.includes('?')) {
+                const imageRef = ref(storage, decodedPath);
+                await deleteObject(imageRef);
+                console.log('이미지 삭제 성공:', decodedPath);
+              } else {
+                console.log('유효하지 않은 파일 경로:', decodedPath);
+              }
+            } else {
+              console.log('o 파라미터를 찾을 수 없음');
+            }
+          } catch (urlError) {
+            console.log('URL 파싱 실패:', urlError);
+            
+            // 대체 방법: 문자열 파싱 (권한 에러 방지)
+            try {
+              const urlParts = imageUrl.split('/');
+              const pathIndex = urlParts.findIndex(part => part === 'o');
+              if (pathIndex !== -1 && pathIndex + 1 < urlParts.length) {
+                let encodedPath = urlParts[pathIndex + 1];
+                
+                // 쿼리 파라미터 제거 (?alt=media&token=...)
+                if (encodedPath.includes('?')) {
+                  encodedPath = encodedPath.split('?')[0];
+                }
+                
+                // HTML 엔티티 디코딩 (&amp; -> &)
+                encodedPath = encodedPath.replace(/&amp;/g, '&');
+                
+                // 이중 인코딩 문제 해결 (%252F -> %2F -> /)
+                if (encodedPath.includes('%252F')) {
+                  encodedPath = encodedPath.replace(/%252F/g, '/');
+                  console.log('이중 인코딩 해결 후 (대체 방법):', encodedPath);
+                }
+                
+                const decodedPath = decodeURIComponent(encodedPath);
+                console.log('대체 방법으로 파싱된 경로:', decodedPath);
+                
+                if (decodedPath && decodedPath !== 'media' && !decodedPath.includes('?')) {
+                  const imageRef = ref(storage, decodedPath);
+                  await deleteObject(imageRef);
+                  console.log('이미지 삭제 성공 (대체 방법):', decodedPath);
+                } else {
+                  console.log('유효하지 않은 파일 경로 (대체 방법):', decodedPath);
+                }
+              }
+            } catch (fallbackError) {
+              console.log('대체 방법도 실패:', fallbackError);
+            }
+          }
+        } else {
+          // 로컬 이미지나 다른 URL인 경우 (삭제하지 않음)
+          console.log('Firebase Storage 이미지가 아닙니다:', imageUrl);
+        }
+      } catch (error) {
+        console.error('이미지 삭제 실패:', imageUrl, error);
+        console.error('에러 코드:', error.code);
+        console.error('에러 메시지:', error.message);
+        
+        // 권한 관련 에러인 경우 추가 정보 출력
+        if (error.code === 'storage/unauthorized') {
+          console.error('Storage 권한이 없습니다. 현재 UID:', uid);
+          console.error('Storage 규칙에서 허용된 UID: Bvik2Rv5HzatCW91UNjCuro0y8I3');
+        }
+        
+        // 개별 이미지 삭제 실패는 전체 삭제 프로세스를 중단하지 않음
+      }
+    });
+    
+    const results = await Promise.allSettled(deletePromises);
+    console.log('삭제 결과:', results);
+    
+    // 성공/실패 통계
+    const successful = results.filter(result => result.status === 'fulfilled').length;
+    const failed = results.filter(result => result.status === 'rejected').length;
+    console.log(`삭제 완료: 성공 ${successful}개, 실패 ${failed}개`);
+  };
+
   const handleDelete = async () => {
-    if (!window.confirm('정말로 이 게시물을 삭제하시겠습니까?')) return;
+    if (!window.confirm('정말로 이 게시물을 삭제하시겠습니까?\n게시물에 포함된 이미지도 함께 삭제됩니다.')) return;
 
     try {
+      // 게시물 내용에서 이미지 URL 추출
+      const imageUrls = extractImageUrls(post.content);
+      console.log('삭제할 이미지들:', imageUrls);
+      
+      // Firestore에서 게시물 삭제
       await deleteDoc(doc(db, category, id));
-      alert('게시물이 성공적으로 삭제되었습니다.');
+      console.log('게시물 삭제 성공');
+      
+      // 이미지들을 Storage에서 삭제
+      if (imageUrls.length > 0) {
+        await deleteImagesFromStorage(imageUrls);
+        console.log('이미지 삭제 완료');
+      }
+      
+      alert('게시물과 관련 이미지가 성공적으로 삭제되었습니다.');
       navigate(`/${category}`);
     } catch (e) {
       console.error('Error deleting document: ', e);
