@@ -372,7 +372,7 @@ function PostDetail() {
             <div className="edit-delete-buttons">
               <button
                 className="btn btn-warning btn-sm"
-                onClick={() => navigate(`/edit-post/${category}/${id}`)}
+                onClick={() => window.open(`/edit-post/${category}/${id}`, '_blank')}
                 aria-label="Edit post"
               >
                 수정

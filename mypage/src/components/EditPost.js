@@ -116,10 +116,6 @@ function EditPost() {
     <div className="container mt-4 h-100">
       <div className="settings-writing-container">
         <div className="writing-header">
-          <h3>글 수정하기</h3>
-          <p className="writing-subtitle">
-            카테고리: <strong>{category}</strong>
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="writing-form">
@@ -157,7 +153,7 @@ function EditPost() {
             </div>
           </div>
 
-          <div className="writing-actions">
+          <div className="writing-actions d-flex justify-content-end">
             <button type="submit" className="btn btn-primary btn-primary-solid">수정하기</button>
           </div>
         </form>
