@@ -96,7 +96,7 @@ function SettingsUsers() {
           <div className="user-card-header">
             <div className="user-card-name">{user.name || 'N/A'}</div>
             <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
-              {user.role || 'user'}
+              {user.role === 'admin' ? '관리자' : '일반 사용자'}
             </span>
           </div>
           <div className="user-card-email">{user.email}</div>
@@ -123,7 +123,7 @@ function SettingsUsers() {
               <td>{user.email}</td>
               <td>
                 <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
-                  {user.role || 'user'}
+                  {user.role === 'admin' ? '관리자' : '일반 사용자'}
                 </span>
               </td>
             </tr>
@@ -157,9 +157,9 @@ function SettingsUsers() {
                 onChange={(e) => setRoleFilter(e.target.value)}
                 aria-label="Filter by role"
               >
-                <option value="all">Role</option>
-                <option value="admin">admin</option>
-                <option value="user">user</option>
+                <option value="all">전체 사용자</option>
+                <option value="admin">관리자</option>
+                <option value="user">일반 사용자</option>
               </select>
             </div>
           </header>
