@@ -5,6 +5,88 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { storage } from '../firebase/firebase';
 import 'katex/dist/katex.min.css';
 
+// 이미지 압축 함수 - KB 단위로 압축
+const compressImage = (file) => {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      // 원본 이미지 크기
+      let { width, height } = img;
+      
+      // 원본 파일 크기에 따른 압축 목표 설정
+      const originalSizeMB = file.size / (1024 * 1024);
+      let targetSizeKB;
+      
+      if (originalSizeMB > 10) {
+        targetSizeKB = 100; // 10MB 이상이면 100KB로 압축
+      } else if (originalSizeMB > 5) {
+        targetSizeKB = 200; // 5MB 이상이면 200KB로 압축
+      } else if (originalSizeMB > 2) {
+        targetSizeKB = 300; // 2MB 이상이면 300KB로 압축
+      } else if (originalSizeMB > 1) {
+        targetSizeKB = 400; // 1MB 이상이면 400KB로 압축 (더 강력하게)
+      } else {
+        targetSizeKB = 600; // 1MB 미만이면 600KB로 압축
+      }
+      
+      console.log(`[COMPRESS] 원본: ${originalSizeMB.toFixed(1)}MB, 목표: ${targetSizeKB}KB`);
+      
+      // 더 강력한 리사이즈 적용
+      let maxDimension = 1920;
+      if (originalSizeMB > 5) {
+        maxDimension = 1280; // 5MB 이상이면 더 작게
+      } else if (originalSizeMB > 2) {
+        maxDimension = 1600; // 2MB 이상이면 중간 크기
+      }
+      
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = (height * maxDimension) / width;
+          width = maxDimension;
+        } else {
+          width = (width * maxDimension) / height;
+          height = maxDimension;
+        }
+        console.log(`[COMPRESS] 리사이즈: ${width}x${height}`);
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // 이미지 그리기
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // 더 강력한 압축을 위한 품질 조정
+      let quality = 0.8; // 시작 품질을 낮춤
+      
+      const tryCompress = () => {
+        canvas.toBlob((blob) => {
+          const currentSizeKB = blob.size / 1024;
+          console.log(`[COMPRESS] 시도: ${currentSizeKB.toFixed(1)}KB (품질: ${quality.toFixed(1)})`);
+          
+          if (blob.size <= targetSizeKB * 1024 || quality <= 0.05) {
+            // 압축된 이미지가 목표 크기 이하이거나 최소 품질에 도달
+            console.log(`[COMPRESS] 완료: ${currentSizeKB.toFixed(1)}KB (목표: ${targetSizeKB}KB)`);
+            resolve(blob);
+          } else {
+            // 품질을 더 빠르게 낮춤
+            quality -= 0.15;
+            if (quality < 0.05) quality = 0.05;
+            tryCompress();
+          }
+        }, 'image/jpeg', quality);
+      };
+      
+      tryCompress();
+    };
+    
+    img.src = URL.createObjectURL(file);
+  });
+};
+
 // 이미지 업로드 함수 (Hook이 아닌 일반 함수)
 export const handleImageUpload = async (file) => {
   console.log('[handleImageUpload] start with file:', file);
@@ -43,40 +125,73 @@ export const handleImageUpload = async (file) => {
       uid: user.uid,
     });
 
-    // 경로는 공개 읽기 정책에 맞춰 post-images 아래로 정리
-    const path = `post-images/${Date.now()}-${file.name}`;
-    const imgRef = storageRef(storage, path);
-    const metadata = { contentType: file.type };
+    // 이미지 압축 - 1MB 이상인 경우에만 적용
+    let processedFile = file;
+    const originalSizeKB = file.size / 1024;
+    const originalSizeMB = file.size / (1024 * 1024);
+    
+    if (originalSizeMB >= 1) {
+      console.log(`[COMPRESS] 1MB 이상 감지: ${originalSizeMB.toFixed(1)}MB, 압축 시작`);
+      console.log('[COMPRESS] compressing image...');
+      processedFile = await compressImage(file);
+      const compressedSizeKB = processedFile.size / 1024;
+      console.log(`[COMPRESS] 압축 완료: ${compressedSizeKB.toFixed(1)}KB (압축률: ${((1 - processedFile.size / file.size) * 100).toFixed(1)}%)`);
+    } else {
+      console.log(`[COMPRESS] 1MB 미만: ${originalSizeKB.toFixed(1)}KB, 압축 생략`);
+    }
 
-    console.log('[UPLOAD] uploading to path:', path);
-    const snap = await uploadBytes(imgRef, file, metadata);
-    console.log('[UPLOAD] done:', {
+    // Storage 경로 설정 및 업로드
+    const path = `post-images/${Date.now()}-${file.name}`;
+    console.log('[STORAGE] 업로드 경로:', path);
+    console.log('[STORAGE] Storage 참조 생성 중...');
+    
+    const imgRef = storageRef(storage, path);
+    console.log('[STORAGE] Storage 참조 생성 완료:', imgRef);
+    
+    const metadata = { contentType: processedFile.type || 'image/jpeg' };
+    console.log('[STORAGE] 메타데이터:', metadata);
+    
+    console.log('[STORAGE] 이미지 업로드 시작...');
+    const snap = await uploadBytes(imgRef, processedFile, metadata);
+    console.log('[STORAGE] 업로드 완료:', {
       fullPath: snap.metadata.fullPath,
       contentType: snap.metadata.contentType,
       size: snap.metadata.size,
+      bucket: snap.metadata.bucket,
     });
 
-    console.log('[UPLOAD] getting download URL...');
+    console.log('[STORAGE] 다운로드 URL 생성 중...');
     const url = await getDownloadURL(snap.ref);
-    console.log('[URL] generated:', url);
+    console.log('[STORAGE] 다운로드 URL 생성 완료:', url);
     
     if (!url) {
-      console.error('[handleImageUpload] no URL returned from getDownloadURL');
-      return null;
+      console.error('[STORAGE] 다운로드 URL이 생성되지 않음');
+      throw new Error('다운로드 URL 생성 실패');
     }
     
+    console.log('[UPLOAD] 전체 과정 완료. 반환할 URL:', url);
     return url;
   } catch (err) {
-    console.error('[UPLOAD] failed:', {
+    console.error('[UPLOAD] 전체 과정 실패:', {
       code: err?.code,
       message: err?.message,
       name: err?.name,
       stack: err?.stack,
     });
+    
+    // Storage 관련 에러 상세 분석
     if (err?.code === 'storage/unauthorized' || err?.code === 'permission-denied') {
       alert('이미지 업로드 권한이 없습니다. 관리자 계정인지 확인하세요.');
+    } else if (err?.code === 'storage/bucket-not-found') {
+      alert('Storage 버킷을 찾을 수 없습니다. Firebase 설정을 확인하세요.');
+    } else if (err?.code === 'storage/object-not-found') {
+      alert('Storage 객체를 찾을 수 없습니다. 업로드가 실패했을 수 있습니다.');
+    } else if (err?.code === 'storage/quota-exceeded') {
+      alert('Storage 용량이 초과되었습니다.');
+    } else if (err?.code === 'storage/unauthenticated') {
+      alert('인증되지 않은 사용자입니다. 로그인 후 다시 시도하세요.');
     } else {
-      alert('이미지 업로드에 실패했어요. 콘솔의 [UPLOAD] failed 로그를 캡처해서 알려주세요!');
+      alert(`이미지 업로드에 실패했습니다: ${err.message}\n\n콘솔의 [UPLOAD] failed 로그를 확인해주세요.`);
     }
     throw err;
   }
@@ -85,17 +200,19 @@ export const handleImageUpload = async (file) => {
 // Quill 이미지 핸들러
 export const useImageHandler = () => {
   return useCallback(() => {
-    console.log('[imageHandler] called');
+    console.log('[imageHandler] called - 이미지 핸들러 시작');
     
     // 에디터 참조 가져오기 (여러 방법 시도)
     let editor = null;
     if (window.quillEditor) {
       editor = window.quillEditor;
+      console.log('[imageHandler] window.quillEditor에서 에디터 찾음');
     } else {
       // DOM에서 직접 찾기
       const quillElement = document.querySelector('.ql-editor');
       if (quillElement && quillElement.__quill) {
         editor = quillElement.__quill;
+        console.log('[imageHandler] DOM에서 에디터 찾음');
       }
     }
     
@@ -113,23 +230,31 @@ export const useImageHandler = () => {
       return;
     }
 
+    console.log('[imageHandler] 파일 선택 다이얼로그 열기');
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
     input.click();
 
     input.onchange = async () => {
-      console.log('[imageHandler] onchange');
+      console.log('[imageHandler] onchange - 파일 선택됨');
       const file = input.files && input.files[0];
       if (!file) {
         console.log('[imageHandler] no file selected');
         return;
       }
 
+      console.log('[imageHandler] 선택된 파일 정보:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
       try {
-        console.log('[imageHandler] uploading file:', file.name);
+        console.log('[imageHandler] handleImageUpload 호출 시작');
         const url = await handleImageUpload(file);
-        console.log('[imageHandler] upload result url:', url);
+        console.log('[imageHandler] handleImageUpload 완료, URL:', url);
+        
         if (!url) {
           console.error('[imageHandler] no URL returned');
           return;
@@ -146,19 +271,19 @@ export const useImageHandler = () => {
 
         if (currentEditor) {
           const range = currentEditor.getSelection(true) || { index: currentEditor.getLength() };
-          console.log('[imageHandler] inserting image at index:', range.index);
+          console.log('[imageHandler] 이미지 삽입 위치:', range.index);
           
           // 기본 이미지 삽입 방식 사용
           currentEditor.insertEmbed(range.index, 'image', url, 'user');
           currentEditor.setSelection(range.index + 1, 0);
-          console.log('[imageHandler] image inserted successfully');
+          console.log('[imageHandler] 이미지 삽입 성공');
         } else {
           console.error('[imageHandler] editor still not found after upload');
           alert('에디터를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
         }
       } catch (err) {
-        console.error('[HANDLER] failed:', err);
-        alert('이미지 삽입에 실패했어요: ' + err.message);
+        console.error('[imageHandler] 이미지 업로드 실패:', err);
+        alert('이미지 삽입에 실패했습니다: ' + err.message);
       }
     };
   }, []);
