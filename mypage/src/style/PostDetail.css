@@ -138,9 +138,10 @@
 
 /* 이미지 스타일 */
 .post-content img {
-  height: auto;
+  height: auto !important;
   border-radius: 12px;
-  max-width: 50%;
+  max-width: 40% !important;
+  width: 40% !important;
   margin: 1.5rem 0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -150,6 +151,13 @@
 .post-content img:hover {
   transform: scale(1.02);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* 추가 이미지 클래스로 더 강력한 스타일링 */
+.post-content-image {
+  max-width: 40% !important;
+  width: 40% !important;
+  height: auto !important;
 }
 
 /* 이미지 모달 */
@@ -485,6 +493,7 @@
 
   .post-content img {
     max-width: 100% !important;
+    width: 100% !important;
   }
 }
 

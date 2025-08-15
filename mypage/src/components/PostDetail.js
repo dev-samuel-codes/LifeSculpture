@@ -329,11 +329,15 @@ function PostDetail() {
         const images = contentElement.querySelectorAll('img');
         images.forEach(img => {
           img.style.cursor = 'pointer';
-          img.style.maxWidth = '60%';
+          img.style.maxWidth = '40%';
+          img.style.width = '40%';
           img.style.height = 'auto';
           img.style.borderRadius = '8px';
           img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
           img.style.transition = 'transform 0.2s ease';
+          
+          // CSS 클래스 추가로 더 강력한 스타일링
+          img.classList.add('post-content-image');
           
           // 호버 효과 추가
           img.addEventListener('mouseenter', () => {
