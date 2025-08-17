@@ -122,7 +122,6 @@ const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => 
             ))}
           </div>
           <div className="preview-area">
-            <h4>미리보기</h4>
             <div ref={previewRef} className="preview-content" />
           </div>
           <div className="input-area">

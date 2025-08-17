@@ -117,7 +117,7 @@
 }
 
 .input-area {
-  height: 150px; /* 고정 높이 */
+  height: 50px; /* 고정 높이를 50px로 설정 */
   display: flex;
   order: 3; /* 순서: 3 (가장 아래) */
 }
