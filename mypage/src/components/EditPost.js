@@ -1,5 +1,5 @@
 // src/components/EditPost.js
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, storage } from '../firebase/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -32,6 +32,8 @@ function EditPost() {
   const [error, setError] = useState(null);
   const [contentSize, setContentSize] = useState(0); // content 크기 추적
   const [imageCount, setImageCount] = useState(0); // 이미지 개수 추적
+  const [pendingImages, setPendingImages] = useState([]); // 임시 저장된 이미지들
+  const [isUploading, setIsUploading] = useState(false); // 업로드 중 상태
 
   // 기존 이미지 URL들을 저장할 상태
   const [originalImageUrls, setOriginalImageUrls] = useState([]);
@@ -39,7 +41,41 @@ function EditPost() {
   const quillRef = useRef(null);
 
   // 공통 툴바 훅 사용
-  const { modules, formats, imageHandler } = useQuillToolbar();
+  const { modules, formats, handleImageUpload } = useQuillToolbar();
+  
+  // 디버깅을 위한 로그
+  console.log('[EditPost] useQuillToolbar 결과:', {
+    modules: !!modules,
+    formats: !!formats,
+    handleImageUpload: typeof handleImageUpload,
+    handleImageUploadExists: !!handleImageUpload
+  });
+
+  // 테스트용 이미지 삽입 함수 (디버깅용)
+  const testImageInsert = useCallback(() => {
+    console.log('[testImageInsert] 테스트 이미지 삽입 시작');
+    console.log('[testImageInsert] pendingImages 현재 상태:', pendingImages);
+    
+    // 테스트용 더미 이미지 생성 (압축 정보 포함)
+    const testImage = {
+      id: Date.now(),
+      file: new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
+      originalFile: new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
+      name: 'test.jpg',
+      originalSize: 1024,
+      compressedSize: 512,
+      type: 'image/jpeg',
+      tempUrl: 'data:image/jpeg;base64,test'
+    };
+    
+    setPendingImages(prev => {
+      const newPendingImages = [...prev, testImage];
+      console.log('[testImageInsert] pendingImages 업데이트:', newPendingImages);
+      return newPendingImages;
+    });
+    
+    console.log('[testImageInsert] 테스트 이미지 추가 완료');
+  }, [pendingImages]);
 
   // content 크기 계산 함수
   const calculateContentSize = (htmlContent) => {
@@ -62,6 +98,184 @@ function EditPost() {
     setContentSize(size);
     setImageCount(imgCount);
   };
+
+  // 이미지 압축 함수
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // 원본 이미지 크기
+        let { width, height } = img;
+        
+        // 원본 파일 크기에 따른 압축 목표 설정
+        const originalSizeMB = file.size / (1024 * 1024);
+        let targetSizeKB;
+        
+        if (originalSizeMB > 10) {
+          targetSizeKB = 100; // 10MB 이상이면 100KB로 압축
+        } else if (originalSizeMB > 5) {
+          targetSizeKB = 200; // 5MB 이상이면 200KB로 압축
+        } else if (originalSizeMB > 2) {
+          targetSizeKB = 300; // 2MB 이상이면 300KB로 압축
+        } else if (originalSizeMB > 1) {
+          targetSizeKB = 400; // 1MB 이상이면 400KB로 압축
+        } else {
+          targetSizeKB = 600; // 1MB 미만이면 600KB로 압축
+        }
+        
+        console.log(`[COMPRESS] 원본: ${originalSizeMB.toFixed(1)}MB, 목표: ${targetSizeKB}KB`);
+        
+        // 리사이즈 적용
+        let maxDimension = 1920;
+        if (originalSizeMB > 5) {
+          maxDimension = 1280; // 5MB 이상이면 더 작게
+        } else if (originalSizeMB > 2) {
+          maxDimension = 1600; // 2MB 이상이면 중간 크기
+        }
+        
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+          console.log(`[COMPRESS] 리사이즈: ${width}x${height}`);
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // 이미지 그리기
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 품질 조정으로 압축
+        let quality = 0.8;
+        
+        const tryCompress = () => {
+          canvas.toBlob((blob) => {
+            const currentSizeKB = blob.size / 1024;
+            console.log(`[COMPRESS] 시도: ${currentSizeKB.toFixed(1)}KB (품질: ${quality.toFixed(1)})`);
+            
+            if (blob.size <= targetSizeKB * 1024 || quality <= 0.05) {
+              // 압축된 이미지가 목표 크기 이하이거나 최소 품질에 도달
+              console.log(`[COMPRESS] 완료: ${currentSizeKB.toFixed(1)}KB (목표: ${targetSizeKB}KB)`);
+              resolve(blob);
+            } else {
+              // 품질을 낮춤
+              quality -= 0.15;
+              if (quality < 0.05) quality = 0.05;
+              tryCompress();
+            }
+          }, 'image/jpeg', quality);
+        };
+        
+        tryCompress();
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+
+
+  // 이미지 핸들러 - 임시 저장용 (SettingsWriting.js와 동일한 방식)
+  const handleImageInsert = useCallback(() => {
+    console.log('[handleImageInsert] 이미지 삽입 핸들러 시작');
+    console.log('[handleImageInsert] quillRef 상태:', !!quillRef.current);
+    
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    
+    // 파일 선택 이벤트 리스너 추가
+    input.addEventListener('change', async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        console.log('[handleImageInsert] 파일이 선택되지 않음');
+        return;
+      }
+
+      console.log('[handleImageInsert] 선택된 파일:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
+      try {
+        // 이미지 압축
+        console.log('[handleImageInsert] 이미지 압축 시작');
+        const compressedFile = await compressImage(file);
+        console.log('[handleImageInsert] 이미지 압축 완료:', {
+          원본: `${(file.size / 1024).toFixed(1)}KB`,
+          압축: `${(compressedFile.size / 1024).toFixed(1)}KB`,
+          압축률: `${((1 - compressedFile.size / file.size) * 100).toFixed(1)}%`
+        });
+
+        // 압축된 파일로 base64 URL 생성
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const tempUrl = e.target.result;
+          
+          // 압축된 파일을 임시로 저장 (base64 URL 포함)
+          const tempImage = {
+            id: Date.now() + Math.random(),
+            file: compressedFile, // 압축된 파일 사용
+            originalFile: file, // 원본 파일도 보관 (참조용)
+            name: file.name,
+            originalSize: file.size,
+            compressedSize: compressedFile.size,
+            type: file.type,
+            tempUrl: tempUrl // base64 URL 저장
+          };
+
+          console.log('[handleImageInsert] tempImage 생성:', tempImage);
+          setPendingImages(prev => {
+            const newPendingImages = [...prev, tempImage];
+            console.log('[handleImageInsert] pendingImages 업데이트:', newPendingImages);
+            return newPendingImages;
+          });
+
+          // 에디터에 임시 이미지 삽입
+          const editor = quillRef.current?.getEditor();
+          if (editor) {
+            try {
+              const range = editor.getSelection(true) || { index: editor.getLength() };
+              editor.insertEmbed(range.index, 'image', tempUrl, 'user');
+              editor.setSelection(range.index + 1, 0);
+              console.log('[handleImageInsert] 임시 이미지 삽입 완료');
+            } catch (editorError) {
+              console.error('[handleImageInsert] 에디터에 이미지 삽입 실패:', editorError);
+            }
+          } else {
+            console.warn('[handleImageInsert] 에디터를 찾을 수 없음');
+          }
+        };
+        
+        reader.onerror = (error) => {
+          console.error('[handleImageInsert] FileReader 에러:', error);
+        };
+        
+        reader.readAsDataURL(compressedFile);
+
+      } catch (err) {
+        console.error('[handleImageInsert] 이미지 처리 실패:', err);
+        alert('이미지 처리에 실패했습니다: ' + err.message);
+      }
+    });
+    
+    // 파일 선택 다이얼로그 열기
+    input.click();
+    
+    // 메모리 정리
+    setTimeout(() => {
+      input.remove();
+    }, 1000);
+  }, []);
 
   // ====== Load existing post ======
   useEffect(() => {
@@ -106,7 +320,11 @@ function EditPost() {
     let match;
     
     while ((match = imgRegex.exec(content)) !== null) {
-      urls.push(match[1]);
+      const url = match[1];
+      // base64 이미지는 제외 (Firebase Storage URL만 반환)
+      if (!url.startsWith('data:')) {
+        urls.push(url);
+      }
     }
     
     return urls;
@@ -203,8 +421,12 @@ function EditPost() {
             }
           }
         } else {
-          // 로컬 이미지나 다른 URL인 경우 (삭제하지 않음)
-          console.log('Firebase Storage 이미지가 아닙니다:', imageUrl);
+          // base64 이미지나 다른 URL인 경우 (삭제하지 않음)
+          if (imageUrl.startsWith('data:')) {
+            console.log('base64 임시 이미지입니다 (삭제 불필요):', imageUrl.substring(0, 50) + '...');
+          } else {
+            console.log('Firebase Storage 이미지가 아닙니다 (삭제하지 않음):', imageUrl);
+          }
         }
       } catch (error) {
         console.error('기존 이미지 삭제 실패:', imageUrl, error);
@@ -239,10 +461,17 @@ function EditPost() {
           console.log('[EditPost] editor ready, setting global reference');
           window.quillEditor = editor;
           
-          // 이미지 핸들러 직접 연결 (imageHandler가 준비된 후)
-          if (imageHandler) {
-            console.log('[EditPost] connecting image handler to editor');
-            editor.getModule('toolbar').addHandler('image', imageHandler);
+          // 임시 이미지 핸들러 연결
+          try {
+            const toolbar = editor.getModule('toolbar');
+            if (toolbar && typeof handleImageInsert === 'function') {
+              toolbar.addHandler('image', handleImageInsert);
+              console.log('[EditPost] 이미지 핸들러 연결 성공');
+            } else {
+              console.warn('[EditPost] toolbar 또는 handleImageInsert를 찾을 수 없음');
+            }
+          } catch (error) {
+            console.error('[EditPost] 이미지 핸들러 연결 실패:', error);
           }
           
           return true;
@@ -258,22 +487,43 @@ function EditPost() {
         if (!setupEditor()) {
           console.warn('[EditPost] editor setup failed after delay');
         }
-      }, 200);
+      }, 500); // 지연 시간을 늘림
 
       return () => clearTimeout(timer);
     }
-  }, [imageHandler]); // imageHandler 의존성 추가
+  }, [handleImageInsert]); // handleImageInsert 의존성 추가
 
-  // imageHandler가 준비되면 에디터에 연결
-  useEffect(() => {
-    if (quillRef.current && imageHandler) {
-      const editor = quillRef.current.getEditor();
-      if (editor) {
-        console.log('[EditPost] connecting image handler after editor ready');
-        editor.getModule('toolbar').addHandler('image', imageHandler);
+  // 게시하기 시 이미지들을 storage에 업로드 (SettingsWriting.js와 동일한 방식)
+  const uploadPendingImages = async () => {
+    if (pendingImages.length === 0) return content;
+
+    console.log('[uploadPendingImages] 시작:', pendingImages.length, '개 이미지');
+    let updatedContent = content;
+
+    for (const tempImage of pendingImages) {
+      try {
+        console.log('[uploadPendingImages] 이미지 업로드 중:', tempImage.name);
+        console.log('[uploadPendingImages] 압축 정보:', {
+          원본: `${(tempImage.originalSize / 1024).toFixed(1)}KB`,
+          압축: `${(tempImage.compressedSize / 1024).toFixed(1)}KB`,
+          압축률: `${((1 - tempImage.compressedSize / tempImage.originalSize) * 100).toFixed(1)}%`
+        });
+        
+        const url = await handleImageUpload(tempImage.file);
+        
+        if (url) {
+          // 저장된 임시 URL을 실제 storage URL로 교체
+          updatedContent = updatedContent.replace(tempImage.tempUrl, url);
+          console.log('[uploadPendingImages] 이미지 URL 교체 완료:', tempImage.name);
+        }
+      } catch (err) {
+        console.error('[uploadPendingImages] 이미지 업로드 실패:', tempImage.name, err);
+        throw new Error(`이미지 "${tempImage.name}" 업로드에 실패했습니다: ${err.message}`);
       }
     }
-  }, [imageHandler]);
+
+    return updatedContent;
+  };
 
   // ====== Submit update ======
   const handleSubmit = async (e) => {
@@ -296,24 +546,41 @@ function EditPost() {
       return;
     }
 
+    setIsUploading(true);
+
     try {
-      // 현재 콘텐츠에서 이미지 URL 추출
-      const currentImageUrls = extractImageUrls(content);
+      // 임시 이미지들을 storage에 업로드하고 content 업데이트
+      let finalContent = content;
+      if (pendingImages.length > 0) {
+        console.log('[handleSubmit] 임시 이미지 업로드 시작');
+        console.log('[handleSubmit] pendingImages 상태:', pendingImages);
+        finalContent = await uploadPendingImages();
+        console.log('[handleSubmit] 임시 이미지 업로드 완료');
+        console.log('[handleSubmit] 최종 content 길이:', finalContent.length);
+      } else {
+        console.log('[handleSubmit] 업로드할 임시 이미지가 없습니다');
+      }
+
+      // 현재 콘텐츠에서 Firebase Storage 이미지 URL만 추출 (base64 제외)
+      const currentImageUrls = extractImageUrls(finalContent);
+      console.log('[handleSubmit] 현재 Firebase Storage 이미지들:', currentImageUrls);
       
       // 기존에 있던 이미지 중 현재 콘텐츠에 없는 것들 찾기
       const removedImages = originalImageUrls.filter(url => !currentImageUrls.includes(url));
       
       // 제거된 이미지들을 Storage에서 삭제
       if (removedImages.length > 0) {
-        console.log('제거된 이미지들:', removedImages);
+        console.log('[handleSubmit] Storage에서 삭제할 이미지들:', removedImages);
         await deleteImagesFromStorage(removedImages);
-        console.log('제거된 이미지 삭제 완료');
+        console.log('[handleSubmit] Storage 이미지 삭제 완료');
+      } else {
+        console.log('[handleSubmit] 삭제할 Storage 이미지가 없습니다');
       }
       
       const docRef = doc(db, categoryParam, id);
       await updateDoc(docRef, {
         title: title.trim(),
-        content, // 이미지 URL 포함된 HTML
+        content: finalContent, // 업로드된 이미지 URL 포함된 HTML
         category: category.trim(),
       });
       alert('Post updated successfully!');
@@ -322,9 +589,13 @@ function EditPost() {
       console.error('[EDIT] update error:', err);
       if (err?.message?.includes('longer than 1048487 bytes')) {
         alert('콘텐츠가 너무 깁니다. 이미지를 압축하거나 텍스트를 줄여주세요.');
+      } else if (err?.message?.includes('이미지')) {
+        alert(err.message);
       } else {
         alert('Error updating post.');
       }
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -392,26 +663,42 @@ function EditPost() {
                     (제한 초과: {MAX_CONTENT_SIZE / 1024}KB)
                   </span>
                 )}
-                {imageCount > 0 && (
-                  <span className="ms-3">
-                    이미지: {imageCount}개
-                    <span className="text-info ms-1">
-                      (1MB 이상은 자동으로 KB 단위로 압축됩니다)
-                    </span>
-                  </span>
-                )}
+                                 {imageCount > 0 && (
+                   <span className="ms-3">
+                     이미지: {imageCount}개
+                   </span>
+                 )}
+                                 {pendingImages.length > 0 && (
+                   <span className="ms-3 text-warning">
+                     임시 이미지: {pendingImages.length}개 (수정 시 업로드됨)
+                     {pendingImages.some(img => img.originalSize > img.compressedSize) && (
+                       <span className="ms-1 text-info">
+                         (자동 압축됨)
+                       </span>
+                     )}
+                   </span>
+                 )}
               </small>
             </div>
           </div>
         </div>
 
           <div className="writing-actions d-flex justify-content-end">
+            {/* 디버깅용 테스트 버튼 */}
+            <button 
+              type="button" 
+              className="btn btn-secondary me-2"
+              onClick={testImageInsert}
+            >
+              테스트 이미지 추가
+            </button>
+            
             <button 
               type="submit" 
               className="btn btn-primary btn-primary-solid"
-              disabled={contentSize > MAX_CONTENT_SIZE}
+              disabled={contentSize > MAX_CONTENT_SIZE || isUploading}
             >
-              수정하기
+              {isUploading ? '업로드 중...' : '수정하기'}
             </button>
           </div>
         </form>
