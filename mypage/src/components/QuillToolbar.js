@@ -375,27 +375,64 @@ export const useQuillModules = () => {
         initializeQuillHandlers();
 
         return {
-          toolbar: [
-            // 1행: 제목 스타일, 폰트, 크기
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            [{ 'font': ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', '맑은 고딕', '나눔고딕', '나눔바른고딕'] }],
-            [{ 'size': ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'] }],
-            
-            // 2행: 텍스트 스타일
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'script': 'sub' }, { 'script': 'super' }],
-            
-            // 3행: 문단 스타일
-            ['blockquote', 'code-block'],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-            [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
-            
-            // 4행: 미디어 및 고급 기능
-            ['link', 'image', 'video', 'formula'],
-            
-            // 5행: 특수 기능
-            ['clean'],
-          ],
+          toolbar: {
+            container: [
+              // 1행: 제목 스타일, 폰트, 크기
+              [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+              [{ 'font': ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', '맑은 고딕', '나눔고딕', '나눔바른고딕'] }],
+              [{ 'size': ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'] }],
+              
+              // 2행: 텍스트 스타일
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ 'script': 'sub' }, { 'script': 'super' }],
+              
+              // 3행: 문단 스타일
+              ['blockquote', 'code-block'],
+              [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+              [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
+              
+              // 4행: 미디어 및 고급 기능
+              ['link', 'image', 'video', 'formula'],
+              
+              // 5행: 특수 기능
+              ['clean'],
+            ],
+            handlers: {
+              'formula': function() {
+                const editor = window.quillEditor;
+                if (!editor) {
+                  console.error('Quill editor instance not found.');
+                  return;
+                }
+                
+                const range = editor.getSelection();
+                let existingFormula = '';
+                if (range && range.length > 0) {
+                    const selection = editor.getContents(range.index, range.length);
+                    if (selection.ops[0]?.insert?.formula) {
+                        existingFormula = selection.ops[0].insert.formula;
+                    }
+                }
+
+                if (typeof window.openFormulaEditor === 'function') {
+                  window.openFormulaEditor(existingFormula, (newFormula) => {
+                    const currentRange = editor.getSelection(true);
+                    if (range && range.length > 0) {
+                        editor.deleteText(range.index, range.length);
+                    }
+                    editor.insertEmbed(currentRange.index, 'formula', newFormula, 'user');
+                    editor.setSelection(currentRange.index + 1, 0);
+                  });
+                } else {
+                  console.error('Custom formula editor handler (window.openFormulaEditor) is not defined.');
+                  const value = prompt('Enter formula:', existingFormula);
+                  if (value) {
+                    editor.insertEmbed(range.index, 'formula', value, 'user');
+                  }
+                }
+              }
+            }
+          },
           // 핸들러를 직접 설정하지 않고, 에디터 인스턴스에서 설정
           // handlers: { 
           //   image: imageHandler, 

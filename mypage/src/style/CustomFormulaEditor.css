@@ -1,0 +1,136 @@
+/* src/style/CustomFormulaEditor.css */
+.formula-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000; /* Ensure it's on top */
+}
+
+.formula-editor-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  width: 90vw;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+}
+
+.formula-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.formula-editor-header h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #888;
+}
+
+.formula-editor-body {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+}
+
+.input-area, .preview-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-area textarea {
+  flex-grow: 1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  resize: none;
+  min-height: 200px;
+}
+
+.symbol-palette {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symbol-palette button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.symbol-palette button:hover {
+  background-color: #e0e0e0;
+}
+
+.preview-area h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #555;
+}
+
+.preview-content {
+  flex-grow: 1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  min-height: 200px;
+  overflow: auto;
+}
+
+.preview-content .katex {
+  font-size: 20px; /* Larger preview font */
+}
+
+.formula-editor-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 15px 25px;
+  border-top: 1px solid #e0e0e0;
+  gap: 10px;
+}
+
+.btn-cancel, .btn-save {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background-color: #eee;
+}
+
+.btn-save {
+  background-color: #0d6efd;
+  color: white;
+}
