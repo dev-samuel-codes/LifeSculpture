@@ -112,6 +112,9 @@
   color: var(--pd-text);
   word-break: keep-all;
   overflow-wrap: break-word;
+  /* 모바일에서 글자 간격 문제 해결 */
+  word-spacing: normal;
+  letter-spacing: normal;
 }
 
 /* 제목 스타일 */
@@ -133,7 +136,8 @@
 /* 문단 스타일 */
 .post-content p {
   margin: 1rem 0;
-  text-align: justify;
+  /* 모바일에서는 left 정렬로 변경하여 글자 간격 문제 방지 */
+  text-align: left;
 }
 
 /* 이미지 스타일 */
@@ -476,6 +480,14 @@
   
   .post-content {
     font-size: 1rem;
+    /* 모바일에서 글자 간격 문제 완전 해결 */
+    text-align: left;
+    word-spacing: normal;
+    letter-spacing: normal;
+    /* 모바일에서 줄바꿈 최적화 */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   .post-content h1 { font-size: 1.75rem; }
@@ -494,6 +506,17 @@
   .post-content img {
     max-width: 100% !important;
     width: 100% !important;
+  }
+  
+  /* 모바일에서 글자 간격만 조정하고 정렬은 유지 */
+  .post-content p {
+    word-spacing: normal !important;
+    letter-spacing: normal !important;
+  }
+  
+  /* 모바일에서 justify 정렬 클래스 무시 */
+  .post-content .ql-align-justify {
+    text-align: left !important;
   }
 }
 
@@ -575,4 +598,26 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+/* 모바일에서 justify 정렬 클래스 무시하여 글자 간격 문제 방지 */
+@media (max-width: 640px) {
+  .post-content .ql-align-justify {
+    text-align: left !important;
+    word-spacing: normal !important;
+    letter-spacing: normal !important;
+  }
+  
+  /* 중앙 정렬과 우측 정렬은 정상 작동하도록 허용 */
+  .post-content .ql-align-center {
+    text-align: center !important;
+    word-spacing: normal !important;
+    letter-spacing: normal !important;
+  }
+  
+  .post-content .ql-align-right {
+    text-align: right !important;
+    word-spacing: normal !important;
+    letter-spacing: normal !important;
+  }
 }

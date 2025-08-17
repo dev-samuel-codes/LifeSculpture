@@ -362,6 +362,21 @@ function PostDetail() {
           });
         });
 
+        // 문단 스타일링 - 모바일에서 글자 간격 문제 방지 (정렬은 유지)
+        const paragraphs = contentElement.querySelectorAll('p');
+        paragraphs.forEach(p => {
+          // 모바일에서는 글자 간격만 조정하고 정렬은 유지
+          if (window.innerWidth <= 640) {
+            // justify 정렬인 경우에만 left로 변경
+            if (p.classList.contains('ql-align-justify')) {
+              p.style.textAlign = 'left';
+            }
+            // 글자 간격 문제 해결
+            p.style.wordSpacing = 'normal';
+            p.style.letterSpacing = 'normal';
+          }
+        });
+
         // 테이블 스타일링
         const tables = contentElement.querySelectorAll('table');
         tables.forEach(table => {
@@ -469,6 +484,46 @@ function PostDetail() {
       document.removeEventListener('keydown', handleEscKey);
     };
   }, [selectedImage, closeImageModal]);
+
+  // 모바일 환경에서 화면 크기 변경 시 글자 간격 문제 방지
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 640 && post && post.content) {
+        const contentElement = document.querySelector('.post-content');
+        if (contentElement) {
+          // 모바일에서 글자 간격만 조정하고 정렬은 유지
+          const paragraphs = contentElement.querySelectorAll('p');
+          paragraphs.forEach(p => {
+            // justify 정렬인 경우에만 left로 변경
+            if (p.classList.contains('ql-align-justify')) {
+              p.style.textAlign = 'left';
+            }
+            // 글자 간격 문제 해결
+            p.style.wordSpacing = 'normal';
+            p.style.letterSpacing = 'normal';
+          });
+          
+          // justify 정렬 클래스가 적용된 요소들만 left 정렬로 변경
+          const justifyElements = contentElement.querySelectorAll('.ql-align-justify');
+          justifyElements.forEach(element => {
+            element.style.textAlign = 'left';
+            element.style.wordSpacing = 'normal';
+            element.style.letterSpacing = 'normal';
+          });
+        }
+      }
+    };
+
+    // 초기 실행
+    handleResize();
+    
+    // 리사이즈 이벤트 리스너 추가
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [post]);
 
   // 날짜만 표시 (YYYY-MM-DD)
   const formatDateOnly = (value) => {
