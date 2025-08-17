@@ -31,6 +31,7 @@ function EditPost() {
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editorHeight, setEditorHeight] = useState('400px');
   const [contentSize, setContentSize] = useState(0); // content 크기 추적
   const [pendingImages, setPendingImages] = useState([]); // 임시 저장된 이미지들
   const [isUploading, setIsUploading] = useState(false); // 업로드 중 상태
@@ -42,16 +43,6 @@ function EditPost() {
 
   // 공통 툴바 훅 사용
   const { modules, formats, handleImageUpload } = useQuillToolbar();
-  
-  // 디버깅을 위한 로그
-  console.log('[EditPost] useQuillToolbar 결과:', {
-    modules: !!modules,
-    formats: !!formats,
-    handleImageUpload: typeof handleImageUpload,
-    handleImageUploadExists: !!handleImageUpload
-  });
-
-
 
   // content 크기 계산 함수
   const calculateContentSize = (htmlContent) => {
@@ -60,8 +51,6 @@ function EditPost() {
     return new Blob([textContent]).size;
   };
 
-
-
   // content 변경 시 크기 추적
   const handleContentChange = (newContent) => {
     setContent(newContent);
@@ -69,86 +58,105 @@ function EditPost() {
     setContentSize(size);
   };
 
-  // 이미지 압축 함수
-  const compressImage = (file) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
+  // 게시물 내용에서 이미지 URL을 추출하는 함수
+  const extractImageUrls = (content) => {
+    if (!content) return [];
+    
+    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/g;
+    const urls = [];
+    let match;
+    
+    while ((match = imgRegex.exec(content)) !== null) {
+      const url = match[1];
       
-      img.onload = () => {
-        // 원본 이미지 크기
-        let { width, height } = img;
+      // Firebase Storage URL 또는 base64 이미지인 경우 모두 포함
+      if ((url.startsWith('https://firebasestorage.googleapis.com') && 
+           url.includes('/o/') && 
+           !url.includes('undefined') && 
+           !url.includes('null') &&
+           url.length > 50) || 
+          url.startsWith('data:image/')) {
         
-        // 원본 파일 크기에 따른 압축 목표 설정
-        const originalSizeMB = file.size / (1024 * 1024);
-        let targetSizeKB;
-        
-        if (originalSizeMB > 10) {
-          targetSizeKB = 100; // 10MB 이상이면 100KB로 압축
-        } else if (originalSizeMB > 5) {
-          targetSizeKB = 200; // 5MB 이상이면 200KB로 압축
-        } else if (originalSizeMB > 2) {
-          targetSizeKB = 300; // 2MB 이상이면 300KB로 압축
-        } else if (originalSizeMB > 1) {
-          targetSizeKB = 400; // 1MB 이상이면 400KB로 압축
+        // base64 이미지는 바로 추가
+        if (url.startsWith('data:image/')) {
+          urls.push(url);
         } else {
-          targetSizeKB = 600; // 1MB 미만이면 600KB로 압축
-        }
-        
-        console.log(`[COMPRESS] 원본: ${originalSizeMB.toFixed(1)}MB, 목표: ${targetSizeKB}KB`);
-        
-        // 리사이즈 적용
-        let maxDimension = 1920;
-        if (originalSizeMB > 5) {
-          maxDimension = 1280; // 5MB 이상이면 더 작게
-        } else if (originalSizeMB > 2) {
-          maxDimension = 1600; // 2MB 이상이면 중간 크기
-        }
-        
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = (height * maxDimension) / width;
-            width = maxDimension;
-          } else {
-            width = (width * maxDimension) / height;
-            height = maxDimension;
-          }
-          console.log(`[COMPRESS] 리사이즈: ${width}x${height}`);
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        // 이미지 그리기
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // 품질 조정으로 압축
-        let quality = 0.8;
-        
-        const tryCompress = () => {
-          canvas.toBlob((blob) => {
-            const currentSizeKB = blob.size / 1024;
-            console.log(`[COMPRESS] 시도: ${currentSizeKB.toFixed(1)}KB (품질: ${quality.toFixed(1)})`);
-            
-            if (blob.size <= targetSizeKB * 1024 || quality <= 0.05) {
-              // 압축된 이미지가 목표 크기 이하이거나 최소 품질에 도달
-              console.log(`[COMPRESS] 완료: ${currentSizeKB.toFixed(1)}KB (목표: ${targetSizeKB}KB)`);
-              resolve(blob);
-            } else {
-              // 품질을 낮춤
-              quality -= 0.15;
-              if (quality < 0.05) quality = 0.05;
-              tryCompress();
+          // Firebase Storage URL은 유효성 검증 후 추가
+          try {
+            const urlObj = new URL(url);
+            if (urlObj.pathname.includes('/o/')) {
+              urls.push(url);
             }
-          }, 'image/jpeg', quality);
-        };
-        
-        tryCompress();
-      };
+          } catch (e) {
+            console.log('[extractImageUrls] 유효하지 않은 URL 무시:', url);
+          }
+        }
+      }
+    }
+    
+    console.log('[extractImageUrls] 추출된 이미지들 (총', urls.length, '개):', urls);
+    console.log('[extractImageUrls] Firebase Storage 이미지:', urls.filter(url => url.startsWith('https://firebasestorage.googleapis.com')).length, '개');
+    console.log('[extractImageUrls] Base64 이미지:', urls.filter(url => url.startsWith('data:image/')).length, '개');
+    return urls;
+  };
+
+  // Firebase Storage URL에서 파일 경로를 추출하는 함수
+  const extractStoragePath = (imageUrl) => {
+    if (!imageUrl.startsWith('https://firebasestorage.googleapis.com')) {
+      return null;
+    }
+    
+    try {
+      const url = new URL(imageUrl);
+      const pathParts = url.pathname.split('/');
+      const oIndex = pathParts.findIndex(part => part === 'o');
       
-      img.src = URL.createObjectURL(file);
-    });
+      if (oIndex !== -1 && oIndex + 1 < pathParts.length) {
+        let filePath = pathParts.slice(oIndex + 1).join('/');
+        
+        // 이중 인코딩 문제 해결 (%252F -> %2F -> /)
+        if (filePath.includes('%252F')) {
+          filePath = filePath.replace(/%252F/g, '/');
+        }
+        
+        // URL 디코딩
+        const decodedPath = decodeURIComponent(filePath);
+        
+        // 파일 경로 유효성 검사
+        if (decodedPath && 
+            decodedPath !== 'media' && 
+            !decodedPath.includes('?') && 
+            decodedPath.length > 0 &&
+            !decodedPath.includes('undefined') &&
+            !decodedPath.includes('null')) {
+          return decodedPath;
+        }
+      }
+    } catch (e) {
+      console.log('[extractStoragePath] URL 파싱 실패:', e);
+    }
+    
+    return null;
+  };
+
+  // 두 이미지 URL이 같은 Firebase Storage 파일을 가리키는지 확인하는 함수
+  const isSameStorageImage = (url1, url2) => {
+    if (!url1 || !url2) return false;
+    
+    // 둘 다 Firebase Storage URL인 경우에만 비교
+    if (url1.startsWith('https://firebasestorage.googleapis.com') && 
+        url2.startsWith('https://firebasestorage.googleapis.com')) {
+      
+      const path1 = extractStoragePath(url1);
+      const path2 = extractStoragePath(url2);
+      
+      if (path1 && path2) {
+        return path1 === path2;
+      }
+    }
+    
+    // 정확한 URL 일치
+    return url1 === url2;
   };
 
   // HEIC 파일을 JPEG로 변환하는 함수
@@ -188,16 +196,15 @@ function EditPost() {
   // 이미지 핸들러 - 임시 저장용 (SettingsWriting.js와 동일한 방식)
   const handleImageInsert = useCallback(() => {
     console.log('[handleImageInsert] 이미지 삽입 핸들러 시작');
-    console.log('[handleImageInsert] quillRef 상태:', !!quillRef.current);
     
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*,.heic,.heif'); // HEIC 형식 추가
     input.setAttribute('capture', 'environment'); // 모바일에서 카메라 접근 허용
-    
-    // 파일 선택 이벤트 리스너 추가
-    input.addEventListener('change', async (event) => {
-      const file = event.target.files && event.target.files[0];
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files && input.files[0];
       if (!file) {
         console.log('[handleImageInsert] 파일이 선택되지 않음');
         return;
@@ -218,80 +225,53 @@ function EditPost() {
           processedFile = await convertHeicToJpeg(file);
         }
 
-        // 이미지 압축
-        console.log('[handleImageInsert] 이미지 압축 시작');
-        const compressedFile = await compressImage(processedFile);
-        console.log('[handleImageInsert] 이미지 압축 완료:', {
-          원본: `${(file.size / 1024).toFixed(1)}KB`,
-          변환: processedFile !== file ? `${(processedFile.size / 1024).toFixed(1)}KB` : 'N/A',
-          압축: `${(compressedFile.size / 1024).toFixed(1)}KB`,
-          압축률: `${((1 - compressedFile.size / file.size) * 100).toFixed(1)}%`
-        });
-
-        // 압축된 파일로 base64 URL 생성
+        // base64 URL 생성
         const reader = new FileReader();
         reader.onload = (e) => {
           const tempUrl = e.target.result;
           
-          // 압축된 파일을 임시로 저장 (base64 URL 포함)
+          // 파일을 임시로 저장 (base64 URL 포함)
           const tempImage = {
             id: Date.now() + Math.random(),
-            file: compressedFile, // 압축된 파일 사용
+            file: processedFile, // 변환된 파일 사용
             originalFile: file, // 원본 파일도 보관 (참조용)
             name: file.name,
-            originalSize: file.size,
-            compressedSize: compressedFile.size,
+            size: file.size,
             type: file.type,
             tempUrl: tempUrl, // base64 URL 저장
             isHeicConverted: processedFile !== file // HEIC 변환 여부 표시
           };
 
-          console.log('[handleImageInsert] tempImage 생성:', tempImage);
-          setPendingImages(prev => {
-            const newPendingImages = [...prev, tempImage];
-            console.log('[handleImageInsert] pendingImages 업데이트:', newPendingImages);
-            return newPendingImages;
-          });
+          setPendingImages(prev => [...prev, tempImage]);
 
           // 에디터에 임시 이미지 삽입
           const editor = quillRef.current?.getEditor();
           if (editor) {
-            try {
-              const range = editor.getSelection(true) || { index: editor.getLength() };
-              
-              // 현재 선택된 블록의 정렬 상태 확인
-              const [line] = editor.getLine(range.index);
-              const formats = line ? line.formats() : {};
-              const currentAlign = formats.align || '';
-              
-              // 이미지 삽입
-              editor.insertEmbed(range.index, 'image', tempUrl, 'user');
-              
-              // 정렬이 설정되어 있다면 이미지에도 적용
-              if (currentAlign) {
-                // 이미지 삽입 후 정렬 적용
-                setTimeout(() => {
-                  const newRange = { index: range.index, length: 1 };
-                  editor.formatLine(newRange.index, newRange.length, 'align', currentAlign);
-                  console.log('[handleImageInsert] 이미지 정렬 적용:', currentAlign);
-                }, 10);
-              }
-              
-              editor.setSelection(range.index + 1, 0);
-              console.log('[handleImageInsert] 임시 이미지 삽입 완료');
-            } catch (editorError) {
-              console.error('[handleImageInsert] 에디터에 이미지 삽입 실패:', editorError);
+            const range = editor.getSelection(true) || { index: editor.getLength() };
+            
+            // 현재 선택된 블록의 정렬 상태 확인
+            const [line] = editor.getLine(range.index);
+            const formats = line ? line.formats() : {};
+            const currentAlign = formats.align || '';
+            
+            // 이미지 삽입
+            editor.insertEmbed(range.index, 'image', tempUrl, 'user');
+            
+            // 정렬이 설정되어 있다면 이미지에도 적용
+            if (currentAlign) {
+              // 이미지 삽입 후 정렬 적용
+              setTimeout(() => {
+                const newRange = { index: range.index, length: 1 };
+                editor.formatLine(newRange.index, newRange.length, 'align', currentAlign);
+                console.log('[handleImageInsert] 이미지 정렬 적용:', currentAlign);
+              }, 10);
             }
-          } else {
-            console.warn('[handleImageInsert] 에디터를 찾을 수 없음');
+            
+            editor.setSelection(range.index + 1, 0);
+            console.log('[handleImageInsert] 임시 이미지 삽입 완료');
           }
         };
-        
-        reader.onerror = (error) => {
-          console.error('[handleImageInsert] FileReader 에러:', error);
-        };
-        
-        reader.readAsDataURL(compressedFile);
+        reader.readAsDataURL(processedFile);
 
       } catch (err) {
         console.error('[handleImageInsert] 이미지 처리 실패:', err);
@@ -301,15 +281,28 @@ function EditPost() {
           alert('이미지 처리에 실패했습니다: ' + err.message);
         }
       }
-    });
-    
-    // 파일 선택 다이얼로그 열기
-    input.click();
-    
-    // 메모리 정리
-    setTimeout(() => {
-      input.remove();
-    }, 1000);
+    };
+  }, []);
+
+  // 화면 크기에 따른 에디터 높이 조정
+  useEffect(() => {
+    const updateEditorHeight = () => {
+      if (window.innerWidth <= 480) {
+        setEditorHeight('300px');
+      } else if (window.innerWidth <= 768) {
+        setEditorHeight('350px');
+      } else {
+        setEditorHeight('400px');
+      }
+    };
+
+    // 초기 설정
+    updateEditorHeight();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', updateEditorHeight);
+
+    return () => window.removeEventListener('resize', updateEditorHeight);
   }, []);
 
   // ====== Load existing post ======
@@ -329,6 +322,7 @@ function EditPost() {
           // 기존 이미지 URL들 추출하여 저장
           const existingImages = extractImageUrls(data.content || '');
           setOriginalImageUrls(existingImages);
+          console.log('[EDIT] 기존 이미지 URL들 로드됨:', existingImages);
           
           // 초기 콘텐츠 크기 계산
           const size = calculateContentSize(data.content || '');
@@ -344,132 +338,55 @@ function EditPost() {
     fetchPost();
   }, [categoryParam, id]);
 
-  // 게시물 내용에서 이미지 URL을 추출하는 함수
-  const extractImageUrls = (content) => {
-    if (!content) return [];
-    
-    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/g;
-    const urls = [];
-    let match;
-    
-    while ((match = imgRegex.exec(content)) !== null) {
-      const url = match[1];
-      // base64 이미지는 제외 (Firebase Storage URL만 반환)
-      if (!url.startsWith('data:')) {
-        urls.push(url);
-      }
-    }
-    
-    return urls;
-  };
-
   // Firebase Storage에서 이미지 삭제하는 함수
   const deleteImagesFromStorage = async (imageUrls) => {
     if (!imageUrls || imageUrls.length === 0) return;
     
-    console.log('Storage 삭제 시작. 총 이미지 수:', imageUrls.length);
-    console.log('현재 사용자 UID:', uid);
-    console.log('현재 사용자 역할:', role);
+    console.log('[deleteImagesFromStorage] Storage 삭제 시작. 총 이미지 수:', imageUrls.length);
+    console.log('[deleteImagesFromStorage] 현재 사용자 UID:', uid);
+    console.log('[deleteImagesFromStorage] 현재 사용자 역할:', role);
     
     const deletePromises = imageUrls.map(async (imageUrl) => {
       try {
-        console.log('이미지 URL 처리 중:', imageUrl);
+        console.log('[deleteImagesFromStorage] 이미지 URL 처리 중:', imageUrl);
         
         // Firebase Storage URL에서 경로 추출
         if (imageUrl.includes('firebasestorage.googleapis.com')) {
-          console.log('Firebase Storage URL 감지됨');
+          console.log('[deleteImagesFromStorage] Firebase Storage URL 감지됨');
           
-          // URL 객체 생성하여 파싱
-          try {
-            const url = new URL(imageUrl);
-            console.log('파싱된 URL:', url);
-            console.log('URL 경로:', url.pathname);
+          // 새로운 extractStoragePath 함수 사용
+          const decodedPath = extractStoragePath(imageUrl);
+          
+          if (decodedPath) {
+            console.log('[deleteImagesFromStorage] 추출된 파일 경로:', decodedPath);
             
-            // pathname에서 /o/ 이후의 경로 추출
-            const pathParts = url.pathname.split('/');
-            const oIndex = pathParts.findIndex(part => part === 'o');
-            
-            if (oIndex !== -1 && oIndex + 1 < pathParts.length) {
-              // /o/ 이후의 경로를 모두 결합
-              let filePath = pathParts.slice(oIndex + 1).join('/');
-              console.log('추출된 파일 경로 (인코딩됨):', filePath);
-              
-              // 이중 인코딩 문제 해결 (%252F -> %2F -> /)
-              if (filePath.includes('%252F')) {
-                filePath = filePath.replace(/%252F/g, '/');
-                console.log('이중 인코딩 해결 후:', filePath);
-              }
-              
-              // URL 디코딩
-              const decodedPath = decodeURIComponent(filePath);
-              console.log('최종 디코딩된 파일 경로:', decodedPath);
-              
-              if (decodedPath && decodedPath !== 'media' && !decodedPath.includes('?')) {
-                const imageRef = ref(storage, decodedPath);
-                await deleteObject(imageRef);
-                console.log('기존 이미지 삭제 성공:', decodedPath);
-              } else {
-                console.log('유효하지 않은 파일 경로:', decodedPath);
-              }
+            // 현재 사용자가 해당 이미지를 삭제할 권한이 있는지 확인
+            if (decodedPath.includes(uid) || role === 'admin') {
+              const imageRef = ref(storage, decodedPath);
+              await deleteObject(imageRef);
+              console.log('[deleteImagesFromStorage] 기존 이미지 삭제 성공:', decodedPath);
             } else {
-              console.log('o 파라미터를 찾을 수 없음');
+              console.log('[deleteImagesFromStorage] 권한이 없어 이미지 삭제를 건너뜀:', decodedPath);
             }
-          } catch (urlError) {
-            console.log('URL 파싱 실패:', urlError);
-            
-            // 대체 방법: 문자열 파싱 (권한 에러 방지)
-            try {
-              const urlParts = imageUrl.split('/');
-              const pathIndex = urlParts.findIndex(part => part === 'o');
-              if (pathIndex !== -1 && pathIndex + 1 < urlParts.length) {
-                let encodedPath = urlParts[pathIndex + 1];
-                
-                // 쿼리 파라미터 제거 (?alt=media&token=...)
-                if (encodedPath.includes('?')) {
-                  encodedPath = encodedPath.split('?')[0];
-                }
-                
-                // HTML 엔티티 디코딩 (&amp; -> &)
-                encodedPath = encodedPath.replace(/&amp;/g, '&');
-                
-                // 이중 인코딩 문제 해결 (%252F -> %2F -> /)
-                if (encodedPath.includes('%252F')) {
-                  encodedPath = encodedPath.replace(/%252F/g, '/');
-                  console.log('이중 인코딩 해결 후 (대체 방법):', encodedPath);
-                }
-                
-                const decodedPath = decodeURIComponent(encodedPath);
-                console.log('대체 방법으로 파싱된 경로:', decodedPath);
-                
-                if (decodedPath && decodedPath !== 'media' && !decodedPath.includes('?')) {
-                  const imageRef = ref(storage, decodedPath);
-                  await deleteObject(imageRef);
-                  console.log('기존 이미지 삭제 성공 (대체 방법):', decodedPath);
-                } else {
-                  console.log('유효하지 않은 파일 경로 (대체 방법):', decodedPath);
-                }
-              }
-            } catch (fallbackError) {
-              console.log('대체 방법도 실패:', fallbackError);
-            }
+          } else {
+            console.log('[deleteImagesFromStorage] 유효하지 않은 파일 경로:', imageUrl);
           }
         } else {
           // base64 이미지나 다른 URL인 경우 (삭제하지 않음)
           if (imageUrl.startsWith('data:')) {
-            console.log('base64 임시 이미지입니다 (삭제 불필요):', imageUrl.substring(0, 50) + '...');
+            console.log('[deleteImagesFromStorage] base64 임시 이미지입니다 (삭제 불필요):', imageUrl.substring(0, 50) + '...');
           } else {
-            console.log('Firebase Storage 이미지가 아닙니다 (삭제하지 않음):', imageUrl);
+            console.log('[deleteImagesFromStorage] Firebase Storage 이미지가 아닙니다 (삭제하지 않음):', imageUrl);
           }
         }
       } catch (error) {
-        console.error('기존 이미지 삭제 실패:', imageUrl, error);
-        console.error('에러 코드:', error.code);
-        console.error('에러 메시지:', error.message);
+        console.error('[deleteImagesFromStorage] 기존 이미지 삭제 실패:', imageUrl, error);
+        console.error('[deleteImagesFromStorage] 에러 코드:', error.code);
+        console.error('[deleteImagesFromStorage] 에러 메시지:', error.message);
         
         // 권한 관련 에러인 경우 추가 정보 출력
         if (error.code === 'storage/unauthorized') {
-          console.error('Storage 권한이 없습니다. 현재 UID:', uid);
-          console.error('Storage 규칙에서 허용된 UID: Bvik2Rv5HzatCW91UNjCuro0y8I3');
+          console.error('[deleteImagesFromStorage] Storage 권한이 없습니다. 현재 UID:', uid);
         }
         
         // 개별 이미지 삭제 실패는 전체 프로세스를 중단하지 않음
@@ -477,12 +394,12 @@ function EditPost() {
     });
     
     const results = await Promise.allSettled(deletePromises);
-    console.log('삭제 결과:', results);
+    console.log('[deleteImagesFromStorage] 삭제 결과:', results);
     
     // 성공/실패 통계
     const successful = results.filter(result => result.status === 'fulfilled').length;
     const failed = results.filter(result => result.status === 'rejected').length;
-    console.log(`삭제 완료: 성공 ${successful}개, 실패 ${failed}개`);
+    console.log(`[deleteImagesFromStorage] 삭제 완료: 성공 ${successful}개, 실패 ${failed}개`);
   };
 
   // 에디터가 준비되면 전역 참조 설정
@@ -520,11 +437,11 @@ function EditPost() {
         if (!setupEditor()) {
           console.warn('[EditPost] editor setup failed after delay');
         }
-      }, 500); // 지연 시간을 늘림
+      }, 200);
 
       return () => clearTimeout(timer);
     }
-  }, [handleImageInsert]); // handleImageInsert 의존성 추가
+  }, [handleImageInsert]);
 
   // 게시하기 시 이미지들을 storage에 업로드 (SettingsWriting.js와 동일한 방식)
   const uploadPendingImages = async () => {
@@ -536,12 +453,6 @@ function EditPost() {
     for (const tempImage of pendingImages) {
       try {
         console.log('[uploadPendingImages] 이미지 업로드 중:', tempImage.name);
-        console.log('[uploadPendingImages] 압축 정보:', {
-          원본: `${(tempImage.originalSize / 1024).toFixed(1)}KB`,
-          압축: `${(tempImage.compressedSize / 1024).toFixed(1)}KB`,
-          압축률: `${((1 - tempImage.compressedSize / tempImage.originalSize) * 100).toFixed(1)}%`
-        });
-        
         const url = await handleImageUpload(tempImage.file);
         
         if (url) {
@@ -594,20 +505,99 @@ function EditPost() {
         console.log('[handleSubmit] 업로드할 임시 이미지가 없습니다');
       }
 
-      // 현재 콘텐츠에서 Firebase Storage 이미지 URL만 추출 (base64 제외)
+      // 현재 콘텐츠에서 이미지 URL 추출
       const currentImageUrls = extractImageUrls(finalContent);
-      console.log('[handleSubmit] 현재 Firebase Storage 이미지들:', currentImageUrls);
+      console.log('[handleSubmit] 현재 콘텐츠의 모든 이미지들:', currentImageUrls);
       
-      // 기존에 있던 이미지 중 현재 콘텐츠에 없는 것들 찾기
-      const removedImages = originalImageUrls.filter(url => !currentImageUrls.includes(url));
+      // Firebase Storage URL만 필터링하여 비교
+      const currentStorageUrls = currentImageUrls.filter(url => 
+        url.startsWith('https://firebasestorage.googleapis.com')
+      );
+      const originalStorageUrls = originalImageUrls.filter(url => 
+        url.startsWith('https://firebasestorage.googleapis.com')
+      );
       
-      // 제거된 이미지들을 Storage에서 삭제
+      // 실제로 제거된 Firebase Storage 이미지들만 찾기 (스타일 변경은 무시)
+      const removedImages = originalStorageUrls.filter(originalUrl => {
+        // 현재 콘텐츠에 같은 이미지가 있는지 확인 (스타일 변경 고려)
+        const stillExists = currentStorageUrls.some(currentUrl => 
+          isSameStorageImage(originalUrl, currentUrl)
+        );
+        
+        if (!stillExists) {
+          console.log('[handleSubmit] 이미지가 제거됨:', originalUrl);
+        } else {
+          console.log('[handleSubmit] 이미지가 보존됨 (스타일 변경 포함):', originalUrl);
+        }
+        
+        return !stillExists;
+      });
+      
+      console.log('[handleSubmit] 원본 Firebase Storage 이미지들:', originalStorageUrls);
+      console.log('[handleSubmit] 현재 Firebase Storage 이미지들:', currentStorageUrls);
+      console.log('[handleSubmit] 제거된 Firebase Storage 이미지들:', removedImages);
+      
+      // 이미지 삭제가 필요한 경우에만 처리 (사용자가 실제로 이미지를 제거한 경우)
       if (removedImages.length > 0) {
         console.log('[handleSubmit] Storage에서 삭제할 이미지들:', removedImages);
-        await deleteImagesFromStorage(removedImages);
-        console.log('[handleSubmit] Storage 이미지 삭제 완료');
+        
+        // 삭제 전 추가 검증 - 더 엄격한 검증
+        const validRemovedImages = removedImages.filter(url => {
+          // Firebase Storage URL이고 유효한 경로를 포함하는지 확인
+          const isValidUrl = url.startsWith('https://firebasestorage.googleapis.com') && 
+                           url.includes('/o/') && 
+                           !url.includes('undefined') && 
+                           !url.includes('null') &&
+                           url.length > 50;
+          
+          if (!isValidUrl) {
+            console.log('[handleSubmit] 유효하지 않은 URL 제외:', url);
+            return false;
+          }
+          
+          // URL 파싱 테스트
+          try {
+            const urlObj = new URL(url);
+            const hasValidPath = urlObj.pathname.includes('/o/');
+            if (!hasValidPath) {
+              console.log('[handleSubmit] 유효하지 않은 경로 제외:', url);
+              return false;
+            }
+            return true;
+          } catch (e) {
+            console.log('[handleSubmit] URL 파싱 실패로 제외:', url, e);
+            return false;
+          }
+        });
+        
+        if (validRemovedImages.length > 0) {
+          console.log('[handleSubmit] 유효한 삭제 대상 이미지들:', validRemovedImages);
+          
+          // 사용자 확인 - 이미지 삭제 전 반드시 확인받음
+          const confirmDelete = window.confirm(
+            `⚠️ 이미지 삭제 확인 ⚠️\n\n` +
+            `정말로 ${validRemovedImages.length}개의 이미지를 삭제하시겠습니까?\n\n` +
+            `삭제할 이미지들:\n${validRemovedImages.map(url => `• ${url.split('/').pop()}`).join('\n')}\n\n` +
+            `⚠️ 주의사항:\n` +
+            `• 이 작업은 되돌릴 수 없습니다\n` +
+            `• 이미지가 실제로 제거되었는지 확인하세요\n` +
+            `• 실수로 삭제하지 않았는지 다시 한번 확인하세요\n` +
+            `• 정렬, 크기 조정 등의 스타일 변경은 이미지 삭제가 아닙니다\n\n` +
+            `계속하시겠습니까?`
+          );
+          
+          if (confirmDelete) {
+            await deleteImagesFromStorage(validRemovedImages);
+            console.log('[handleSubmit] Storage 이미지 삭제 완료');
+          } else {
+            console.log('[handleSubmit] 사용자가 이미지 삭제를 취소했습니다');
+            // 사용자가 취소한 경우에도 게시물은 수정됨 (이미지만 삭제 안됨)
+          }
+        } else {
+          console.log('[handleSubmit] 삭제할 유효한 이미지가 없습니다');
+        }
       } else {
-        console.log('[handleSubmit] 삭제할 Storage 이미지가 없습니다');
+        console.log('[handleSubmit] 삭제할 Storage 이미지가 없습니다 - 모든 기존 이미지가 보존됨');
       }
       
       const docRef = doc(db, categoryParam, id);
@@ -655,9 +645,6 @@ function EditPost() {
   return (
     <div className="container mt-4 h-100">
       <div className="settings-writing-container">
-        <div className="writing-header">
-        </div>
-
         <form onSubmit={handleSubmit} className="writing-form">
           <div className="writing-fields-group">
             <div className="row mb-3 writing-row">
@@ -687,36 +674,31 @@ function EditPost() {
               </div>
             </div>
 
-          <div className="mb-3">
-            <div className="writing-editor-container">
-              <ReactQuill
-                ref={quillRef}
-                className="writing-quill"
-                theme="snow"
-                value={content}
-                onChange={handleContentChange}
-                modules={modules}
-                formats={formats}
-                style={{ 
-                  height: window.innerWidth <= 768 ? '350px' : '400px',
-                  marginBottom: window.innerWidth <= 480 ? '6rem' : '4rem'
-                }}
-              />
+            <div className="mb-3">
+              <div className="writing-editor-container">
+                <ReactQuill
+                  ref={quillRef}
+                  className="writing-quill"
+                  theme="snow"
+                  value={content}
+                  onChange={handleContentChange}
+                  modules={modules}
+                  formats={formats}
+                  style={{ height: editorHeight }}
+                />
+              </div>
             </div>
-            
 
+            <div className="writing-actions d-flex justify-content-end">
+              <button 
+                type="submit" 
+                className="btn btn-primary btn-primary-solid"
+                disabled={contentSize > MAX_CONTENT_SIZE || isUploading}
+              >
+                {isUploading ? '업로드 중...' : '수정하기'}
+              </button>
+            </div>
           </div>
-        </div>
-
-                     <div className="writing-actions d-flex justify-content-end">
-             <button 
-               type="submit" 
-               className="btn btn-primary btn-primary-solid"
-               disabled={contentSize > MAX_CONTENT_SIZE || isUploading}
-             >
-               {isUploading ? '업로드 중...' : '수정하기'}
-             </button>
-           </div>
         </form>
       </div>
     </div>
