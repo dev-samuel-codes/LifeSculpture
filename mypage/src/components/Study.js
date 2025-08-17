@@ -35,7 +35,7 @@ const extractHashtags = (raw) => {
 };
 
 function Study() {
-  const { role } = useContext(AuthContext);
+  const { role, uid } = useContext(AuthContext);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -260,37 +260,49 @@ function Study() {
             <p>게시물을 찾을 수 없습니다.</p>
           ) : (
             <div className="row">
-              {currentPosts.map((post) => (
-                <div key={post.id} className="col-12 mb-3">
-                  <Link to={`/posts/study/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              {currentPosts.map((post) => {
+                const isLiked = post.likedBy && post.likedBy.includes(uid);
+                return (
+                  <div key={post.id} className="col-12 mb-3">
                     <div className="card">
                       <div className="card-body card-row">
                         <div className="card-left">
-                          <h5 className="card-title">
-                            {post.title}
-                            {role === 'admin' && (
-                              <span style={{ fontSize: '0.8rem', marginLeft: '8px' }}>
-                                {post.isPublic === false ? '🔒' : '🔓'}
-                              </span>
-                            )}
-                          </h5>
-                          {/* (옵션) 태그 뱃지 */}
-                          <div className="card-tags">
-                            {(Array.isArray(post.tags) ? post.tags : []).slice(0, 4).map((tg) => (
-                              <span key={tg} className="badge bg-light text-dark border">{tg}</span>
-                            ))}
-                          </div>
+                          <Link to={`/posts/study/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <h5 className="card-title">
+                              {post.title}
+                              {role === 'admin' && (
+                                <span style={{ fontSize: '0.8rem', marginLeft: '8px' }}>
+                                  {post.isPublic === false ? '🔒' : '🔓'}
+                                </span>
+                              )}
+                            </h5>
+                            {/* (옵션) 태그 뱃지 */}
+                            <div className="card-tags">
+                              {(Array.isArray(post.tags) ? post.tags : []).slice(0, 4).map((tg) => (
+                                <span key={tg} className="badge bg-light text-dark border">{tg}</span>
+                              ))}
+                            </div>
+                          </Link>
                         </div>
                         <div className="card-right">
-                          <div className="meta-date">{formatDate(post.createdAt)}</div>
-                          <div style={{ height: 8 }} />
-                          <div className="meta-views">Views: {post.viewCount || 0}</div>
+                          <div className="meta-info">
+                            <div className="meta-date">{formatDate(post.createdAt)}</div>
+                            <div className="meta-views">Views: {post.viewCount || 0}</div>
+                          </div>
+                          <div className="like-section">
+                            <div className={`heart-icon ${isLiked ? 'liked' : ''}`}>
+                              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                              </svg>
+                            </div>
+                            <span className="like-count">{post.likeCount || 0}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </Link>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
 

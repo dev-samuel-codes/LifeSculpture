@@ -144,13 +144,14 @@
 .card-right {
   display: grid;
   grid-template-rows: auto 1fr auto; /* 위 날짜 · 공간 · 아래 조회수 */
-  justify-items: end;
+  justify-items: end; /* 오른쪽 정렬로 다시 변경 */
   min-width: 140px;
 }
 .meta-date {
   font-size: 0.85rem;
   color: #6b7280;
   white-space: nowrap;
+  margin-right: 8px;
 }
 .meta-views {
   font-size: 0.85rem;
@@ -162,9 +163,23 @@
 @media (max-width: 576px) {
   .card-body.card-row { grid-template-columns: 1fr; }
   .card-right {
-    justify-items: start;
-    grid-template-rows: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  .meta-info {
+    display: flex;
+    flex-direction: column;
     gap: 4px;
+    align-items: start;
+  }
+  
+  .like-section {
+    margin-left: auto;
+    margin-top: 8px;
   }
 }
 
@@ -224,5 +239,100 @@
   border-radius: 999px;
   font-size: 0.84rem;
   text-align: center;
+}
+
+/* 하트 버튼 스타일 */
+.heart-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #ccc;
+  background-color: transparent !important;
+  padding: 0;
+}
+
+.heart-button:hover {
+  color: #ff6b6b;
+  transform: scale(1.05);
+  background-color: transparent !important;
+}
+
+.heart-button:active {
+  transform: scale(0.98);
+}
+
+.heart-button.liked {
+  color: #ff6b6b !important;
+  animation: heartBeat 0.4s ease-out;
+  background-color: transparent !important;
+}
+
+.heart-button.liked:hover {
+  color: #ff6b6b !important;
+  transform: scale(1.02);
+  background-color: transparent !important;
+}
+
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 하트 아이콘 스타일 (버튼 기능 없음) */
+.heart-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #ccc;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.heart-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.heart-icon.liked {
+  color: #ff6b6b !important;
+}
+
+.heart-icon.liked svg {
+  color: #ff6b6b !important;
+}
+
+.like-section {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+.like-count {
+  font-weight: 600;
+  font-size: 12px;
+  color: #666;
+  min-width: 16px;
+  text-align: center;
+  user-select: none;
+  flex-shrink: 0;
 }
 
