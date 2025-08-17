@@ -4,27 +4,48 @@ import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import '../style/CustomFormulaEditor.css';
 
+// KaTeX 렌더링을 위한 버튼 컴포넌트
+const KatexButton = ({ latex, onClick }) => {
+  const spanRef = useRef(null);
+
+  useEffect(() => {
+    if (spanRef.current) {
+      try {
+        katex.render(latex, spanRef.current, { throwOnError: false });
+      } catch (error) {
+        spanRef.current.innerText = 'Error';
+      }
+    }
+  }, [latex]);
+
+  return (
+    <button onClick={onClick} title={latex}>
+      <span ref={spanRef} />
+    </button>
+  );
+};
+
 const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => {
   const [latex, setLatex] = useState(initialValue);
   const previewRef = useRef(null);
   const textareaRef = useRef(null);
 
-  // LaTeX 기호 목록 (백슬래시 이스케이프 수정)
+  // LaTeX 기호 목록 (백슬래시 이스케이프 수정 및 미리보기용 코드 추가)
   const symbols = [
-    { name: '분수', latex: '\\frac{ }{ }' },
-    { name: '제곱', latex: '^{ }' },
-    { name: '아래첨자', latex: '_{ }' },
-    { name: '제곱근', latex: '\\sqrt{ }' },
-    { name: 'n제곱근', latex: '\\sqrt[n]{ }' },
-    { name: '합계', latex: '\\sum_{k=1}^{n}' },
-    { name: '곱', latex: '\\prod_{k=1}^{n}' },
-    { name: '적분', latex: '\\int_{a}^{b}' },
-    { name: '극한', latex: '\\lim_{x\to\infty}' },
-    { name: '행렬', latex: '\\begin{pmatrix} a & b \\ c & d \end{pmatrix}' },
-    { name: '알파', latex: '\\alpha' },
-    { name: '베타', latex: '\\beta' },
-    { name: '감마', latex: '\\gamma' },
-    { name: '파이', latex: '\\pi' },
+    { name: '분수', latex: '\\frac{ }{ }', preview: '\\frac{a}{b}' },
+    { name: '제곱', latex: '^{ }', preview: 'x^2' },
+    { name: '아래첨자', latex: '_{ }', preview: 'x_1' },
+    { name: '제곱근', latex: '\\sqrt{ }', preview: '\\sqrt{x}' },
+    { name: 'n제곱근', latex: '\\sqrt[n]{ }', preview: '\\sqrt[n]{x}' },
+    { name: '합계', latex: '\\sum_{k=1}^{n}', preview: '\\sum' },
+    { name: '곱', latex: '\\prod_{k=1}^{n}', preview: '\\prod' },
+    { name: '적분', latex: '\\int_{a}^{b}', preview: '\\int' },
+    { name: '극한', latex: '\\lim_{x\to\infty}', preview: '\\lim' },
+    { name: '행렬', latex: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}', preview: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
+    { name: '알파', latex: '\\alpha', preview: '\\alpha' },
+    { name: '베타', latex: '\\beta', preview: '\\beta' },
+    { name: '감마', latex: '\\gamma', preview: '\\gamma' },
+    { name: '파이', latex: '\\pi', preview: '\\pi' },
   ];
 
   // 기호 클릭 시 텍스트 에어리어에 삽입
@@ -91,6 +112,19 @@ const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => 
           <button onClick={onClose} className="close-button">&times;</button>
         </div>
         <div className="formula-editor-body">
+          <div className="symbol-palette">
+            {symbols.map(symbol => (
+              <KatexButton 
+                key={symbol.name} 
+                latex={symbol.preview} 
+                onClick={() => insertSymbol(symbol.latex)} 
+              />
+            ))}
+          </div>
+          <div className="preview-area">
+            <h4>미리보기</h4>
+            <div ref={previewRef} className="preview-content" />
+          </div>
           <div className="input-area">
             <textarea
               ref={textareaRef}
@@ -98,17 +132,6 @@ const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => 
               onChange={(e) => setLatex(e.target.value)}
               placeholder="여기에 LaTeX 코드를 입력하세요..."
             />
-            <div className="symbol-palette">
-              {symbols.map(symbol => (
-                <button key={symbol.name} onClick={() => insertSymbol(symbol.latex)}>
-                  {symbol.name}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="preview-area">
-            <h4>미리보기</h4>
-            <div ref={previewRef} className="preview-content" />
           </div>
         </div>
         <div className="formula-editor-footer">

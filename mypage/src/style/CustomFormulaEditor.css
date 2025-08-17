@@ -20,6 +20,8 @@
   max-width: 800px;
   display: flex;
   flex-direction: column;
+  height: 90vh;
+  max-height: 700px;
 }
 
 .formula-editor-header {
@@ -45,45 +47,50 @@
 
 .formula-editor-body {
   display: flex;
+  flex-direction: column; /* 수직 레이아웃으로 변경 */
   padding: 20px;
   gap: 20px;
-}
-
-.input-area, .preview-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.input-area textarea {
   flex-grow: 1;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 12px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 16px;
-  resize: none;
-  min-height: 200px;
+  overflow: hidden;
 }
 
 .symbol-palette {
-  margin-top: 15px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  order: 1; /* 순서: 1 (가장 위) */
 }
 
 .symbol-palette button {
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
   border-radius: 5px;
-  padding: 6px 10px;
+  padding: 5px;
   cursor: pointer;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  min-height: 40px;
+  transition: background-color 0.2s;
 }
 
 .symbol-palette button:hover {
-  background-color: #e0e0e0;
+  background-color: #e9ecef;
+}
+
+.symbol-palette button .katex {
+  font-size: 16px;
+}
+
+.preview-area {
+  flex-grow: 1; /* 남은 공간을 모두 차지 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  order: 2; /* 순서: 2 (중간) */
 }
 
 .preview-area h4 {
@@ -102,12 +109,28 @@
   align-items: center;
   justify-content: center;
   background-color: #f9f9f9;
-  min-height: 200px;
   overflow: auto;
 }
 
 .preview-content .katex {
   font-size: 20px; /* Larger preview font */
+}
+
+.input-area {
+  height: 150px; /* 고정 높이 */
+  display: flex;
+  order: 3; /* 순서: 3 (가장 아래) */
+}
+
+.input-area textarea {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  resize: none;
 }
 
 .formula-editor-footer {
