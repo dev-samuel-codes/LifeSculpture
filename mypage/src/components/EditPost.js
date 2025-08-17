@@ -552,14 +552,23 @@ function EditPost() {
       });
       alert('Post updated successfully!');
       
-      // 원래 페이지로 돌아가면서 페이지 재로딩
-      navigate(`/posts/${category}/${id}`, { 
-        replace: true,
-        state: { refresh: true }
-      });
+      // 수정 완료 후 창 닫기
+      window.close();
       
-      // 페이지 강제 새로고침 (state가 제대로 전달되지 않을 경우를 대비)
-      window.location.href = `/posts/${category}/${id}`;
+      // 만약 window.close()가 작동하지 않는 경우 (팝업이 아닌 경우)
+      // 이전 페이지로 돌아가서 새로고침
+      if (window.opener) {
+        // 팝업인 경우 부모 창 새로고침
+        window.opener.location.reload();
+      } else {
+        // 일반 창인 경우 이전 페이지로 이동 후 새로고침
+        navigate(`/posts/${category}/${id}`, { 
+          replace: true,
+          state: { refresh: true }
+        });
+        // 페이지 강제 새로고침
+        window.location.reload();
+      }
     } catch (err) {
       console.error('[EDIT] update error:', err);
       if (err?.message?.includes('longer than 1048487 bytes')) {
