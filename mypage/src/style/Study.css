@@ -105,7 +105,25 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   transition: transform 0.22s ease, box-shadow 0.22s ease;
   background: #fff;
+  position: relative;
+  z-index: 1;
 }
+
+/* 클릭 가능한 카드 스타일 */
+.clickable-card {
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.clickable-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+}
+
+.clickable-card:focus {
+  outline: none;
+}
+
 .card:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 24px rgba(0,0,0,0.08);
@@ -124,6 +142,15 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;   /* 제목/태그 모두 왼쪽 기준 */
+  position: relative;
+  z-index: 2;
+}
+
+.card-left a {
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .card-left .card-title {
@@ -132,6 +159,7 @@
   margin: 0;
   line-height: 1.3;
   word-break: break-word;
+  cursor: pointer;
 }
 
 .card-left .card-tags {
@@ -228,6 +256,73 @@
   .parent-chip:focus-visible,
   .child-chip:focus-visible {
     box-shadow: none !important;
+  }
+}
+
+/* ============ 데스크탑 환경 링크 클릭 문제 해결 ============ */
+@media (min-width: 769px) {
+  .clickable-card {
+    position: relative;
+    z-index: 5;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .clickable-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  }
+  
+  .clickable-card:focus {
+    outline: none;
+  }
+  
+  .clickable-card-content {
+    position: relative;
+    z-index: 10;
+    pointer-events: none; /* 카드 전체 클릭을 위해 비활성화 */
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    border-radius: 8px;
+  }
+  
+  .clickable-card-content:hover {
+    background-color: transparent;
+  }
+  
+  .card-left a {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .card-left a:hover {
+    text-decoration: none;
+  }
+  
+  .card-left .card-title {
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .card-left .card-tags {
+    pointer-events: none;
+  }
+  
+  /* 카드 전체 영역을 클릭 가능하게 만들기 */
+  .card {
+    cursor: pointer;
+  }
+  
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
   }
 }
 

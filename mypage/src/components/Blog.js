@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useContext } from 'react';
-import { Link } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { AuthContext } from '../context/AuthContext';
@@ -48,9 +47,12 @@ function Blog() {
       try {
         const q = query(collection(db, 'blog'), orderBy('createdAt', 'desc'));
         const snap = await getDocs(q);
-        setAllPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        const posts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        console.log('[Blog] 로드된 게시물 수:', posts.length);
+        console.log('[Blog] 게시물 데이터:', posts);
+        setAllPosts(posts);
       } catch (e) {
-        console.error('Error fetching blog posts:', e);
+        console.error('[Blog] 게시물 로드 실패:', e);
         setError('Failed to load blog posts.');
       } finally {
         setLoading(false);
@@ -246,10 +248,27 @@ function Blog() {
                 const isLiked = post.likedBy && post.likedBy.includes(uid);
                 return (
                   <div key={post.id} className="col-12 mb-3">
-                    <div className="card">
+                    <div 
+                      className="card clickable-card"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        console.log('[Blog] 게시물 클릭:', { id: post.id, title: post.title, path: `/posts/blog/${post.id}` });
+                        // 데스크탑 환경에서 링크 클릭 문제 해결
+                        window.location.href = `/posts/blog/${post.id}`;
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          window.location.href = `/posts/blog/${post.id}`;
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${post.title} 게시물 보기`}
+                    >
                       <div className="card-body card-row">
                         <div className="card-left">
-                          <Link to={`/posts/blog/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          <div className="clickable-card-content">
                             <h5 className="card-title">
                               {post.title}
                               {role === 'admin' && (
@@ -263,7 +282,7 @@ function Blog() {
                                 <span key={tg} className="badge bg-light text-dark border">{tg}</span>
                               ))}
                             </div>
-                          </Link>
+                          </div>
                         </div>
                         <div className="card-right">
                           <div className="meta-info">

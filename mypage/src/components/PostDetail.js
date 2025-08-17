@@ -14,6 +14,10 @@ function PostDetail() {
   const location = useLocation();
   const { role, uid, isAuthenticated } = useContext(AuthContext); // isAuthenticated 추가
 
+  // 디버깅: 라우팅 파라미터 확인
+  console.log('[PostDetail] 라우팅 파라미터:', { category, id });
+  console.log('[PostDetail] 현재 위치:', location.pathname);
+
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,13 +30,16 @@ function PostDetail() {
 
   useEffect(() => {
     const fetchPost = async () => {
+      console.log('[PostDetail] 게시물 로딩 시작:', { category, id });
       try {
         const docRef = doc(db, category, id);
+        console.log('[PostDetail] Firestore 참조:', docRef);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data();
           const postData = { id: docSnap.id, ...data };
+          console.log('[PostDetail] 게시물 데이터 로드됨:', postData);
           
           // 조회수 초기값 설정
           if (typeof postData.viewCount !== 'number') {
@@ -58,14 +65,15 @@ function PostDetail() {
             setIsLiked(true);
           }
           
-          console.log('게시물 로드됨:', postData);
-          console.log('현재 조회수:', postData.viewCount);
-          console.log('현재 공감 수:', postData.likeCount);
+          console.log('[PostDetail] 게시물 로드됨:', postData);
+          console.log('[PostDetail] 현재 조회수:', postData.viewCount);
+          console.log('[PostDetail] 현재 공감 수:', postData.likeCount);
         } else {
+          console.log('[PostDetail] 게시물이 존재하지 않음:', { category, id });
           setError('게시물을 찾을 수 없습니다.');
         }
       } catch (err) {
-        console.error('Error fetching post:', err);
+        console.error('[PostDetail] 게시물 로드 실패:', err);
         setError('게시물을 불러오는 데 실패했습니다.');
       } finally {
         setLoading(false);

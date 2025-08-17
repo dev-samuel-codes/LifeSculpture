@@ -5,6 +5,7 @@ import { db, storage } from '../firebase/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
+import heic2any from 'heic2any'; // HEIC 변환 라이브러리 추가
 
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -150,7 +151,39 @@ function EditPost() {
     });
   };
 
-
+  // HEIC 파일을 JPEG로 변환하는 함수
+  const convertHeicToJpeg = async (file) => {
+    if (file.type === 'image/heic' || file.type === 'image/heif' || 
+        file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+      try {
+        console.log('[convertHeicToJpeg] HEIC 파일 변환 시작:', file.name);
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.8
+        });
+        
+        // 변환된 Blob을 File 객체로 변환
+        const convertedFile = new File([convertedBlob], 
+          file.name.replace(/\.(heic|heif)$/i, '.jpg'), 
+          { type: 'image/jpeg' }
+        );
+        
+        console.log('[convertHeicToJpeg] HEIC 변환 완료:', {
+          원본: file.name,
+          변환: convertedFile.name,
+          원본크기: `${(file.size / 1024).toFixed(1)}KB`,
+          변환크기: `${(convertedFile.size / 1024).toFixed(1)}KB`
+        });
+        
+        return convertedFile;
+      } catch (error) {
+        console.error('[convertHeicToJpeg] HEIC 변환 실패:', error);
+        throw new Error('HEIC 파일 변환에 실패했습니다.');
+      }
+    }
+    return file; // HEIC가 아닌 경우 원본 파일 반환
+  };
 
   // 이미지 핸들러 - 임시 저장용 (SettingsWriting.js와 동일한 방식)
   const handleImageInsert = useCallback(() => {
@@ -159,7 +192,8 @@ function EditPost() {
     
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
+    input.setAttribute('accept', 'image/*,.heic,.heif'); // HEIC 형식 추가
+    input.setAttribute('capture', 'environment'); // 모바일에서 카메라 접근 허용
     
     // 파일 선택 이벤트 리스너 추가
     input.addEventListener('change', async (event) => {
@@ -176,11 +210,20 @@ function EditPost() {
       });
 
       try {
+        // HEIC 파일인 경우 JPEG로 변환
+        let processedFile = file;
+        if (file.type === 'image/heic' || file.type === 'image/heif' || 
+            file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+          console.log('[handleImageInsert] HEIC 파일 감지, 변환 시작');
+          processedFile = await convertHeicToJpeg(file);
+        }
+
         // 이미지 압축
         console.log('[handleImageInsert] 이미지 압축 시작');
-        const compressedFile = await compressImage(file);
+        const compressedFile = await compressImage(processedFile);
         console.log('[handleImageInsert] 이미지 압축 완료:', {
           원본: `${(file.size / 1024).toFixed(1)}KB`,
+          변환: processedFile !== file ? `${(processedFile.size / 1024).toFixed(1)}KB` : 'N/A',
           압축: `${(compressedFile.size / 1024).toFixed(1)}KB`,
           압축률: `${((1 - compressedFile.size / file.size) * 100).toFixed(1)}%`
         });
@@ -199,7 +242,8 @@ function EditPost() {
             originalSize: file.size,
             compressedSize: compressedFile.size,
             type: file.type,
-            tempUrl: tempUrl // base64 URL 저장
+            tempUrl: tempUrl, // base64 URL 저장
+            isHeicConverted: processedFile !== file // HEIC 변환 여부 표시
           };
 
           console.log('[handleImageInsert] tempImage 생성:', tempImage);
@@ -251,7 +295,11 @@ function EditPost() {
 
       } catch (err) {
         console.error('[handleImageInsert] 이미지 처리 실패:', err);
-        alert('이미지 처리에 실패했습니다: ' + err.message);
+        if (err.message.includes('HEIC')) {
+          alert('HEIC 파일 변환에 실패했습니다. 다른 이미지 형식(PNG, JPEG)을 사용해주세요.');
+        } else {
+          alert('이미지 처리에 실패했습니다: ' + err.message);
+        }
       }
     });
     

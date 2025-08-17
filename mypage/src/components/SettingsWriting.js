@@ -7,6 +7,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import heic2any from 'heic2any'; // HEIC 변환 라이브러리 추가
 import { useQuillToolbar } from './QuillToolbar';
 import { registerCustomImageBlot } from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
 import '../style/SettingsWriting.css';
@@ -51,13 +52,48 @@ function SettingsWriting() {
     setContentSize(size);
   };
 
+  // HEIC 파일을 JPEG로 변환하는 함수
+  const convertHeicToJpeg = async (file) => {
+    if (file.type === 'image/heic' || file.type === 'image/heif' || 
+        file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+      try {
+        console.log('[convertHeicToJpeg] HEIC 파일 변환 시작:', file.name);
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.8
+        });
+        
+        // 변환된 Blob을 File 객체로 변환
+        const convertedFile = new File([convertedBlob], 
+          file.name.replace(/\.(heic|heif)$/i, '.jpg'), 
+          { type: 'image/jpeg' }
+        );
+        
+        console.log('[convertHeicToJpeg] HEIC 변환 완료:', {
+          원본: file.name,
+          변환: convertedFile.name,
+          원본크기: `${(file.size / 1024).toFixed(1)}KB`,
+          변환크기: `${(convertedFile.size / 1024).toFixed(1)}KB`
+        });
+        
+        return convertedFile;
+      } catch (error) {
+        console.error('[convertHeicToJpeg] HEIC 변환 실패:', error);
+        throw new Error('HEIC 파일 변환에 실패했습니다.');
+      }
+    }
+    return file; // HEIC가 아닌 경우 원본 파일 반환
+  };
+
   // 이미지 핸들러 - 임시 저장용
   const handleImageInsert = useCallback(() => {
     console.log('[handleImageInsert] 이미지 삽입 핸들러 시작');
     
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
+    input.setAttribute('accept', 'image/*,.heic,.heif'); // HEIC 형식 추가
+    input.setAttribute('capture', 'environment'); // 모바일에서 카메라 접근 허용
     input.click();
 
     input.onchange = async () => {
@@ -74,6 +110,14 @@ function SettingsWriting() {
       });
 
       try {
+        // HEIC 파일인 경우 JPEG로 변환
+        let processedFile = file;
+        if (file.type === 'image/heic' || file.type === 'image/heif' || 
+            file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+          console.log('[handleImageInsert] HEIC 파일 감지, 변환 시작');
+          processedFile = await convertHeicToJpeg(file);
+        }
+
         // base64 URL 생성
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -82,11 +126,13 @@ function SettingsWriting() {
           // 파일을 임시로 저장 (base64 URL 포함)
           const tempImage = {
             id: Date.now() + Math.random(),
-            file: file,
+            file: processedFile, // 변환된 파일 사용
+            originalFile: file, // 원본 파일도 보관 (참조용)
             name: file.name,
             size: file.size,
             type: file.type,
-            tempUrl: tempUrl // base64 URL 저장
+            tempUrl: tempUrl, // base64 URL 저장
+            isHeicConverted: processedFile !== file // HEIC 변환 여부 표시
           };
 
           setPendingImages(prev => [...prev, tempImage]);
@@ -118,11 +164,15 @@ function SettingsWriting() {
             console.log('[handleImageInsert] 임시 이미지 삽입 완료');
           }
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(processedFile);
 
       } catch (err) {
         console.error('[handleImageInsert] 이미지 처리 실패:', err);
-        alert('이미지 처리에 실패했습니다: ' + err.message);
+        if (err.message.includes('HEIC')) {
+          alert('HEIC 파일 변환에 실패했습니다. 다른 이미지 형식(PNG, JPEG)을 사용해주세요.');
+        } else {
+          alert('이미지 처리에 실패했습니다: ' + err.message);
+        }
       }
     };
   }, []);
