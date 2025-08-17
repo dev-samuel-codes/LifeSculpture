@@ -10,7 +10,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import { useQuillToolbar } from './QuillToolbar';
-import CustomImageBlot, { registerCustomImageBlot } from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
+import { registerCustomImageBlot } from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 
