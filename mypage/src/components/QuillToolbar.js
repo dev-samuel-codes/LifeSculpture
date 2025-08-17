@@ -273,8 +273,24 @@ export const useImageHandler = () => {
           const range = currentEditor.getSelection(true) || { index: currentEditor.getLength() };
           console.log('[imageHandler] 이미지 삽입 위치:', range.index);
           
-          // 기본 이미지 삽입 방식 사용
+          // 현재 선택된 블록의 정렬 상태 확인
+          const [line] = currentEditor.getLine(range.index);
+          const formats = line ? line.formats() : {};
+          const currentAlign = formats.align || '';
+          
+          // 이미지 삽입
           currentEditor.insertEmbed(range.index, 'image', url, 'user');
+          
+          // 정렬이 설정되어 있다면 이미지에도 적용
+          if (currentAlign) {
+            // 이미지 삽입 후 정렬 적용
+            setTimeout(() => {
+              const newRange = { index: range.index, length: 1 };
+              currentEditor.formatLine(newRange.index, newRange.length, 'align', currentAlign);
+              console.log('[imageHandler] 이미지 정렬 적용:', currentAlign);
+            }, 10);
+          }
+          
           currentEditor.setSelection(range.index + 1, 0);
           console.log('[imageHandler] 이미지 삽입 성공');
         } else {

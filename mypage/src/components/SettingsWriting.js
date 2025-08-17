@@ -95,7 +95,25 @@ function SettingsWriting() {
           const editor = quillRef.current?.getEditor();
           if (editor) {
             const range = editor.getSelection(true) || { index: editor.getLength() };
+            
+            // 현재 선택된 블록의 정렬 상태 확인
+            const [line] = editor.getLine(range.index);
+            const formats = line ? line.formats() : {};
+            const currentAlign = formats.align || '';
+            
+            // 이미지 삽입
             editor.insertEmbed(range.index, 'image', tempUrl, 'user');
+            
+            // 정렬이 설정되어 있다면 이미지에도 적용
+            if (currentAlign) {
+              // 이미지 삽입 후 정렬 적용
+              setTimeout(() => {
+                const newRange = { index: range.index, length: 1 };
+                editor.formatLine(newRange.index, newRange.length, 'align', currentAlign);
+                console.log('[handleImageInsert] 이미지 정렬 적용:', currentAlign);
+              }, 10);
+            }
+            
             editor.setSelection(range.index + 1, 0);
             console.log('[handleImageInsert] 임시 이미지 삽입 완료');
           }

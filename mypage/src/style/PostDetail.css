@@ -621,3 +621,148 @@ input:checked + .slider:before {
     letter-spacing: normal !important;
   }
 }
+
+/* 이미지 정렬 스타일 */
+.post-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem 0;
+}
+
+/* 이미지 정렬 클래스 */
+.post-content .ql-align-left img {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.post-content .ql-align-center img {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.post-content .ql-align-right img {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.post-content .ql-align-justify img {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+}
+
+/* Quill 에디터 내 이미지 정렬 */
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem 0;
+}
+
+.ql-editor .ql-align-left img {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.ql-editor .ql-align-center img {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ql-editor .ql-align-right img {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.ql-editor .ql-align-justify img {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+}
+
+/* 이미지 컨테이너 정렬 */
+.ql-editor .image-container {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.ql-editor .image-container.ql-align-left {
+  text-align: left;
+}
+
+.ql-editor .image-container.ql-align-center {
+  text-align: center;
+}
+
+.ql-editor .image-container.ql-align-right {
+  text-align: right;
+}
+
+.ql-editor .image-container.ql-align-justify {
+  text-align: justify;
+}
+
+/* 이미지 정렬을 위한 추가 스타일 */
+.ql-editor p:has(img) {
+  text-align: inherit;
+}
+
+.ql-editor .ql-align-left p:has(img) {
+  text-align: left;
+}
+
+.ql-editor .ql-align-center p:has(img) {
+  text-align: center;
+}
+
+.ql-editor .ql-align-right p:has(img) {
+  text-align: right;
+}
+
+.ql-editor .ql-align-justify p:has(img) {
+  text-align: justify;
+}
+
+/* 이미지가 포함된 블록의 정렬 강제 적용 */
+.ql-editor .ql-align-left {
+  text-align: left !important;
+}
+
+.ql-editor .ql-align-center {
+  text-align: center !important;
+}
+
+.ql-editor .ql-align-right {
+  text-align: right !important;
+}
+
+.ql-editor .ql-align-justify {
+  text-align: justify !important;
+}
+
+/* 이미지 정렬 강제 적용 */
+.ql-editor .ql-align-left img {
+  display: block;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+.ql-editor .ql-align-center img {
+  display: block;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.ql-editor .ql-align-right img {
+  display: block;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+.ql-editor .ql-align-justify img {
+  display: block;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+}
