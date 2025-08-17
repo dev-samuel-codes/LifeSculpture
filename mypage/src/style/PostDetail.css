@@ -814,13 +814,13 @@ input:checked + .slider:before {
     background: inherit !important;
   }
   
-  /* 스위치 애니메이션 비활성화 */
+  /* 스위치 애니메이션은 활성화 유지 */
   .slider {
-    transition: none !important;
+    transition: .4s !important;
   }
   
   .slider:before {
-    transition: none !important;
+    transition: .4s !important;
   }
   
   input:checked + .slider:before {
