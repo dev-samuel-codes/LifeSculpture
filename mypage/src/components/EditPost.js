@@ -51,31 +51,7 @@ function EditPost() {
     handleImageUploadExists: !!handleImageUpload
   });
 
-  // 테스트용 이미지 삽입 함수 (디버깅용)
-  const testImageInsert = useCallback(() => {
-    console.log('[testImageInsert] 테스트 이미지 삽입 시작');
-    console.log('[testImageInsert] pendingImages 현재 상태:', pendingImages);
-    
-    // 테스트용 더미 이미지 생성 (압축 정보 포함)
-    const testImage = {
-      id: Date.now(),
-      file: new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
-      originalFile: new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
-      name: 'test.jpg',
-      originalSize: 1024,
-      compressedSize: 512,
-      type: 'image/jpeg',
-      tempUrl: 'data:image/jpeg;base64,test'
-    };
-    
-    setPendingImages(prev => {
-      const newPendingImages = [...prev, testImage];
-      console.log('[testImageInsert] pendingImages 업데이트:', newPendingImages);
-      return newPendingImages;
-    });
-    
-    console.log('[testImageInsert] 테스트 이미지 추가 완료');
-  }, [pendingImages]);
+
 
   // content 크기 계산 함수
   const calculateContentSize = (htmlContent) => {
@@ -683,24 +659,15 @@ function EditPost() {
           </div>
         </div>
 
-          <div className="writing-actions d-flex justify-content-end">
-            {/* 디버깅용 테스트 버튼 */}
-            <button 
-              type="button" 
-              className="btn btn-secondary me-2"
-              onClick={testImageInsert}
-            >
-              테스트 이미지 추가
-            </button>
-            
-            <button 
-              type="submit" 
-              className="btn btn-primary btn-primary-solid"
-              disabled={contentSize > MAX_CONTENT_SIZE || isUploading}
-            >
-              {isUploading ? '업로드 중...' : '수정하기'}
-            </button>
-          </div>
+                     <div className="writing-actions d-flex justify-content-end">
+             <button 
+               type="submit" 
+               className="btn btn-primary btn-primary-solid"
+               disabled={contentSize > MAX_CONTENT_SIZE || isUploading}
+             >
+               {isUploading ? '업로드 중...' : '수정하기'}
+             </button>
+           </div>
         </form>
       </div>
     </div>
