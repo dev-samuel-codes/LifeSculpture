@@ -34,7 +34,12 @@ function SettingsWriting() {
   const navigate = useNavigate();
 
   // 공통 툴바 훅 사용
-  const { modules, formats, handleImageUpload } = useQuillToolbar();
+  const quillToolbar = useQuillToolbar();
+  const { modules, formats, handleImageUpload } = quillToolbar || {
+    modules: {},
+    formats: [],
+    handleImageUpload: () => {}
+  };
 
   // content 크기 계산 함수
   const calculateContentSize = (htmlContent) => {
@@ -399,19 +404,23 @@ function SettingsWriting() {
 
               <div className="mb-3">
                 <div className="writing-editor-container">
-                  <ReactQuill
-                    ref={quillRef}
-                    className="writing-quill"
-                    theme="snow"
-                    value={content}
-                    onChange={handleContentChange}
-                    modules={modules}
-                    formats={formats}
-                    style={{ height: editorHeight }}
-                  />
+                  {modules && formats ? (
+                    <ReactQuill
+                      ref={quillRef}
+                      className="writing-quill"
+                      theme="snow"
+                      value={content}
+                      onChange={handleContentChange}
+                      modules={modules}
+                      formats={formats}
+                      style={{ height: editorHeight }}
+                    />
+                  ) : (
+                    <div className="alert alert-warning">
+                      에디터를 로드하는 중입니다...
+                    </div>
+                  )}
                 </div>
-                
-
               </div>
 
               <div className="writing-actions">

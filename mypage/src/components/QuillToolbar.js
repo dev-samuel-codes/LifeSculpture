@@ -1,9 +1,37 @@
 // src/components/QuillToolbar.js
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase/firebase';
 import 'katex/dist/katex.min.css';
+import ReactQuill from 'react-quill-new';
+
+// Quill 핸들러 모듈 초기화 함수
+const initializeQuillHandlers = () => {
+  try {
+    const Quill = ReactQuill?.Quill;
+    if (Quill && typeof Quill.register === 'function') {
+      // 핸들러 모듈이 존재하지 않으면 빈 모듈로 등록
+      if (!Quill.imports || !Quill.imports['modules/handlers']) {
+        const HandlersModule = {
+          handlers: {},
+          addHandler: function(format, handler) {
+            this.handlers[format] = handler;
+          },
+          getHandler: function(format) {
+            return this.handlers[format];
+          }
+        };
+        Quill.register('modules/handlers', HandlersModule, true);
+        console.log('Quill handlers 모듈 등록 완료');
+      }
+    } else {
+      console.warn('Quill 인스턴스를 찾을 수 없거나 register 메서드가 없습니다.');
+    }
+  } catch (error) {
+    console.warn('Quill handlers 모듈 초기화 중 오류:', error);
+  }
+};
 
 // 이미지 압축 함수 - KB 단위로 압축
 const compressImage = (file) => {
@@ -207,6 +235,20 @@ export const useImageHandler = () => {
     if (window.quillEditor) {
       editor = window.quillEditor;
       console.log('[imageHandler] window.quillEditor에서 에디터 찾음');
+      
+      // 에디터 인스턴스에 직접 이미지 핸들러 등록
+      try {
+        if (editor && editor.getModule) {
+          const toolbar = editor.getModule('toolbar');
+          if (toolbar && toolbar.addHandler) {
+            toolbar.addHandler('image', () => {
+              console.log('[toolbar] 이미지 핸들러가 툴바에서 호출됨');
+            });
+          }
+        }
+      } catch (error) {
+        console.warn('툴바 핸들러 등록 중 오류:', error);
+      }
     } else {
       // DOM에서 직접 찾기
       const quillElement = document.querySelector('.ql-editor');
@@ -321,74 +363,93 @@ export const useImageHandler = () => {
 // };
 
 // 네이버 블로그 수준의 고급 툴바 설정
-export const useQuillModules = (imageHandler) => {
+export const useQuillModules = () => {
   return useMemo(
-    () => ({
-      toolbar: [
-        // 1행: 제목 스타일, 폰트, 크기
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'font': ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', '맑은 고딕', '나눔고딕', '나눔바른고딕'] }],
-        [{ 'size': ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'] }],
-        
-        // 2행: 텍스트 스타일
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'script': 'sub' }, { 'script': 'super' }],
-        
-        // 3행: 문단 스타일
-        ['blockquote', 'code-block'],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-        [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
-        
-        // 4행: 미디어 및 고급 기능
-        ['link', 'image', 'video'],
-        
-        // 5행: 특수 기능
-        ['clean'],
-      ],
-      handlers: { 
-        image: imageHandler, 
-      },
-      clipboard: { 
-        matchVisual: false
-      },
-      keyboard: {
-        bindings: {
-          tab: {
-            key: 9,
-            handler: function() {
-              return true;
+    () => {
+      try {
+        // Quill 핸들러 모듈 초기화
+        initializeQuillHandlers();
+
+        return {
+          toolbar: [
+            // 1행: 제목 스타일, 폰트, 크기
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'font': ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', '맑은 고딕', '나눔고딕', '나눔바른고딕'] }],
+            [{ 'size': ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'] }],
+            
+            // 2행: 텍스트 스타일
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'script': 'sub' }, { 'script': 'super' }],
+            
+            // 3행: 문단 스타일
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+            [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
+            
+            // 4행: 미디어 및 고급 기능
+            ['link', 'image', 'video'],
+            
+            // 5행: 특수 기능
+            ['clean'],
+          ],
+          // 핸들러를 직접 설정하지 않고, 에디터 인스턴스에서 설정
+          // handlers: { 
+          //   image: imageHandler, 
+          // },
+          clipboard: { 
+            matchVisual: false
+          },
+          keyboard: {
+            bindings: {
+              tab: {
+                key: 9,
+                handler: function() {
+                  return true;
+                }
+              },
+              'ctrl+b': {
+                key: 66,
+                ctrlKey: true,
+                handler: function(range, context) {
+                  this.quill.format('bold', !this.quill.getFormat(range).bold);
+                }
+              },
+              'ctrl+i': {
+                key: 73,
+                ctrlKey: true,
+                handler: function(range, context) {
+                  this.quill.format('italic', !this.quill.getFormat(range).italic);
+                }
+              },
+              'ctrl+u': {
+                key: 85,
+                ctrlKey: true,
+                handler: function(range, context) {
+                  this.quill.format('underline', !this.quill.getFormat(range).underline);
+                }
+              }
             }
           },
-          'ctrl+b': {
-            key: 66,
-            ctrlKey: true,
-            handler: function(range, context) {
-              this.quill.format('bold', !this.quill.getFormat(range).bold);
-            }
-          },
-          'ctrl+i': {
-            key: 73,
-            ctrlKey: true,
-            handler: function(range, context) {
-              this.quill.format('italic', !this.quill.getFormat(range).italic);
-            }
-          },
-          'ctrl+u': {
-            key: 85,
-            ctrlKey: true,
-            handler: function(range, context) {
-              this.quill.format('underline', !this.quill.getFormat(range).underline);
-            }
+          history: {
+            delay: 1000,
+            maxStack: 500,
+            userOnly: true
           }
-        }
-      },
-      history: {
-        delay: 1000,
-        maxStack: 500,
-        userOnly: true
+        };
+      } catch (error) {
+        console.error('Quill 모듈 설정 중 오류 발생:', error);
+        // 기본 모듈 설정 반환
+        return {
+          toolbar: [
+            ['bold', 'italic', 'underline'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+          ]
+        };
       }
-    }),
-    [imageHandler]
+    },
+    [] // imageHandler 의존성 제거
   );
 };
 
@@ -405,8 +466,17 @@ export const quillFormats = [
 
 // 툴바 설정을 위한 커스텀 훅
 export const useQuillToolbar = () => {
+  // 컴포넌트 마운트 시 Quill 핸들러 모듈 초기화
+  useEffect(() => {
+    try {
+      initializeQuillHandlers();
+    } catch (error) {
+      console.warn('Quill 핸들러 초기화 중 오류:', error);
+    }
+  }, []);
+
   const imageHandler = useImageHandler();
-  const modules = useQuillModules(imageHandler);
+  const modules = useQuillModules(); // imageHandler 매개변수 제거
 
   return {
     modules,
