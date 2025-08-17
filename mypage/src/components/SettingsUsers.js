@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../firebase/firebase';
-import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import '../style/SettingsUsers.css';
 
@@ -13,6 +13,8 @@ function SettingsUsers() {
   const [qText, setQText] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [isMobile, setIsMobile] = useState(false);
+  const [updatingUsers, setUpdatingUsers] = useState(new Set());
+  const [viewMode, setViewMode] = useState('view'); // 'view' 또는 'edit'
 
   useEffect(() => {
     const checkMobile = () => {
@@ -88,6 +90,83 @@ function SettingsUsers() {
     });
   }, [users, qText, roleFilter]);
 
+  // 사용자 역할 변경 함수
+  const handleRoleChange = async (userId, newRole) => {
+    if (!userId || !newRole) return;
+    
+    setUpdatingUsers(prev => new Set(prev).add(userId));
+    
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        role: newRole
+      });
+      
+      // 로컬 상태 업데이트
+      setUsers(prev => prev.map(user => 
+        user.id === userId ? { ...user, role: newRole } : user
+      ));
+      
+      // 성공 메시지 (선택사항)
+      console.log(`User ${userId} role updated to ${newRole}`);
+      
+    } catch (err) {
+      console.error('Error updating user role:', err);
+      setError('사용자 역할 변경에 실패했습니다.');
+    } finally {
+      setUpdatingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+    }
+  };
+
+  // 역할 변경 UI 컴포넌트
+  const RoleChangeDropdown = ({ user, isUpdating }) => {
+    // 특정 계정은 편집 불가
+    if (user.email === 'sksksjakskska@gmail.com') {
+      return (
+        <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
+          {user.role === 'admin' ? '관리자' : '일반 사용자'}
+        </span>
+      );
+    }
+
+    return <EditableRoleDropdown user={user} isUpdating={isUpdating} />;
+  };
+
+  // 편집 가능한 역할 드롭다운 컴포넌트
+  const EditableRoleDropdown = ({ user, isUpdating }) => {
+    const [localRole, setLocalRole] = useState(user.role || 'user');
+    
+    const handleSave = () => {
+      if (localRole !== user.role) {
+        handleRoleChange(user.id, localRole);
+      }
+    };
+    
+    return (
+      <div className="role-change-container">
+        <select
+          className="role-change-select"
+          value={localRole}
+          onChange={(e) => setLocalRole(e.target.value)}
+          disabled={isUpdating}
+        >
+          <option value="user">일반 사용자</option>
+          <option value="admin">관리자</option>
+        </select>
+        <button
+          className={`role-change-btn ${localRole !== user.role ? 'role-change-btn-active' : ''}`}
+          onClick={handleSave}
+          disabled={isUpdating || localRole === user.role}
+        >
+          {isUpdating ? '저장 중...' : '저장'}
+        </button>
+      </div>
+    );
+  };
+
   // 모바일용 카드 렌더링
   const renderMobileCards = () => (
     <div className="users-mobile-cards">
@@ -95,11 +174,21 @@ function SettingsUsers() {
         <div key={user.id} className="user-card">
           <div className="user-card-header">
             <div className="user-card-name">{user.name || 'N/A'}</div>
-            <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
-              {user.role === 'admin' ? '관리자' : '일반 사용자'}
-            </span>
+            {viewMode === 'edit' ? null : (
+              <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
+                {user.role === 'admin' ? '관리자' : '일반 사용자'}
+              </span>
+            )}
           </div>
           <div className="user-card-email">{user.email}</div>
+          {viewMode === 'edit' && user.email !== 'sksksjakskska@gmail.com' && (
+            <div className="user-card-role-change">
+              <RoleChangeDropdown 
+                user={user} 
+                isUpdating={updatingUsers.has(user.id)} 
+              />
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -108,12 +197,12 @@ function SettingsUsers() {
   // 데스크탑용 테이블 렌더링
   const renderDesktopTable = () => (
     <div className="table-wrap">
-      <table className="table users-table">
+      <table className="users-table">
         <thead>
           <tr>
             <th>Name</th>
             <th>Email</th>
-            <th>Role</th>
+            {viewMode === 'edit' ? <th>Actions</th> : <th>Role</th>}
           </tr>
         </thead>
         <tbody>
@@ -121,11 +210,20 @@ function SettingsUsers() {
             <tr key={user.id}>
               <td>{user.name || 'N/A'}</td>
               <td>{user.email}</td>
-              <td>
-                <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
-                  {user.role === 'admin' ? '관리자' : '일반 사용자'}
-                </span>
-              </td>
+              {viewMode === 'edit' ? (
+                <td>
+                  <RoleChangeDropdown 
+                    user={user} 
+                    isUpdating={updatingUsers.has(user.id)} 
+                  />
+                </td>
+              ) : (
+                <td>
+                  <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
+                    {user.role === 'admin' ? '관리자' : '일반 사용자'}
+                  </span>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -153,13 +251,18 @@ function SettingsUsers() {
               />
               <select
                 className="users-select"
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                aria-label="Filter by role"
+                value={`${roleFilter}-${viewMode}`}
+                onChange={(e) => {
+                  const [newRoleFilter, newViewMode] = e.target.value.split('-');
+                  setRoleFilter(newRoleFilter);
+                  setViewMode(newViewMode);
+                }}
+                aria-label="Filter and view mode"
               >
-                <option value="all">전체 사용자</option>
-                <option value="admin">관리자</option>
-                <option value="user">일반 사용자</option>
+                <option value="all-view">전체 사용자 보기</option>
+                <option value="admin-view">관리자 보기</option>
+                <option value="user-view">일반 사용자 보기</option>
+                <option value="all-edit">사용자 역할 설정</option>
               </select>
             </div>
           </header>
