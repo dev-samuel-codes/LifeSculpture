@@ -31,7 +31,6 @@ function EditPost() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [contentSize, setContentSize] = useState(0); // content 크기 추적
-  const [imageCount, setImageCount] = useState(0); // 이미지 개수 추적
   const [pendingImages, setPendingImages] = useState([]); // 임시 저장된 이미지들
   const [isUploading, setIsUploading] = useState(false); // 업로드 중 상태
 
@@ -60,19 +59,13 @@ function EditPost() {
     return new Blob([textContent]).size;
   };
 
-  // 이미지 개수 계산 함수
-  const countImages = (htmlContent) => {
-    const imgMatches = htmlContent.match(/<img[^>]*>/g);
-    return imgMatches ? imgMatches.length : 0;
-  };
 
-  // content 변경 시 크기와 이미지 개수 추적
+
+  // content 변경 시 크기 추적
   const handleContentChange = (newContent) => {
     setContent(newContent);
     const size = calculateContentSize(newContent);
-    const imgCount = countImages(newContent);
     setContentSize(size);
-    setImageCount(imgCount);
   };
 
   // 이미지 압축 함수
@@ -271,11 +264,9 @@ function EditPost() {
           const existingImages = extractImageUrls(data.content || '');
           setOriginalImageUrls(existingImages);
           
-          // 초기 콘텐츠 크기와 이미지 개수 계산
+          // 초기 콘텐츠 크기 계산
           const size = calculateContentSize(data.content || '');
-          const imgCount = countImages(data.content || '');
           setContentSize(size);
-          setImageCount(imgCount);
         }
       } catch (err) {
         console.error('[EDIT] fetch error:', err);
@@ -560,7 +551,15 @@ function EditPost() {
         category: category.trim(),
       });
       alert('Post updated successfully!');
-      navigate(`/posts/${category}/${id}`);
+      
+      // 원래 페이지로 돌아가면서 페이지 재로딩
+      navigate(`/posts/${category}/${id}`, { 
+        replace: true,
+        state: { refresh: true }
+      });
+      
+      // 페이지 강제 새로고침 (state가 제대로 전달되지 않을 경우를 대비)
+      window.location.href = `/posts/${category}/${id}`;
     } catch (err) {
       console.error('[EDIT] update error:', err);
       if (err?.message?.includes('longer than 1048487 bytes')) {
@@ -630,32 +629,7 @@ function EditPost() {
               />
             </div>
             
-            {/* 콘텐츠 정보 표시 */}
-            <div className="mt-2">
-              <small className="text-muted">
-                콘텐츠 크기: {contentSize > 0 ? `${(contentSize / 1024).toFixed(1)}KB` : '0KB'} 
-                {contentSize > MAX_CONTENT_SIZE && (
-                  <span className="text-danger ms-2">
-                    (제한 초과: {MAX_CONTENT_SIZE / 1024}KB)
-                  </span>
-                )}
-                                 {imageCount > 0 && (
-                   <span className="ms-3">
-                     이미지: {imageCount}개
-                   </span>
-                 )}
-                                 {pendingImages.length > 0 && (
-                   <span className="ms-3 text-warning">
-                     임시 이미지: {pendingImages.length}개 (수정 시 업로드됨)
-                     {pendingImages.some(img => img.originalSize > img.compressedSize) && (
-                       <span className="ms-1 text-info">
-                         (자동 압축됨)
-                       </span>
-                     )}
-                   </span>
-                 )}
-              </small>
-            </div>
+
           </div>
         </div>
 

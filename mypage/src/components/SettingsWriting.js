@@ -24,7 +24,6 @@ function SettingsWriting() {
   const [editorHeight, setEditorHeight] = useState('400px');
   const [isPublic, setIsPublic] = useState(true); // 공개/비공개 상태
   const [contentSize, setContentSize] = useState(0); // content 크기 추적
-  const [imageCount, setImageCount] = useState(0); // 이미지 개수 추적
   const [pendingImages, setPendingImages] = useState([]); // 임시 저장된 이미지들
   const [isUploading, setIsUploading] = useState(false); // 업로드 중 상태
 
@@ -40,19 +39,13 @@ function SettingsWriting() {
     return new Blob([textContent]).size;
   };
 
-  // 이미지 개수 계산 함수
-  const countImages = (htmlContent) => {
-    const imgMatches = htmlContent.match(/<img[^>]*>/g);
-    return imgMatches ? imgMatches.length : 0;
-  };
 
-  // content 변경 시 크기와 이미지 개수 추적
+
+  // content 변경 시 크기 추적
   const handleContentChange = (newContent) => {
     setContent(newContent);
     const size = calculateContentSize(newContent);
-    const imgCount = countImages(newContent);
     setContentSize(size);
-    setImageCount(imgCount);
   };
 
   // 이미지 핸들러 - 임시 저장용
@@ -247,7 +240,6 @@ function SettingsWriting() {
       setTitle('');
       setContent('');
       setContentSize(0);
-      setImageCount(0);
       setPendingImages([]);
       
     } catch (e) {
@@ -331,30 +323,7 @@ function SettingsWriting() {
                   />
                 </div>
                 
-                {/* 콘텐츠 정보 표시 */}
-                <div className="mt-2">
-                  <small className="text-muted">
-                    콘텐츠 크기: {contentSize > 0 ? `${(contentSize / 1024).toFixed(1)}KB` : '0KB'} 
-                    {contentSize > MAX_CONTENT_SIZE && (
-                      <span className="text-danger ms-2">
-                        (제한 초과: {MAX_CONTENT_SIZE / 1024}KB)
-                      </span>
-                    )}
-                    {imageCount > 0 && (
-                      <span className="ms-3">
-                        이미지: {imageCount}개
-                        <span className="text-info ms-1">
-                          (1MB 이상은 자동으로 KB 단위로 압축됩니다)
-                        </span>
-                      </span>
-                    )}
-                    {pendingImages.length > 0 && (
-                      <span className="ms-3 text-warning">
-                        임시 이미지: {pendingImages.length}개 (게시 시 업로드됨)
-                      </span>
-                    )}
-                  </small>
-                </div>
+
               </div>
 
               <div className="writing-actions">

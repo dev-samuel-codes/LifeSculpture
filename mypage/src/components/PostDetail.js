@@ -1,6 +1,6 @@
 // PostDetail.js
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { db, storage } from '../firebase/firebase';
 import { doc, getDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
@@ -10,6 +10,7 @@ import '../style/PostDetail.css';
 function PostDetail() {
   const { category, id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { role, uid } = useContext(AuthContext); // uid 추가
 
   const [post, setPost] = useState(null);
@@ -52,6 +53,19 @@ function PostDetail() {
 
     fetchPost();
   }, [category, id]);
+
+  // EditPost에서 수정 완료 후 돌아왔을 때 페이지 재로딩
+  useEffect(() => {
+    if (location.state?.refresh) {
+      console.log('[PostDetail] 수정 완료 감지, 페이지 재로딩');
+      
+      // state 초기화
+      navigate(location.pathname, { replace: true, state: {} });
+      
+      // 페이지 강제 새로고침
+      window.location.reload();
+    }
+  }, [location.state, navigate, location.pathname]);
 
   // 조회수 증가는 한 번만 처리 (관리자 제외)
   useEffect(() => {
