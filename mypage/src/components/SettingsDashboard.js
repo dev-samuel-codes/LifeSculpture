@@ -25,6 +25,15 @@ ChartJS.register(
   Legend
 );
 
+// Study.js와 Blog.js의 상위 필터 정의
+const STUDY_SECTIONS = [
+  '개발 · IT', '과학', '수학', '인문 · 사회'
+];
+
+const BLOG_SECTIONS = [
+  '에세이 · 일상', '여행', '사진 · 영상', '튜토리얼 · 팁', '리뷰', '개발 블로그'
+];
+
 function SettingsDashboard() {
   const [dailyStats, setDailyStats] = useState({});
   const [allPostsData, setAllPostsData] = useState([]);
@@ -118,9 +127,76 @@ function SettingsDashboard() {
     },
   };
 
-  const top5Posts = [...allPostsData]
-    .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-    .slice(0, 5);
+  // 분야별 조회수 통계 계산
+  const getCategoryStats = () => {
+    const categoryStats = {};
+    
+    // Study 카테고리 분야별 통계
+    STUDY_SECTIONS.forEach(section => {
+      categoryStats[section] = { views: 0, posts: 0 };
+    });
+    
+    // Blog 카테고리 분야별 통계
+    BLOG_SECTIONS.forEach(section => {
+      categoryStats[section] = { views: 0, posts: 0 };
+    });
+
+    allPostsData.forEach(post => {
+      // Study 게시물의 경우 제목과 내용을 기반으로 분야 분류
+      if (post.category === 'study') {
+        const title = (post.title || '').toLowerCase();
+        const content = (post.content || post.body || post.text || '').toLowerCase();
+        
+        if (title.includes('개발') || title.includes('it') || title.includes('react') || title.includes('node') || title.includes('firebase') || content.includes('개발') || content.includes('it')) {
+          categoryStats['개발 · IT'].views += post.viewCount || 0;
+          categoryStats['개발 · IT'].posts += 1;
+        } else if (title.includes('과학') || title.includes('physics') || title.includes('chemistry') || title.includes('biology') || content.includes('과학')) {
+          categoryStats['과학'].views += post.viewCount || 0;
+          categoryStats['과학'].posts += 1;
+        } else if (title.includes('수학') || title.includes('math') || title.includes('algebra') || title.includes('calculus') || content.includes('수학')) {
+          categoryStats['수학'].views += post.viewCount || 0;
+          categoryStats['수학'].posts += 1;
+        } else if (title.includes('인문') || title.includes('사회') || title.includes('history') || title.includes('philosophy') || content.includes('인문') || content.includes('사회')) {
+          categoryStats['인문 · 사회'].views += post.viewCount || 0;
+          categoryStats['인문 · 사회'].posts += 1;
+        }
+      }
+      
+      // Blog 게시물의 경우 제목과 내용을 기반으로 분야 분류
+      if (post.category === 'blog') {
+        const title = (post.title || '').toLowerCase();
+        const content = (post.content || post.body || post.text || '').toLowerCase();
+        
+        if (title.includes('일상') || title.includes('생각') || title.includes('회고') || title.includes('일기') || content.includes('일상') || content.includes('생각')) {
+          categoryStats['에세이 · 일상'].views += post.viewCount || 0;
+          categoryStats['에세이 · 일상'].posts += 1;
+        } else if (title.includes('여행') || title.includes('travel') || content.includes('여행')) {
+          categoryStats['여행'].views += post.viewCount || 0;
+          categoryStats['여행'].posts += 1;
+        } else if (title.includes('사진') || title.includes('포토') || title.includes('촬영') || title.includes('영상') || content.includes('사진') || content.includes('포토')) {
+          categoryStats['사진 · 영상'].views += post.viewCount || 0;
+          categoryStats['사진 · 영상'].posts += 1;
+        } else if (title.includes('팁') || title.includes('가이드') || title.includes('튜토리얼') || title.includes('노하우') || content.includes('팁') || content.includes('가이드')) {
+          categoryStats['튜토리얼 · 팁'].views += post.viewCount || 0;
+          categoryStats['튜토리얼 · 팁'].posts += 1;
+        } else if (title.includes('리뷰') || title.includes('사용기') || title.includes('언박싱') || content.includes('리뷰')) {
+          categoryStats['리뷰'].views += post.viewCount || 0;
+          categoryStats['리뷰'].posts += 1;
+        } else if (title.includes('개발') || title.includes('react') || title.includes('next') || title.includes('node') || content.includes('개발')) {
+          categoryStats['개발 블로그'].views += post.viewCount || 0;
+          categoryStats['개발 블로그'].posts += 1;
+        }
+      }
+    });
+
+    return categoryStats;
+  };
+
+  const categoryStats = getCategoryStats();
+  const topCategories = Object.entries(categoryStats)
+    .filter(([_, stats]) => stats.views > 0) // 조회수가 있는 분야만
+    .sort(([_, a], [__, b]) => b.views - a.views)
+    .slice(0, 3);
 
   const Content = () => (
     <main className="settings-dashboard-main">
@@ -145,15 +221,18 @@ function SettingsDashboard() {
             <Line options={chartOptions} data={siteVisitorsData} />
           </div>
           <div className="top-posts-container">
-            <h4>가장 많이 본 게시물</h4>
-            {top5Posts.length === 0 ? (
-              <p>No posts available.</p>
+            <h4>가장 많이 본 분야</h4>
+            {topCategories.length === 0 ? (
+              <p>No category data available.</p>
             ) : (
               <ul className="top-posts-list">
-                {top5Posts.map(post => (
-                  <li key={post.id} className="list-group-item d-flex justify-content-between align-items-center">
-                    <span>{post.title}</span>
-                    <span className="badge bg-primary">Views: {post.viewCount || 0}</span>
+                {topCategories.map(([category, stats]) => (
+                  <li key={category} className="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{category}</span>
+                    <div className="d-flex flex-column align-items-end">
+                      <span className="badge bg-primary mb-1">Views: {stats.views}</span>
+                      <small className="text-muted">Posts: {stats.posts}</small>
+                    </div>
                   </li>
                 ))}
               </ul>
