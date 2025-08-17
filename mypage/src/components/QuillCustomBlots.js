@@ -40,7 +40,22 @@ class CustomImageBlot extends BlockEmbed {
   }
 }
 
-CustomImageBlot.blotName = 'custom-image';
+CustomImageBlot.blotName = 'custom-image-blot';
 CustomImageBlot.tagName = 'img';
+
+// 중복 등록 방지
+let isRegistered = false;
+
+export const registerCustomImageBlot = () => {
+  if (!isRegistered) {
+    try {
+      ReactQuill.Quill.register(CustomImageBlot);
+      isRegistered = true;
+      console.log('CustomImageBlot 등록 완료');
+    } catch (error) {
+      console.warn('CustomImageBlot 등록 중 오류:', error);
+    }
+  }
+};
 
 export default CustomImageBlot;

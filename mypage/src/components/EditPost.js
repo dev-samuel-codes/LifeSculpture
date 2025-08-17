@@ -10,12 +10,12 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import { useQuillToolbar } from './QuillToolbar';
-import CustomImageBlot from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
+import CustomImageBlot, { registerCustomImageBlot } from './QuillCustomBlots'; // 사용자 정의 블롯 가져오기
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 
 // 사용자 정의 블롯 등록
-ReactQuill.Quill.register(CustomImageBlot);
+registerCustomImageBlot();
 
 // Firestore 제한 상수
 const MAX_CONTENT_SIZE = 1000000; // 약 1MB (안전 마진 포함)
