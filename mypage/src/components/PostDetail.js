@@ -5,6 +5,7 @@ import { db, storage } from '../firebase/firebase';
 import { doc, getDoc, updateDoc, increment, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
+import LoginRequiredPopup from './LoginRequiredPopup';
 import '../style/PostDetail.css';
 
 function PostDetail() {
@@ -20,6 +21,7 @@ function PostDetail() {
   const [isPublic, setIsPublic] = useState(true); // 게시물 공개 상태
   const [isLiked, setIsLiked] = useState(false); // 공감 상태
   const [likeCount, setLikeCount] = useState(0); // 공감 수
+  const [showLoginPopup, setShowLoginPopup] = useState(false); // 로그인 팝업 상태
   const viewCountIncremented = useRef(false);
 
   useEffect(() => {
@@ -193,10 +195,15 @@ function PostDetail() {
     }
   };
 
+  // 로그인 팝업 닫기
+  const closeLoginPopup = () => {
+    setShowLoginPopup(false);
+  };
+
   // 공감 버튼 클릭 핸들러
   const handleLikeClick = async () => {
     if (!isAuthenticated) {
-      alert('로그인이 필요한 서비스입니다.');
+      setShowLoginPopup(true);
       return;
     }
 
@@ -664,7 +671,6 @@ function PostDetail() {
               <button
                 className={`heart-button ${isLiked ? 'liked' : ''}`}
                 onClick={handleLikeClick}
-                disabled={!isAuthenticated}
                 title={isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다'}
                 aria-label={isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다'}
               >
@@ -729,7 +735,6 @@ function PostDetail() {
               <button
                 className={`heart-button ${isLiked ? 'liked' : ''}`}
                 onClick={handleLikeClick}
-                disabled={!isAuthenticated}
                 title={isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다'}
                 aria-label={isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다'}
               >
@@ -763,6 +768,13 @@ function PostDetail() {
           </div>
         </div>
       )}
+
+      {/* 로그인 필요 팝업 */}
+      <LoginRequiredPopup
+        isOpen={showLoginPopup}
+        onClose={closeLoginPopup}
+        message="공감 기능을 사용하려면 로그인이 필요합니다"
+      />
     </article>
   );
 }

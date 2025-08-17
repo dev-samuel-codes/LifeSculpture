@@ -910,13 +910,13 @@ input:checked + .slider:before {
   padding: 0;
 }
 
-.heart-button:hover:not(:disabled) {
+.heart-button:hover {
   color: #ff6b6b;
   transform: scale(1.05);
   background-color: transparent !important;
 }
 
-.heart-button:active:not(:disabled) {
+.heart-button:active {
   transform: scale(0.98);
 }
 
@@ -932,17 +932,7 @@ input:checked + .slider:before {
   background-color: transparent !important;
 }
 
-.heart-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-  color: #ccc;
-  background-color: transparent;
-}
-
-.like-button:disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
+/* 로그인되지 않은 상태에서도 공감버튼이 클릭 가능하도록 스타일 제거 */
 
 @keyframes heartBeat {
   0% {
@@ -1031,13 +1021,13 @@ input:checked + .slider:before {
     transform: none !important;
   }
   
-  .heart-button:hover:not(:disabled) {
+  .heart-button:hover {
     transform: none !important;
     background-color: transparent !important;
     color: #ccc !important;
   }
   
-  .heart-button:active:not(:disabled) {
+  .heart-button:active {
     transform: none !important;
   }
   
@@ -1083,12 +1073,12 @@ input:checked + .slider:before {
     transform: none !important;
   }
   
-  .heart-button:hover:not(:disabled) {
+  .heart-button:hover {
     transform: none !important;
     color: #ccc !important;
   }
   
-  .heart-button:active:not(:disabled) {
+  .heart-button:active {
     transform: none !important;
   }
   
