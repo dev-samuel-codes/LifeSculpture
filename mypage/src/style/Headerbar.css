@@ -418,3 +418,53 @@
   }
   .profile-popup::before { right: 22px; }
 }
+
+/* 모바일 환경에서 애니메이션 비활성화 (네비게이션 메뉴 제외) */
+@media (max-width: 768px) {
+  /* 네비게이션 메뉴가 아닌 요소들의 애니메이션만 비활성화 */
+  .profile-pic {
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  .profile-pic:hover {
+    transform: none !important;
+    outline-color: transparent !important;
+  }
+  
+  .my-nav-link {
+    transition: none !important;
+  }
+  
+  .my-nav-link:hover {
+    transform: none !important;
+  }
+  
+  .profile-popup-btns .btn {
+    transition: none !important;
+  }
+  
+  .profile-popup-btns .btn:hover {
+    transform: none !important;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08) !important;
+    border-color: #d9e1ec !important;
+    background: #f7f9fc !important;
+  }
+  
+  .google-login-button {
+    transition: none !important;
+  }
+  
+  .google-login-button:hover {
+    transform: none !important;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08) !important;
+    border-color: #d9e1ec !important;
+    background: #eef2f7 !important;
+  }
+  
+  /* 네비게이션 메뉴의 필수 transform은 유지 */
+  .my-navbar-collapse.show .my-navbar-nav {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+  }
+}

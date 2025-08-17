@@ -44,3 +44,18 @@
   display: block; /* Remove extra space below image */
   margin: 10px auto; /* Center image and add some vertical margin */
 }
+
+/* 모바일 환경에서 모든 애니메이션과 트랜지션 비활성화 */
+@media (max-width: 768px) {
+  /* App-logo 애니메이션 비활성화 */
+  .App-logo {
+    animation: none !important;
+  }
+  
+  /* 네비게이션 메뉴가 아닌 요소들의 애니메이션만 비활성화 */
+  *:not(.my-navbar-collapse):not(.my-navbar-nav):not(.my-navbar-collapse *) {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

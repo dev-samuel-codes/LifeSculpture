@@ -766,3 +766,73 @@ input:checked + .slider:before {
   margin-right: 0 !important;
   width: 100% !important;
 }
+
+/* 모바일 환경에서 모든 애니메이션과 트랜지션 비활성화 */
+@media (max-width: 768px) {
+  /* 네비게이션 메뉴가 아닌 요소들의 애니메이션만 비활성화 */
+  *:not(.my-navbar-collapse):not(.my-navbar-nav):not(.my-navbar-collapse *) {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  
+  /* 컨테이너 카드 애니메이션 비활성화 */
+  .post-detail-container {
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  /* 버튼 애니메이션 비활성화 */
+  .post-actions button {
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  .post-actions button:hover {
+    transform: none !important;
+    filter: none !important;
+  }
+  
+  /* 이미지 애니메이션 비활성화 */
+  .post-content img {
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  .post-content img:hover {
+    transform: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* 링크 애니메이션 비활성화 */
+  .post-content a {
+    transition: none !important;
+  }
+  
+  /* 테이블 호버 효과 비활성화 */
+  .post-content table tr:hover {
+    background: inherit !important;
+  }
+  
+  /* 스위치 애니메이션 비활성화 */
+  .slider {
+    transition: none !important;
+  }
+  
+  .slider:before {
+    transition: none !important;
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(22px) !important;
+  }
+  
+  /* 부트스트랩 버튼 호버 효과 비활성화 */
+  .post-actions .btn-warning:hover {
+    background-color: #ffb84d !important;
+  }
+  
+  .post-actions .btn-danger:hover {
+    background-color: #ff6b6b !important;
+  }
+}

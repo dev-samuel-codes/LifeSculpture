@@ -168,6 +168,54 @@
   }
 }
 
+/* 모바일 환경에서 모든 애니메이션과 트랜지션 비활성화 (헤더 제외) */
+@media (max-width: 768px) {
+  /* 네비게이션 메뉴가 아닌 요소들의 애니메이션만 비활성화 */
+  *:not(.my-navbar-collapse):not(.my-navbar-nav):not(.my-navbar-collapse *) {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  /* 필터 칩 애니메이션 비활성화 */
+  .parent-chip,
+  .child-chip {
+    transition: none !important;
+  }
+  
+  .parent-chip:hover {
+    transform: none !important;
+    box-shadow: 0 2px 6px rgba(13,110,253,0.18) !important;
+  }
+  
+  .child-chip:hover {
+    transform: none !important;
+    box-shadow: 0 2px 6px rgba(25,135,84,0.18) !important;
+  }
+  
+  /* 카드 애니메이션 비활성화 */
+  .card {
+    transition: none !important;
+  }
+  
+  .card:hover {
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+  }
+  
+  /* 툴바 포커스 효과 비활성화 */
+  .study-toolbar input:focus,
+  .study-toolbar select:focus {
+    box-shadow: none !important;
+  }
+  
+  /* 버튼 포커스 효과 비활성화 */
+  .parent-chip:focus-visible,
+  .child-chip:focus-visible {
+    box-shadow: none !important;
+  }
+}
+
 /* ============ 전체 게시물 버튼 ============ */
 .btn-all-posts {
   display: block;

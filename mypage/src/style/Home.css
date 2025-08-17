@@ -298,3 +298,38 @@ body {
   transform: translateY(80px); /* 원래 40px → 30px로 위로 10px */
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
 }
+
+/* 모바일 환경에서 모든 애니메이션과 트랜지션 비활성화 */
+@media (max-width: 768px) {
+  /* 네비게이션 메뉴가 아닌 요소들의 애니메이션만 비활성화 */
+  *:not(.my-navbar-collapse):not(.my-navbar-nav):not(.my-navbar-collapse *) {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  /* 카드 호버 효과 비활성화 */
+  .main-card:hover {
+    transform: none !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20) !important;
+  }
+  
+  .main-card:nth-child(odd):hover {
+    transform: none !important;
+    box-shadow: 0 10px 24px rgba(0, 0.20) !important;
+  }
+  
+  .main-card:nth-child(even):hover {
+    transform: none !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20) !important;
+  }
+  
+  /* 카드 기본 transform 비활성화 */
+  .main-card {
+    transition: none !important;
+  }
+  
+  .main-card:nth-child(even) {
+    transform: none !important;
+  }
+}
