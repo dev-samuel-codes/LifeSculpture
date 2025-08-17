@@ -32,17 +32,17 @@ const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => 
 
   // LaTeX 기호 목록 (백슬래시 이스케이프 수정 및 미리보기용 코드 추가)
   const symbols = [
-    { name: '분수', latex: '\\frac{ }{ }', preview: '\\frac{a}{b}' },
-    { name: '제곱', latex: '^{ }', preview: 'x^2' },
-    { name: '아래첨자', latex: '_{ }', preview: 'x_1' },
-    { name: '제곱근', latex: '\\sqrt{ }', preview: '\\sqrt{x}' },
-    { name: 'n제곱근', latex: '\\sqrt[n]{ }', preview: '\\sqrt[n]{x}' },
+    { name: '분수', latex: '\\frac{}{}', preview: '\\frac{a}{b}' },
+    { name: '제곱', latex: '^{}', preview: 'x^2' },
+    { name: '아래첨자', latex: '_{}', preview: 'x_1' },
+    { name: '제곱근', latex: '\\sqrt{}', preview: '\\sqrt{x}' },
+    { name: 'n제곱근', latex: '\\sqrt[n]{}', preview: '\\sqrt[n]{x}' },
     { name: '합계', latex: '\\sum_{k=1}^{n}', preview: '\\sum' },
     { name: '곱', latex: '\\prod_{k=1}^{n}', preview: '\\prod' },
     // eslint-disable-next-line no-useless-escape
-    { name: '적분', latex: '\\int_{a}^{b}', preview: '\\int' },
+    { name: '적분', latex: '\\int_{}^{}{}', preview: '\\int' },
     // eslint-disable-next-line no-useless-escape
-    { name: '극한', latex: '\\lim_{x\to\infty}', preview: '\\lim' },
+    { name: '극한', latex: '\\lim_{x\\to\\infty}{}', preview: '\\lim' },
     { name: '행렬', latex: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}', preview: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
     { name: '알파', latex: '\\alpha', preview: '\\alpha' },
     { name: '베타', latex: '\\beta', preview: '\\beta' },
