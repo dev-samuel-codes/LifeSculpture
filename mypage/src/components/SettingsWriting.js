@@ -28,7 +28,6 @@ function SettingsWriting() {
   const [contentSize, setContentSize] = useState(0);
   const [pendingImages, setPendingImages] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   const [isFormulaEditorOpen, setIsFormulaEditorOpen] = useState(false);
   const [formulaInitialValue, setFormulaInitialValue] = useState('');
