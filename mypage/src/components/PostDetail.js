@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { db, storage } from '../firebase/firebase';
-import { doc, getDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
 import '../style/PostDetail.css';
@@ -11,13 +11,15 @@ function PostDetail() {
   const { category, id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { role, uid } = useContext(AuthContext); // uid 추가
+  const { role, uid, isAuthenticated } = useContext(AuthContext); // isAuthenticated 추가
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isPublic, setIsPublic] = useState(true); // 게시물 공개 상태
+  const [isLiked, setIsLiked] = useState(false); // 공감 상태
+  const [likeCount, setLikeCount] = useState(0); // 공감 수
   const viewCountIncremented = useRef(false);
 
   useEffect(() => {
@@ -35,11 +37,28 @@ function PostDetail() {
             postData.viewCount = 0;
           }
           
+          // 공감 수 초기값 설정
+          if (typeof postData.likeCount !== 'number') {
+            postData.likeCount = 0;
+          }
+          
+          // 공감한 사용자 목록 초기값 설정
+          if (!postData.likedBy) {
+            postData.likedBy = [];
+          }
+          
           setPost(postData);
           setIsPublic(typeof data.isPublic === 'boolean' ? data.isPublic : true);
+          setLikeCount(postData.likeCount || 0);
+          
+          // 현재 사용자가 공감했는지 확인
+          if (isAuthenticated && uid && postData.likedBy && postData.likedBy.includes(uid)) {
+            setIsLiked(true);
+          }
           
           console.log('게시물 로드됨:', postData);
           console.log('현재 조회수:', postData.viewCount);
+          console.log('현재 공감 수:', postData.likeCount);
         } else {
           setError('게시물을 찾을 수 없습니다.');
         }
@@ -52,7 +71,7 @@ function PostDetail() {
     };
 
     fetchPost();
-  }, [category, id]);
+  }, [category, id, isAuthenticated, uid]);
 
   // EditPost에서 수정 완료 후 돌아왔을 때 페이지 재로딩
   useEffect(() => {
@@ -69,7 +88,16 @@ function PostDetail() {
 
   // 조회수 증가는 한 번만 처리 (관리자 제외)
   useEffect(() => {
-    const incrementViewCount = async () => {
+    const incrementViewCount = async (retryCount = 0) => {
+      console.log('조회수 증가 useEffect 실행됨:', {
+        hasPost: !!post,
+        postId: post?.id,
+        category,
+        role,
+        alreadyIncremented: viewCountIncremented.current,
+        retryCount
+      });
+
       // post가 로드되었고, 관리자가 아니며, 아직 조회수가 증가되지 않았을 때만 실행
       if (post && post.id && role !== 'admin' && !viewCountIncremented.current) {
         try {
@@ -99,7 +127,7 @@ function PostDetail() {
             };
           });
           
-          // 플래그 설정하여 중복 실행 방지
+          // 플래그 설정하여 중복 실행 방지 (업데이트 완료 후)
           viewCountIncremented.current = true;
           
           console.log('조회수가 성공적으로 증가되었습니다:', currentViewCount + 1);
@@ -107,11 +135,24 @@ function PostDetail() {
           console.error('조회수 증가 실패:', err);
           console.error('에러 상세:', err.message, err.code);
           
+          // 재시도 로직 (최대 3번)
+          if (retryCount < 3 && (err.code === 'unavailable' || err.code === 'deadline-exceeded')) {
+            console.log(`조회수 증가 재시도 ${retryCount + 1}/3...`);
+            setTimeout(() => {
+              incrementViewCount(retryCount + 1);
+            }, 1000 * (retryCount + 1)); // 지수 백오프
+            return;
+          }
+          
           // 특정 에러 코드에 대한 처리
           if (err.code === 'permission-denied') {
             console.error('권한이 거부되었습니다. 보안 규칙을 확인해주세요.');
           } else if (err.code === 'not-found') {
             console.error('문서를 찾을 수 없습니다.');
+          } else if (err.code === 'unavailable') {
+            console.error('Firestore 서비스가 일시적으로 사용할 수 없습니다.');
+          } else if (err.code === 'deadline-exceeded') {
+            console.error('요청 시간이 초과되었습니다.');
           }
           
           // 에러가 발생해도 플래그를 설정하여 무한 재시도 방지
@@ -120,6 +161,8 @@ function PostDetail() {
       } else {
         if (role === 'admin') {
           console.log('관리자이므로 조회수 증가하지 않음');
+        } else if (viewCountIncremented.current) {
+          console.log('이미 조회수가 증가되었음');
         } else {
           console.log('조회수 증가 조건 미충족:', {
             hasPost: !!post,
@@ -132,14 +175,10 @@ function PostDetail() {
 
     // post가 완전히 로드된 후에만 실행
     if (post && post.id) {
-      // 약간의 지연을 두어 안정성 향상
-      const timer = setTimeout(() => {
-        incrementViewCount();
-      }, 100);
-      
-      return () => clearTimeout(timer);
+      // 즉시 실행하도록 변경 (지연 제거)
+      incrementViewCount();
     }
-  }, [post, category, id, role]); // role도 의존성에 추가
+  }, [post, category, id, role]); // post를 의존성 배열에 추가하여 ESLint 경고 해결
 
   const handlePublicToggle = async () => {
     const newPublicState = !isPublic;
@@ -151,6 +190,43 @@ function PostDetail() {
     } catch (err) {
       console.error('Error updating post status:', err);
       setIsPublic(!newPublicState); // 에러 시 UI 롤백
+    }
+  };
+
+  // 공감 버튼 클릭 핸들러
+  const handleLikeClick = async () => {
+    if (!isAuthenticated) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
+
+    try {
+      const docRef = doc(db, category, id);
+      const newLikeCount = isLiked ? likeCount - 1 : likeCount + 1;
+      
+      // Firestore 업데이트
+      if (isLiked) {
+        // 공감 취소
+        await updateDoc(docRef, {
+          likeCount: increment(-1),
+          likedBy: arrayRemove(uid)
+        });
+      } else {
+        // 공감 추가
+        await updateDoc(docRef, {
+          likeCount: increment(1),
+          likedBy: arrayUnion(uid)
+        });
+      }
+      
+      // 로컬 상태 업데이트
+      setIsLiked(!isLiked);
+      setLikeCount(newLikeCount);
+      
+      console.log('공감 상태 업데이트 성공:', !isLiked ? '추가' : '취소');
+    } catch (err) {
+      console.error('공감 상태 업데이트 실패:', err);
+      alert('공감 상태를 업데이트하는 중 오류가 발생했습니다.');
     }
   };
 
@@ -348,18 +424,22 @@ function PostDetail() {
           img.style.height = 'auto';
           img.style.borderRadius = '8px';
           img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-          img.style.transition = 'transform 0.2s ease';
+          
+          // 모바일이 아닌 경우에만 애니메이션 효과 적용
+          if (window.innerWidth > 640) {
+            img.style.transition = 'transform 0.2s ease';
+            
+            // 호버 효과 추가 (데스크톱에서만)
+            img.addEventListener('mouseenter', () => {
+              img.style.transform = 'scale(1.02)';
+            });
+            img.addEventListener('mouseleave', () => {
+              img.style.transform = 'scale(1)';
+            });
+          }
           
           // CSS 클래스 추가로 더 강력한 스타일링
           img.classList.add('post-content-image');
-          
-          // 호버 효과 추가
-          img.addEventListener('mouseenter', () => {
-            img.style.transform = 'scale(1.02)';
-          });
-          img.addEventListener('mouseleave', () => {
-            img.style.transform = 'scale(1)';
-          });
         });
 
         // 문단 스타일링 - 모바일에서 글자 간격 문제 방지 (정렬은 유지)
@@ -574,45 +654,93 @@ function PostDetail() {
   return (
     <article className="post-detail-container">
       <header className="post-header">
-        <h2 className="post-title">{post.title}</h2>
-
-        {role === 'admin' && (
-          <div className="post-actions">
-            <div className="public-switch-container">
-              <label className="switch">
-                <input 
-                  type="checkbox" 
-                  checked={isPublic} 
-                  onChange={handlePublicToggle} 
-                />
-                <span className="slider round"></span>
-              </label>
-              <span>{isPublic ? '공개' : '비공개'}</span>
-            </div>
-            <div className="edit-delete-buttons">
-              <button
-                className="btn btn-warning btn-sm"
-                onClick={() => window.open(`/edit-post/${category}/${id}`, '_blank')}
-                aria-label="Edit post"
-              >
-                수정
-              </button>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={handleDelete}
-                aria-label="Delete post"
-              >
-                삭제
-              </button>
-            </div>
+        <div className="title-actions-container">
+          <div className="left-section">
+            <h2 className="post-title">{post.title}</h2>
           </div>
-        )}
+          
+          {role !== 'admin' && (
+            <div className="like-section">
+              <button
+                className={`heart-button ${isLiked ? 'liked' : ''}`}
+                onClick={handleLikeClick}
+                disabled={!isAuthenticated}
+                title={isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다'}
+                aria-label={isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다'}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </button>
+              <span className="like-count">{likeCount}</span>
+            </div>
+          )}
+
+          {role === 'admin' && (
+            <div className="admin-actions">
+              <div className="public-switch-container">
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={isPublic} 
+                    onChange={handlePublicToggle} 
+                  />
+                  <span className="slider round"></span>
+                </label>
+                <span className="public-status">{isPublic ? '공개' : '비공개'}</span>
+              </div>
+              <div className="edit-delete-buttons">
+                <button
+                  className="btn btn-warning btn-sm"
+                  onClick={() => window.open(`/edit-post/${category}/${id}`, '_blank')}
+                  aria-label="Edit post"
+                >
+                  수정
+                </button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={handleDelete}
+                  aria-label="Delete post"
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
       <div className="post-meta">
-        <span>{createdAtText}</span>
-        <span>·</span>
-        <span>Views: {post.viewCount || 0}</span>
+        <div className="meta-left">
+          <span>{createdAtText}</span>
+          <span>·</span>
+          <span>Views: {post.viewCount || 0}</span>
+          {role === 'admin' && (
+            <>
+              <span>·</span>
+              <span>공감: {likeCount}</span>
+            </>
+          )}
+        </div>
+        
+        {role !== 'admin' && (
+          <div className="meta-right">
+            <div className="like-section">
+              <button
+                className={`heart-button ${isLiked ? 'liked' : ''}`}
+                onClick={handleLikeClick}
+                disabled={!isAuthenticated}
+                title={isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다'}
+                aria-label={isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다'}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </button>
+              <span className="like-count">{likeCount}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 서버에서 전달된 HTML을 렌더링 (고급 스타일링 적용) */}

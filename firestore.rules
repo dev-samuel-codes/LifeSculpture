@@ -6,23 +6,30 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
     
-    // 조회수 증가를 위한 함수
+    // 조회수 증가를 위한 함수 (로그인 불필요)
     function isViewCountUpdate() {
-      return request.auth != null && 
-             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
              request.resource.data.viewCount == resource.data.viewCount + 1;
+    }
+    
+    // 공감 기능을 위한 함수 (로그인 필요)
+    function isLikeUpdate() {
+      return request.auth != null && 
+             (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) ||
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']) ||
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']));
     }
     
     match /blog/{postId}  { 
       allow read: if true;  
       allow write: if isAdmin();
-      allow update: if isViewCountUpdate(); // 조회수 증가만 허용
+      allow update: if isViewCountUpdate() || isLikeUpdate(); // 조회수 증가 또는 공감 기능 허용
     }
     
     match /study/{postId} { 
       allow read: if true;  
       allow write: if isAdmin();
-      allow update: if isViewCountUpdate(); // 조회수 증가만 허용
+      allow update: if isViewCountUpdate() || isLikeUpdate(); // 조회수 증가 또는 공감 기능 허용
     }
     
     match /users/{uid}    { allow read, write: if isAdmin(); }
