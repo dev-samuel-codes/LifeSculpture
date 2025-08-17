@@ -1,5 +1,6 @@
 // src/components/SettingsWriting.js
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../firebase/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -26,8 +27,10 @@ function SettingsWriting() {
   const [contentSize, setContentSize] = useState(0); // content 크기 추적
   const [pendingImages, setPendingImages] = useState([]); // 임시 저장된 이미지들
   const [isUploading, setIsUploading] = useState(false); // 업로드 중 상태
+  const [shouldRedirect, setShouldRedirect] = useState(false); // 리다이렉트 플래그
 
   const quillRef = useRef(null);
+  const navigate = useNavigate();
 
   // 공통 툴바 훅 사용
   const { modules, formats, handleImageUpload } = useQuillToolbar();
@@ -242,6 +245,10 @@ function SettingsWriting() {
       setContentSize(0);
       setPendingImages([]);
       
+      // 성공 시 해당 카테고리로 리다이렉트
+      setShouldRedirect(true);
+      navigate(`/${category}`);
+
     } catch (e) {
       console.error('Error adding document: ', e);
       if (e?.code === 'permission-denied') {
@@ -257,6 +264,19 @@ function SettingsWriting() {
       setIsUploading(false);
     }
   };
+
+  // 리다이렉트 훅
+  useEffect(() => {
+    if (shouldRedirect) {
+      // 페이지 이동 후 약간의 지연을 두고 새로고침
+      const timer = setTimeout(() => {
+        window.location.reload();
+        setShouldRedirect(false); // 한 번만 리다이렉트하도록 플래그 초기화
+      }, 100); // 100ms 지연으로 페이지 이동 완료 보장
+      
+      return () => clearTimeout(timer);
+    }
+  }, [shouldRedirect]);
 
   return (
     <div className="container mt-4 h-100">
