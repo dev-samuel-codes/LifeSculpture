@@ -251,8 +251,8 @@ function Blog() {
                           <h5 className="card-title">
                             {post.title}
                             {role === 'admin' && (
-                              <span style={{ color: post.isPublic === false ? 'red' : 'green', fontSize: '0.8rem', marginLeft: '8px' }}>
-                                {post.isPublic === false ? '(비공개)' : '(공개)'}
+                              <span style={{ fontSize: '0.8rem', marginLeft: '8px' }}>
+                                {post.isPublic === false ? '🔒' : '🔓'}
                               </span>
                             )}
                           </h5>
