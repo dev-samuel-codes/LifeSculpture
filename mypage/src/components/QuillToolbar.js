@@ -3,8 +3,12 @@ import { useMemo, useCallback, useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase/firebase';
+import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import ReactQuill from 'react-quill-new';
+
+// katex를 전역 객체에 할당
+window.katex = katex;
 
 // Quill 핸들러 모듈 초기화 함수
 const initializeQuillHandlers = () => {
@@ -387,7 +391,7 @@ export const useQuillModules = () => {
             [{ 'direction': 'rtl' }, { 'align': ['', 'left', 'center', 'right', 'justify'] }],
             
             // 4행: 미디어 및 고급 기능
-            ['link', 'image', 'video'],
+            ['link', 'image', 'video', 'formula'],
             
             // 5행: 특수 기능
             ['clean'],
@@ -461,7 +465,7 @@ export const quillFormats = [
   'blockquote', 'code-block',
   'list', 'indent',
   'direction', 'align',
-  'link', 'image', 'video'
+  'link', 'image', 'video', 'formula'
 ];
 
 // 툴바 설정을 위한 커스텀 훅
