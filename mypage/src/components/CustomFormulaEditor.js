@@ -9,22 +9,22 @@ const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => 
   const previewRef = useRef(null);
   const textareaRef = useRef(null);
 
-  // LaTeX 기호 목록
+  // LaTeX 기호 목록 (백슬래시 이스케이프 수정)
   const symbols = [
-    { name: '분수', latex: '\frac{ { } }{ { } }' },
+    { name: '분수', latex: '\\frac{ }{ }' },
     { name: '제곱', latex: '^{ }' },
     { name: '아래첨자', latex: '_{ }' },
-    { name: '제곱근', latex: '\sqrt{ }' },
-    { name: 'n제곱근', latex: '\sqrt[n]{ }' },
-    { name: '합계', latex: '\sum_{k=1}^{n}' },
-    { name: '곱', latex: '\prod_{k=1}^{n}' },
-    { name: '적분', latex: '\int_{a}^{b}' },
-    { name: '극한', latex: '\lim_{x\to\infty}' },
-    { name: '행렬', latex: '\begin{pmatrix} a & b \\ c & d \end{pmatrix}' },
-    { name: '알파', latex: '\alpha' },
-    { name: '베타', latex: '\beta' },
-    { name: '감마', latex: '\gamma' },
-    { name: '파이', latex: '\pi' },
+    { name: '제곱근', latex: '\\sqrt{ }' },
+    { name: 'n제곱근', latex: '\\sqrt[n]{ }' },
+    { name: '합계', latex: '\\sum_{k=1}^{n}' },
+    { name: '곱', latex: '\\prod_{k=1}^{n}' },
+    { name: '적분', latex: '\\int_{a}^{b}' },
+    { name: '극한', latex: '\\lim_{x\to\infty}' },
+    { name: '행렬', latex: '\\begin{pmatrix} a & b \\ c & d \end{pmatrix}' },
+    { name: '알파', latex: '\\alpha' },
+    { name: '베타', latex: '\\beta' },
+    { name: '감마', latex: '\\gamma' },
+    { name: '파이', latex: '\\pi' },
   ];
 
   // 기호 클릭 시 텍스트 에어리어에 삽입
