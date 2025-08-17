@@ -1,5 +1,5 @@
 // src/components/SettingsWriting.js
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../firebase/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -25,11 +25,13 @@ function SettingsWriting() {
   const [isPublic, setIsPublic] = useState(true); // 공개/비공개 상태
   const [contentSize, setContentSize] = useState(0); // content 크기 추적
   const [imageCount, setImageCount] = useState(0); // 이미지 개수 추적
+  const [pendingImages, setPendingImages] = useState([]); // 임시 저장된 이미지들
+  const [isUploading, setIsUploading] = useState(false); // 업로드 중 상태
 
   const quillRef = useRef(null);
 
   // 공통 툴바 훅 사용
-  const { modules, formats, imageHandler } = useQuillToolbar();
+  const { modules, formats, handleImageUpload } = useQuillToolbar();
 
   // content 크기 계산 함수
   const calculateContentSize = (htmlContent) => {
@@ -52,6 +54,64 @@ function SettingsWriting() {
     setContentSize(size);
     setImageCount(imgCount);
   };
+
+  // 이미지 핸들러 - 임시 저장용
+  const handleImageInsert = useCallback(() => {
+    console.log('[handleImageInsert] 이미지 삽입 핸들러 시작');
+    
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files && input.files[0];
+      if (!file) {
+        console.log('[handleImageInsert] 파일이 선택되지 않음');
+        return;
+      }
+
+      console.log('[handleImageInsert] 선택된 파일:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
+      try {
+        // base64 URL 생성
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const tempUrl = e.target.result;
+          
+          // 파일을 임시로 저장 (base64 URL 포함)
+          const tempImage = {
+            id: Date.now() + Math.random(),
+            file: file,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            tempUrl: tempUrl // base64 URL 저장
+          };
+
+          setPendingImages(prev => [...prev, tempImage]);
+
+          // 에디터에 임시 이미지 삽입
+          const editor = quillRef.current?.getEditor();
+          if (editor) {
+            const range = editor.getSelection(true) || { index: editor.getLength() };
+            editor.insertEmbed(range.index, 'image', tempUrl, 'user');
+            editor.setSelection(range.index + 1, 0);
+            console.log('[handleImageInsert] 임시 이미지 삽입 완료');
+          }
+        };
+        reader.readAsDataURL(file);
+
+      } catch (err) {
+        console.error('[handleImageInsert] 이미지 처리 실패:', err);
+        alert('이미지 처리에 실패했습니다: ' + err.message);
+      }
+    };
+  }, []);
 
   // 화면 크기에 따른 에디터 높이 조정
   useEffect(() => {
@@ -83,11 +143,8 @@ function SettingsWriting() {
           console.log('[SettingsWriting] editor ready, setting global reference');
           window.quillEditor = editor;
           
-          // 이미지 핸들러 직접 연결 (imageHandler가 준비된 후)
-          if (imageHandler) {
-            console.log('[SettingsWriting] connecting image handler to editor');
-            editor.getModule('toolbar').addHandler('image', imageHandler);
-          }
+          // 임시 이미지 핸들러 연결
+          editor.getModule('toolbar').addHandler('image', handleImageInsert);
           
           return true;
         }
@@ -106,18 +163,33 @@ function SettingsWriting() {
 
       return () => clearTimeout(timer);
     }
-  }, [imageHandler]); // imageHandler 의존성 추가
+  }, [handleImageInsert]);
 
-  // imageHandler가 준비되면 에디터에 연결
-  useEffect(() => {
-    if (quillRef.current && imageHandler) {
-      const editor = quillRef.current.getEditor();
-      if (editor) {
-        console.log('[SettingsWriting] connecting image handler after editor ready');
-        editor.getModule('toolbar').addHandler('image', imageHandler);
+  // 게시하기 시 이미지들을 storage에 업로드
+  const uploadPendingImages = async () => {
+    if (pendingImages.length === 0) return content;
+
+    console.log('[uploadPendingImages] 시작:', pendingImages.length, '개 이미지');
+    let updatedContent = content;
+
+    for (const tempImage of pendingImages) {
+      try {
+        console.log('[uploadPendingImages] 이미지 업로드 중:', tempImage.name);
+        const url = await handleImageUpload(tempImage.file);
+        
+        if (url) {
+          // 저장된 임시 URL을 실제 storage URL로 교체
+          updatedContent = updatedContent.replace(tempImage.tempUrl, url);
+          console.log('[uploadPendingImages] 이미지 URL 교체 완료:', tempImage.name);
+        }
+      } catch (err) {
+        console.error('[uploadPendingImages] 이미지 업로드 실패:', tempImage.name, err);
+        throw new Error(`이미지 "${tempImage.name}" 업로드에 실패했습니다: ${err.message}`);
       }
     }
-  }, [imageHandler]);
+
+    return updatedContent;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -150,29 +222,47 @@ function SettingsWriting() {
       return;
     }
 
+    setIsUploading(true);
+
     try {
+      // 임시 이미지들을 storage에 업로드하고 content 업데이트
+      let finalContent = content;
+      if (pendingImages.length > 0) {
+        console.log('[handleSubmit] 임시 이미지 업로드 시작');
+        finalContent = await uploadPendingImages();
+        console.log('[handleSubmit] 임시 이미지 업로드 완료');
+      }
+
       const docRef = await addDoc(collection(db, category), {
         title: title.trim(),
-        content,                // 이미지 URL 포함된 HTML
+        content: finalContent,                // 업로드된 이미지 URL 포함된 HTML
         createdAt: serverTimestamp(), // 서버 시간
         viewCount: 0,
         isPublic: isPublic,    // 공개/비공개 상태 추가
       });
       console.log('Document written with ID: ', docRef.id);
       alert(`Content submitted successfully to ${category} collection!`);
+      
+      // 폼 초기화
       setTitle('');
       setContent('');
       setContentSize(0);
       setImageCount(0);
+      setPendingImages([]);
+      
     } catch (e) {
       console.error('Error adding document: ', e);
       if (e?.code === 'permission-denied') {
         alert('권한이 없습니다. 관리자만 글을 작성할 수 있습니다.');
       } else if (e?.message?.includes('longer than 1048487 bytes')) {
         alert('콘텐츠가 너무 깁니다. 이미지를 압축하거나 텍스트를 줄여주세요.');
+      } else if (e?.message?.includes('이미지')) {
+        alert(e.message);
       } else {
         alert('Error submitting content.');
       }
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -258,6 +348,11 @@ function SettingsWriting() {
                         </span>
                       </span>
                     )}
+                    {pendingImages.length > 0 && (
+                      <span className="ms-3 text-warning">
+                        임시 이미지: {pendingImages.length}개 (게시 시 업로드됨)
+                      </span>
+                    )}
                   </small>
                 </div>
               </div>
@@ -277,9 +372,9 @@ function SettingsWriting() {
                 <button 
                   type="submit" 
                   className="btn btn-primary btn-primary-solid"
-                  disabled={contentSize > MAX_CONTENT_SIZE}
+                  disabled={contentSize > MAX_CONTENT_SIZE || isUploading}
                 >
-                  게시하기
+                  {isUploading ? '업로드 중...' : '게시하기'}
                 </button>
               </div>
             </div>
