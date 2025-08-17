@@ -39,7 +39,9 @@ const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => 
     { name: 'n제곱근', latex: '\\sqrt[n]{ }', preview: '\\sqrt[n]{x}' },
     { name: '합계', latex: '\\sum_{k=1}^{n}', preview: '\\sum' },
     { name: '곱', latex: '\\prod_{k=1}^{n}', preview: '\\prod' },
+    // eslint-disable-next-line no-useless-escape
     { name: '적분', latex: '\\int_{a}^{b}', preview: '\\int' },
+    // eslint-disable-next-line no-useless-escape
     { name: '극한', latex: '\\lim_{x\to\infty}', preview: '\\lim' },
     { name: '행렬', latex: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}', preview: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
     { name: '알파', latex: '\\alpha', preview: '\\alpha' },
