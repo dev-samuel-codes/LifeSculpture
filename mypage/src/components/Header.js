@@ -4,6 +4,7 @@ import GoogleLoginButton from './GoogleLoginButton';
 import { AuthContext } from '../context/AuthContext';
 import '../style/Headerbar.css';
 import defaultProfilePic from '../assets/download.png';
+import LazyImage from './LazyImage';
 
 const Header = () => {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
@@ -101,9 +102,9 @@ const Header = () => {
                 style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
                 {isAuthenticated && userPicture ? (
-                  <img src={userPicture} alt="Profile" className="profile-pic" />
+                  <LazyImage src={userPicture} alt="Profile" className="profile-pic" />
                 ) : (
-                  <img src={defaultProfilePic} alt="Default Profile" className="profile-pic" />
+                  <LazyImage src={defaultProfilePic} alt="Default Profile" className="profile-pic" />
                 )}
               </span>
 
@@ -142,9 +143,9 @@ const Header = () => {
               <div className="mobile-profile-card">
                 <div className="mobile-profile-row">
                   {isAuthenticated && userPicture ? (
-                    <img src={userPicture} alt="Profile" className="profile-pic" />
+                    <LazyImage src={userPicture} alt="Profile" className="profile-pic" />
                   ) : (
-                    <img src={defaultProfilePic} alt="Default Profile" className="profile-pic" />
+                    <LazyImage src={defaultProfilePic} alt="Default Profile" className="profile-pic" />
                   )}
                   <div>
                     <p className="mobile-profile-name">

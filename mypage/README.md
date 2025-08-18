@@ -1,3 +1,34 @@
+# LifeSculpture - 개인 웹사이트
+
+개발 학습, 블로그, 일상 기록을 위한 개인 웹사이트입니다.
+
+## 주요 기능
+
+- **Study**: 개발 학습 내용 정리 및 관리
+- **Blog**: 여행, 일상, 리뷰 등 다양한 콘텐츠
+- **Admin Dashboard**: 콘텐츠 관리 및 사용자 관리
+- **Google 로그인**: 사용자 인증 시스템
+
+## 성능 최적화
+
+### 이미지 지연 로딩 (Lazy Loading)
+- Intersection Observer API를 사용한 효율적인 이미지 로딩
+- 뷰포트에 보이기 전까지 이미지 로딩 지연
+- 로딩 중 스켈레톤 애니메이션 제공
+- 배경 이미지와 일반 이미지 모두 지원
+
+#### 사용된 컴포넌트
+- `LazyImage`: 일반 이미지 지연 로딩
+- `LazyBackgroundImage`: 배경 이미지 지연 로딩
+- `useLazyLoading`: 커스텀 훅
+
+#### 설정 옵션
+- `rootMargin`: 뷰포트 밖 50px 전에 미리 로딩
+- `threshold`: 10% 보일 때 로딩 시작
+- 로딩 실패 시 그레이스케일 처리
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

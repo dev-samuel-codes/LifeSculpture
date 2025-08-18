@@ -59,3 +59,52 @@
     transform: none !important;
   }
 }
+
+/* 이미지 지연 로딩 스타일 */
+.lazy-image {
+  transition: all 0.3s ease-in-out;
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+  filter: none;
+}
+
+.lazy-image.error {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.lazy-background-image {
+  transition: all 0.3s ease-in-out;
+}
+
+.lazy-background-image.loaded {
+  filter: none;
+}
+
+.lazy-background-image.error {
+  filter: grayscale(100%);
+}
+
+/* 로딩 중 스켈레톤 애니메이션 */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.lazy-image:not(.loaded)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}

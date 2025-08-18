@@ -9,9 +9,9 @@ const POSTS_PER_PAGE = 6;
 /** 상위/하위 구조 */
 const TAG_SECTIONS = [
   { title: '개발 · IT', tags: ['Frontend', 'React', 'Next.js', 'Vue', 'Angular', 'Backend', 'Node.js', 'Express', 'Django', 'Spring', 'Database', 'Firebase', 'MySQL', 'MongoDB', 'Git', 'Docker', 'DevOps'] },
-  { title: '과학', tags: ['Physics', 'Chemistry', 'Biology', 'Earth Science', 'Astronomy'] },
-  { title: '수학', tags: ['Basic Math', 'Algebra', 'Geometry', 'Calculus', 'Statistics', 'Logic'] },
-  { title: '인문 · 사회', tags: ['History', 'Philosophy', 'Psychology', 'Sociology', 'Politics', 'Economics'] }
+  { title: '과학', tags: ['물리학', '화학', '생물학', '지구과학', '천문학'] },
+  { title: '수학', tags: ['기초수학', '대수학', '기하학', '미적분', '확률과 통계', '논리'] },
+  { title: '인문 · 사회', tags: ['역사', '철학', '심리학', '사회학', '정치', '경제'] }
 ];
 
 // 문자열 정규화(대소문자/기호차 완화)

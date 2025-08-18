@@ -53,67 +53,11 @@ body {
   flex-wrap: nowrap;         /* 기본은 한 줄 */
 }
 
-/* 페이지 전체 여백 제거 */
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
-
-/* 홈 히어로 섹션 */
-.main-section1 {
-  background-image: url('../assets/MainBackgroundImage.png');
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  min-height: 84.6vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  text-align: center;
-}
-
-/* 섹션2 */
-.main-section2 {
-  /* 높이를 고정하지 말고 내용에 맞춰 늘어나게 */
-  min-height: 100vh;
-  padding: 30px 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  gap: 24px;
-  margin-top: 16px;
-}
-
-.main-section2-title {
-  margin-bottom: 50px;
-  font-size: 70px;
-  font-weight: 900;
-  background: linear-gradient(to right top, #1d25c2, #c9291b);
-  color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
-}
-
-/* 카드 컨테이너 */
-.main-section2-content {
-  display: flex;
-  gap: 50px;
-  align-items: flex-start;   /* 기준선을 위쪽으로 */
-  justify-content: flex-start;
-  flex-wrap: nowrap;         /* 기본은 한 줄 */
-}
-
 /* 카드 기본 스타일 */
 .main-card {
   position: relative;
   width: 300px;
   height: 350px;
-  padding: 20px;
   border-radius: 16px;
   color: #fff;
   display: flex;
@@ -135,119 +79,43 @@ body {
   width: 100%;
   height: 100%;
   display: flex;
-  padding: 10px;
+  padding: 0;
   flex-direction: column;
-  justify-content: center; /* 내용 중앙 */
-  position: relative;
+  justify-content: flex-end; /* 하단 정렬 */
   text-align: center;
+}
+
+/* 카드 하단 불투명 오버레이 */
+.main-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 33.33%; /* 카드 높이의 3분의 1 */
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 0 0 16px 16px;
+  z-index: 1;
 }
 
 .main-card .main-card-body h3 {
   position: absolute;
-  top: 16px;
-  left: 20px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  top: auto;
   margin: 0;
   font-size: 1.4rem;
-  text-align: left;
-}
-
-.main-card .main-card-body p {
-  margin: 0;
-  line-height: 1.5;
-}
-
-.main-card,
-.main-card * {
-  color: #fff !important;
-}
-
-/* ===== 반응형 ===== */
-/* 화면이 좁아지면 줄바꿈 허용 */
-@media (max-width: 1200px) {
-  .main-section2-content {
-    flex-wrap: wrap;
-  }
-}
-
-/* 두 칼럼 정도로 접히면 지그재그가 과해 보일 수 있으니 완화 */
-@media (max-width: 900px) {
-  .main-card {
-    width: 300px; /* 유지 */
-  }
-  .main-card:nth-child(even) {
-    transform: translateY(24px);
-  }
-}
-
-/* 모바일: 한 줄 스택 + 지그재그 해제 */
-@media (max-width: 600px) {
-  .main-section2-content {
-    justify-content: center;
-  }
-  .main-card {
-    width: 100%;
-    max-width: 520px;
-  }
-  .main-card:nth-child(even) {
-    transform: none;
-  }
-}
-
-@media (max-width: 768px) {
-    .main-section1 h2 {
-      font-size: 2rem;
-      padding: 0 20px;
-    }
-  
-    .main-section2-title {
-      font-size: 40px;
-    }
-    .main-section2 {
-      padding: 30px 20px;
-    }
-  }
-
-/* 홀수 카드 호버 시 */
-.main-card:nth-child(odd):hover {
-  transform: translateY(-10px); /* 기본보다 10px 위 */
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
-}
-
-/* 짝수 카드 호버 시 (지그재그 고려) */
-.main-card:nth-child(even):hover {
-  transform: translateY(80px); /* 원래 40px → 30px로 위로 10px */
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
-}
-
-/* 지그재그: 짝수 카드만 아래로 살짝 내리기 */
-.main-card:nth-child(even) {
-  transform: translateY(90px);
-}
-
-/* 카드 내부 레이아웃 */
-.main-card .main-card-body {
-  width: 100%;
-  height: 100%;
+  text-align: center;
+  padding: 20px;
+  height: 33.33%;
   display: flex;
-  padding: 10px;
-  flex-direction: column;
-  justify-content: center; /* 내용 중앙 */
-  position: relative;
-  text-align: center;
-}
-
-.main-card .main-card-body h3 {
-  position: absolute;
-  top: 16px;
-  left: 20px;
-  margin: 0;
-  font-size: 1.4rem;
-  text-align: left;
-}
-
-.main-card .main-card-body p {
-  margin: 0;
-  line-height: 1.5;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  z-index: 2;
+  color: white;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .main-card,
@@ -275,15 +143,61 @@ body {
 
 /* 모바일: 한 줄 스택 + 지그재그 해제 */
 @media (max-width: 600px) {
+  .main-section2 {
+    align-items: center;
+  }
+  
   .main-section2-content {
     justify-content: center;
   }
+  
   .main-card {
     width: 100%;
-    max-width: 520px;
+    max-width: 100%;
+    min-width: 320px;
   }
+  
   .main-card:nth-child(even) {
     transform: none;
+  }
+  
+  .main-card .main-card-body h3 {
+    white-space: normal;
+    left: 0;
+    right: 0;
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-section1 h2 {
+    font-size: 2rem;
+    padding: 0 20px;
+  }
+  
+  .main-section2 {
+    padding: 30px 20px;
+  }
+}
+
+/* 작은 모바일 화면에서 카드 폭 최적화 */
+@media (max-width: 480px) {
+  .main-section2 {
+    padding: 20px 15px;
+    align-items: center;
+  }
+  
+  .main-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 280px;
+    height: 300px;
+  }
+  
+  .main-section2-title {
+    font-size: 50px;
+    margin-bottom: 30px;
+    text-align: center;
   }
 }
 
@@ -295,41 +209,19 @@ body {
 
 /* 짝수 카드 호버 시 (지그재그 고려) */
 .main-card:nth-child(even):hover {
-  transform: translateY(80px); /* 원래 40px → 30px로 위로 10px */
+  transform: translateY(80px); /* 원래 90px → 80px로 위로 10px */
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* 모바일 환경에서 모든 애니메이션과 트랜지션 비활성화 */
-@media (max-width: 768px) {
-  /* 네비게이션 메뉴가 아닌 요소들의 애니메이션만 비활성화 */
-  *:not(.my-navbar-collapse):not(.my-navbar-nav):not(.my-navbar-collapse *) {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
-  }
-  
-  /* 카드 호버 효과 비활성화 */
-  .main-card:hover {
-    transform: none !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20) !important;
-  }
-  
+/* 모바일에서는 호버 효과 제거 */
+@media (max-width: 600px) {
   .main-card:nth-child(odd):hover {
     transform: none !important;
-    box-shadow: 0 10px 24px rgba(0, 0.20) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20) !important;
   }
   
   .main-card:nth-child(even):hover {
     transform: none !important;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20) !important;
-  }
-  
-  /* 카드 기본 transform 비활성화 */
-  .main-card {
-    transition: none !important;
-  }
-  
-  .main-card:nth-child(even) {
-    transform: none !important;
   }
 }

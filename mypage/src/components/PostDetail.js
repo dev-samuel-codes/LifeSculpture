@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc, increment, deleteDoc, arrayUnion, arrayRemove }
 import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
 import LoginRequiredPopup from './LoginRequiredPopup';
+import LazyImage from './LazyImage';
 import '../style/PostDetail.css';
 
 function PostDetail() {
@@ -765,7 +766,7 @@ function PostDetail() {
       {selectedImage && (
         <div className="image-modal-overlay" onClick={closeImageModal}>
           <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
-            <img src={selectedImage} alt="Enlarged" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                            <LazyImage src={selectedImage} alt="Enlarged" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
             <button 
               className="btn btn-light position-absolute top-0 end-0 m-2" 
               onClick={closeImageModal}

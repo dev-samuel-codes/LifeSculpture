@@ -18,6 +18,7 @@ import coding from './assets/coding.jpg';
 import ai from './assets/ai.jpg';
 import travel from './assets/travel.webp';
 import tip from './assets/tip.jpg';
+import LazyBackgroundImage from './components/LazyBackgroundImage';
 
 // 홈 화면
 function Home() {
@@ -32,36 +33,44 @@ function Home() {
 
         <div className='main-section2-content'>
           {/* Study 특징 1 */}
-          <Link to="/study" className="main-card" style={{ textDecoration: 'none', backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${coding})` }}>
-            <div className="main-card-body">
-              <h3>웹·앱 개발</h3>
-              <p>React, Node.js, Firebase 등 실전 코딩 기술을 체계적으로 학습.</p>
-            </div>
-          </Link>
+          <LazyBackgroundImage src={coding} className="main-card">
+            <Link to="/study" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+              <div className="main-card-overlay"></div>
+              <div className="main-card-body">
+                <h3>웹·앱 개발</h3>
+              </div>
+            </Link>
+          </LazyBackgroundImage>
 
           {/* Study 특징 2 */}
-          <Link to="/study" className="main-card" style={{ textDecoration: 'none', backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${ai})` }}>
-            <div className="main-card-body">
-              <h3>최신 기술과 AI</h3>
-              <p>인공지능과 최신 개발 트렌드를 깊이 있게 학습.</p>
-            </div>
-          </Link>
+          <LazyBackgroundImage src={ai} className="main-card">
+            <Link to="/study" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+              <div className="main-card-overlay"></div>
+              <div className="main-card-body">
+                <h3>최신 기술과 AI</h3>
+              </div>
+            </Link>
+          </LazyBackgroundImage>
 
           {/* Blog 특징 1 */}
-          <Link to="/blog" className="main-card" style={{ textDecoration: 'none', backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${travel})` }}>
-            <div className="main-card-body">
-              <h3>여행과 일상</h3>
-              <p>여행기, 에세이, 사진·영상으로 담아낸 소소한 이야기들.</p>
-            </div>
-          </Link>
+          <LazyBackgroundImage src={travel} className="main-card">
+            <Link to="/blog" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+              <div className="main-card-overlay"></div>
+              <div className="main-card-body">
+                <h3>여행과 일상</h3>
+              </div>
+            </Link>
+          </LazyBackgroundImage>
 
           {/* Blog 특징 2 */}
-          <Link to="/blog" className="main-card" style={{ textDecoration: 'none', backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${tip})` }}>
-            <div className="main-card-body">
-              <h3>리뷰와 팁</h3>
-              <p>제품 리뷰와 튜토리얼로 일상에 도움 투척.</p>
-            </div>
-          </Link>
+          <LazyBackgroundImage src={tip} className="main-card">
+            <Link to="/blog" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+              <div className="main-card-overlay"></div>
+              <div className="main-card-body">
+                <h3>리뷰와 팁</h3>
+              </div>
+            </Link>
+          </LazyBackgroundImage>
         </div>
       </div>
     </div>
