@@ -187,6 +187,14 @@
   white-space: nowrap;
 }
 
+/* Ensure emojis render across mobile platforms */
+.emoji-lock {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: text-bottom;
+}
+
 /* 모바일 대응 */
 @media (max-width: 576px) {
   .card-body.card-row { grid-template-columns: 1fr; }
@@ -430,4 +438,3 @@
   user-select: none;
   flex-shrink: 0;
 }
-

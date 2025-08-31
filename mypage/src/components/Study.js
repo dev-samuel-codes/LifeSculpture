@@ -290,8 +290,13 @@ function Study() {
                             <h5 className="card-title">
                               {post.title}
                               {role === 'admin' && (
-                                <span style={{ fontSize: '0.8rem', marginLeft: '8px' }}>
-                                  {post.isPublic === false ? '🔒' : '🔓'}
+                                <span
+                                  className="emoji-lock"
+                                  style={{ fontSize: '0.8rem', marginLeft: '8px' }}
+                                  role="img"
+                                  aria-label={post.isPublic === false ? '비공개' : '공개'}
+                                >
+                                  {post.isPublic === false ? '🔒️' : '🔓️'}
                                 </span>
                               )}
                             </h5>
