@@ -18,3 +18,36 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+/* Mobile: show 공개/비공개 as text with colors */
+@media (max-width: 576px) {
+  /* Replace emoji lock with text from aria-label */
+  .emoji-lock {
+    font-size: 0 !important;
+  }
+  .emoji-lock::after {
+    content: attr(aria-label);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-left: 0;
+  }
+  .emoji-lock[aria-label="공개"]::after {
+    color: #16a34a; /* green */
+  }
+  .emoji-lock[aria-label="비공개"]::after {
+    color: #dc2626; /* red */
+  }
+
+  /* Color the existing status text next to the toggle */
+  .public-switch-container > label.switch + .public-status,
+  .public-switch-container > label.switch + span {
+    font-weight: 600;
+  }
+  .public-switch-container > label.switch:has(input:checked) + .public-status,
+  .public-switch-container > label.switch:has(input:checked) + span {
+    color: #16a34a; /* green */
+  }
+  .public-switch-container > label.switch:has(input:not(:checked)) + .public-status,
+  .public-switch-container > label.switch:has(input:not(:checked)) + span {
+    color: #dc2626; /* red */
+  }
+}
