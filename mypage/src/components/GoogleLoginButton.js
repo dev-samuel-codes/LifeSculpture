@@ -1,31 +1,35 @@
 // src/components/GoogleLoginButton.js
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
-function GoogleLoginButton({ redirectTo = '/' }) {
+function GoogleLoginButton({ redirectTo = '/', className = '' }) {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useContext(AuthContext);
 
+  const mergedClassName = useMemo(
+    () => ['btn', 'btn-primary', className].filter(Boolean).join(' '),
+    [className],
+  );
+
   const handleLogin = async () => {
     try {
-      const user = await login(); // AuthContext.login -> signInWithPopup 호출
+      const user = await login();
       console.log('[GoogleLoginButton] login:', user.uid, user.email);
       navigate(redirectTo);
     } catch (err) {
       console.error('[GoogleLoginButton] error:', err);
-      alert('Google 로그인에 실패했어요.');
+      alert('Google 로그인에 실패했어요. 잠시 후 다시 시도해 주세요.');
     }
   };
 
-  // 이미 로그인 상태라면 버튼 숨김(원하면 다른 UI 노출)
   if (isAuthenticated) {
     return null;
   }
 
   return (
-    <button className="btn btn-primary" onClick={handleLogin}>
-      Google로 로그인하기
+    <button type="button" className={mergedClassName} onClick={handleLogin}>
+      Google로 로그인
     </button>
   );
 }
