@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "concurrently \"npm start --prefix mypage\" \"npm run start-backend\"",
-    "start-backend": "cd server && node index.js"
+    "start-backend": "cd server && node index.js",
+    "build": "npm run build --prefix mypage"
   },
   "keywords": [],
   "author": "",
