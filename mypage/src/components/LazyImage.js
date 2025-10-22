@@ -16,8 +16,20 @@ const LazyImage = ({
   const observerRef = useRef(null);
 
   useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+    if (imgRef.current) {
+      imgRef.current.src = placeholder;
+    }
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+  }, [src, placeholder]);
+
+  useEffect(() => {
     const img = imgRef.current;
-    if (!img) return;
+    if (!img || !src) return;
 
     // Intersection Observer를 사용한 지연 로딩
     const observer = new IntersectionObserver(

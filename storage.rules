@@ -2,6 +2,11 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    // Public image assets
+    match /image/{file=**} {
+      allow read: if true;
+      allow write: if false;
+    }
 
     // 게시물 이미지 경로
     match /post-images/{file=**} {

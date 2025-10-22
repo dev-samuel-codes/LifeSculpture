@@ -3,13 +3,18 @@ import { Link } from 'react-router-dom';
 import GoogleLoginButton from './GoogleLoginButton';
 import { AuthContext } from '../context/AuthContext';
 import '../style/Headerbar.css';
-import defaultProfilePic from '../assets/download.png';
 import LazyImage from './LazyImage';
+import useStorageImage from '../hooks/useStorageImage';
 
 const Header = () => {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const { isAuthenticated, role, userName, userEmail, userPicture, logout } = useContext(AuthContext);
+
+  const defaultProfileImage = useStorageImage('image/download.png');
+  const profileImageSrc = userPicture || defaultProfileImage.url;
+  const profileImageLoading = !userPicture && (defaultProfileImage.loading || !defaultProfileImage.url);
+  const profileImageAlt = isAuthenticated && userPicture ? 'Profile' : 'Default Profile';
 
   const profileRef = useRef(null);
   const navRef = useRef(null);
@@ -101,11 +106,12 @@ const Header = () => {
                 className="my-nav-link"
                 style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
-                {isAuthenticated && userPicture ? (
-                  <LazyImage src={userPicture} alt="Profile" className="profile-pic" />
-                ) : (
-                  <LazyImage src={defaultProfilePic} alt="Default Profile" className="profile-pic" />
-                )}
+                <LazyImage
+                  src={profileImageSrc}
+                  alt={profileImageAlt}
+                  className="profile-pic"
+                  data-loading={profileImageLoading}
+                />
               </span>
 
               {isProfilePopupOpen && (
@@ -142,11 +148,12 @@ const Header = () => {
             <li className="my-nav-item mobile-only">
               <div className="mobile-profile-card">
                 <div className="mobile-profile-row">
-                  {isAuthenticated && userPicture ? (
-                    <LazyImage src={userPicture} alt="Profile" className="profile-pic" />
-                  ) : (
-                    <LazyImage src={defaultProfilePic} alt="Default Profile" className="profile-pic" />
-                  )}
+                  <LazyImage
+                    src={profileImageSrc}
+                    alt={profileImageAlt}
+                    className="profile-pic"
+                    data-loading={profileImageLoading}
+                  />
                   <div>
                     <p className="mobile-profile-name">
                       {isAuthenticated ? userName : '로그인이 필요합니다'}

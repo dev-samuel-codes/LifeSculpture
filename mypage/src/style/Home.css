@@ -8,7 +8,6 @@ body {
 
 /* 홈 히어로 섹션 */
 .main-section1 {
-  background-image: url('../assets/MainBackgroundImage.png');
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -20,6 +19,11 @@ body {
   color: white;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   text-align: center;
+}
+
+.main-section1[data-loading="true"] {
+  background-image: none;
+  background-color: #1a1a1a;
 }
 
 /* 섹션2 */
@@ -67,6 +71,28 @@ body {
   transition: transform .3s ease; /* 지그재그/호버 전환 부드럽게 */
   background-size: cover;
   background-position: center;
+}
+
+.main-card[data-loading="true"] {
+  background-image: none !important;
+  background-color: #d9d9d9;
+}
+
+.main-card[data-loading="true"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%);
+  animation: shimmer 1.6s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* 지그재그: 짝수 카드만 아래로 살짝 내리기 */

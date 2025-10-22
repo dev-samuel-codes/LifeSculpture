@@ -16,8 +16,17 @@ const LazyBackgroundImage = ({
   const observerRef = useRef(null);
 
   useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+  }, [src]);
+
+  useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || !src) return;
 
     // Intersection Observer를 사용한 지연 로딩
     const observer = new IntersectionObserver(

@@ -14,17 +14,24 @@ import { AuthContext } from './context/AuthContext';
 import Header from './components/Header';
 import './style/Home.css';
 
-import coding from './assets/coding.jpg';
-import ai from './assets/ai.jpg';
-import travel from './assets/travel.webp';
-import tip from './assets/tip.jpg';
 import LazyBackgroundImage from './components/LazyBackgroundImage';
+import useStorageImage from './hooks/useStorageImage';
 
 // 홈 화면
 function Home() {
+  const mainBackground = useStorageImage('image/MainBackgroundImage.png');
+  const codingImage = useStorageImage('image/coding.jpg');
+  const aiImage = useStorageImage('image/ai.jpg');
+  const travelImage = useStorageImage('image/travel.webp');
+  const tipImage = useStorageImage('image/tip.jpg');
+
   return (
     <div>
-      <div className='main-section1'>
+      <div
+        className='main-section1'
+        style={mainBackground.url ? { backgroundImage: `url(${mainBackground.url})` } : undefined}
+        data-loading={mainBackground.loading || !mainBackground.url}
+      >
         <h2>Every Day, A New Page</h2>
       </div>
 
@@ -32,42 +39,58 @@ function Home() {
         <div className='main-section2-title'>Contents</div>
 
         <div className='main-section2-content'>
-          {/* Study 특징 1 */}
-          <LazyBackgroundImage src={coding} className="main-card">
+          {/* Study ?? 1 */}
+          <LazyBackgroundImage
+            src={codingImage.url}
+            className="main-card"
+            data-loading={codingImage.loading || !codingImage.url}
+          >
             <Link to="/study" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
               <div className="main-card-overlay"></div>
               <div className="main-card-body">
-                <h3>웹·앱 개발</h3>
+                <h3>웹, 앱 개발</h3>
               </div>
             </Link>
           </LazyBackgroundImage>
 
-          {/* Study 특징 2 */}
-          <LazyBackgroundImage src={ai} className="main-card">
+          {/* Study ?? 2 */}
+          <LazyBackgroundImage
+            src={aiImage.url}
+            className="main-card"
+            data-loading={aiImage.loading || !aiImage.url}
+          >
             <Link to="/study" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
               <div className="main-card-overlay"></div>
               <div className="main-card-body">
-                <h3>최신 기술과 AI</h3>
+                <h3>AI</h3>
               </div>
             </Link>
           </LazyBackgroundImage>
 
-          {/* Blog 특징 1 */}
-          <LazyBackgroundImage src={travel} className="main-card">
+          {/* Blog ?? 1 */}
+          <LazyBackgroundImage
+            src={travelImage.url}
+            className="main-card"
+            data-loading={travelImage.loading || !travelImage.url}
+          >
             <Link to="/blog" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
               <div className="main-card-overlay"></div>
               <div className="main-card-body">
-                <h3>여행과 일상</h3>
+                <h3>여행</h3>
               </div>
             </Link>
           </LazyBackgroundImage>
 
-          {/* Blog 특징 2 */}
-          <LazyBackgroundImage src={tip} className="main-card">
+          {/* Blog ?? 2 */}
+          <LazyBackgroundImage
+            src={tipImage.url}
+            className="main-card"
+            data-loading={tipImage.loading || !tipImage.url}
+          >
             <Link to="/blog" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
               <div className="main-card-overlay"></div>
               <div className="main-card-body">
-                <h3>리뷰와 팁</h3>
+                <h3>팁</h3>
               </div>
             </Link>
           </LazyBackgroundImage>
@@ -76,6 +99,7 @@ function Home() {
     </div>
   );
 }
+
 
 // 페이지 공통 래퍼 (홈 제외)
 function Page({ children }) {
