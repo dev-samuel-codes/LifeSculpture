@@ -92,7 +92,7 @@
 .profile-popup-btns {
   display: flex;
   gap: 10px;
-  justify-content: space-between;
+  align-items: center;
   margin-top: 2px;
 }
 .profile-popup-btns .btn {
@@ -144,16 +144,7 @@
   flex: 1 1 auto;
 }
 
-.profile-popup-theme {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 6px;
-  width: 100%;
-}
 
-.profile-popup-theme .theme-toggle-button {
-  margin-left: auto;
-}
 
 .theme-toggle-button {
   position: relative;
@@ -192,6 +183,7 @@
 
 .theme-toggle-button--popup {
   flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .theme-toggle-button::after {
@@ -635,9 +627,7 @@ body[data-theme='dark'] .mobile-profile-email {
   color: #cbd5f5;
 }
 
-body[data-theme='dark'] .profile-popup-theme {
-  margin-top: 8px;
-}
+
 
 @media (min-width: 992px) {
   .my-navbar-toggler { display: none; }

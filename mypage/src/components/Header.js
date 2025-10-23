@@ -137,8 +137,6 @@ const Header = () => {
                         <button className="btn btn-danger btn-sm mt-2" onClick={handleLogout}>
                           로그아웃 하기
                         </button>
-                      </div>
-                      <div className="profile-popup-theme">
                         <ThemeToggleButton className="theme-toggle-button--popup" />
                       </div>
                     </>
@@ -186,8 +184,6 @@ const Header = () => {
                       <button className="btn btn-danger" onClick={handleLogout}>
                         로그아웃 하기
                       </button>
-                    </div>
-                    <div className="profile-popup-theme">
                       <ThemeToggleButton className="theme-toggle-button--popup" />
                     </div>
                   </>
