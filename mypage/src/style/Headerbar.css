@@ -133,6 +133,98 @@
   border-color: #ffd6d6;
 }
 
+.profile-popup-auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.profile-popup-auth-controls .google-login-button {
+  flex: 1 1 auto;
+}
+
+.profile-popup-theme {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.profile-popup-theme .theme-toggle-button {
+  margin-left: auto;
+}
+
+.theme-toggle-button {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #e6ebf2;
+  background: linear-gradient(145deg, #ffffff, #f4f7ff);
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    transform .16s ease,
+    box-shadow .16s ease,
+    border-color .16s ease,
+    background .16s ease,
+    color .16s ease,
+    box-shadow .16s ease;
+  overflow: hidden;
+}
+
+.theme-toggle-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+  border-color: #d9e1ec;
+  background: linear-gradient(145deg, #f8fbff, #eef3ff);
+}
+
+.theme-toggle-button:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.45);
+  outline-offset: 2px;
+}
+
+.theme-toggle-button--popup {
+  flex: 0 0 auto;
+}
+
+.theme-toggle-button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.45) 0%, rgba(59, 130, 246, 0) 70%);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: none;
+}
+
+.theme-toggle-button--pulse::after {
+  animation: theme-toggle-ripple 0.55s ease-out forwards;
+}
+
+@keyframes theme-toggle-ripple {
+  0% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  70% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(22);
+  }
+}
+
 /* 구글 로그인 버튼(공용) */
 .google-login-button {
   width: 100%;
@@ -394,6 +486,159 @@
 }
 
 /* 데스크탑: 992px 이상 — 기존 동작 유지 */
+/* ===== Dark Theme Overrides ===== */
+body[data-theme='dark'] .my-navbar {
+  background: linear-gradient(135deg, #101b35 0%, #0b1328 65%, #091020 100%);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 16px 36px rgba(9, 13, 28, 0.6);
+}
+
+body[data-theme='dark'] .Header-container {
+  background: linear-gradient(135deg, rgba(24, 36, 64, 0.35), rgba(13, 23, 43, 0.2));
+}
+
+body[data-theme='dark'] .my-navbar-brand {
+  color: #f1f5f9;
+}
+
+body[data-theme='dark'] .my-nav-link {
+  color: #e2e8f0;
+}
+
+body[data-theme='dark'] .my-nav-link:hover {
+  background: rgba(99, 102, 241, 0.16);
+  color: #a5b4fc;
+}
+
+body[data-theme='dark'] .my-navbar-toggler {
+  border-color: rgba(148, 163, 184, 0.48);
+  color: #e2e8f0;
+  background: rgba(17, 24, 39, 0.6);
+}
+
+body[data-theme='dark'] .my-navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(226,232,240,0.92)' stroke-width='2' stroke-linecap='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
+
+body[data-theme='dark'] .my-navbar-collapse.show {
+  background: rgba(8, 13, 24, 0.72);
+  backdrop-filter: blur(18px);
+}
+
+body[data-theme='dark'] .my-navbar-collapse.show .my-navbar-nav {
+  background: linear-gradient(145deg, rgba(19, 30, 53, 0.9), rgba(13, 23, 43, 0.92));
+  border: 1px solid rgba(59, 73, 102, 0.55);
+}
+
+body[data-theme='dark'] .my-navbar-nav .my-nav-link {
+  color: #e2e8f0;
+}
+
+body[data-theme='dark'] .my-navbar-nav .my-nav-link:hover {
+  background: rgba(99, 102, 241, 0.18);
+  color: #a5b4fc;
+}
+
+body[data-theme='dark'] .profile-popup {
+  background: linear-gradient(155deg, rgba(21, 33, 58, 0.96), rgba(13, 23, 43, 0.98));
+  border: 1px solid rgba(59, 73, 102, 0.6);
+  box-shadow: 0 24px 40px rgba(8, 13, 24, 0.65), 0 6px 18px rgba(8, 13, 24, 0.45);
+}
+
+body[data-theme='dark'] .profile-popup::before {
+  background: linear-gradient(155deg, rgba(21, 33, 58, 0.96), rgba(13, 23, 43, 0.98));
+  border-left-color: rgba(59, 73, 102, 0.6);
+  border-top-color: rgba(59, 73, 102, 0.6);
+}
+
+body[data-theme='dark'] .profile-popup p {
+  color: #cbd5f5;
+}
+
+body[data-theme='dark'] .profile-popup p:first-of-type {
+  color: #f8fafc;
+}
+
+body[data-theme='dark'] .profile-popup-btns .btn {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #e2e8f0;
+  backdrop-filter: blur(6px);
+}
+
+body[data-theme='dark'] .profile-popup-btns .btn:hover {
+  background: rgba(37, 52, 77, 0.8);
+  border-color: rgba(148, 163, 184, 0.45);
+  box-shadow: 0 16px 28px rgba(8, 13, 24, 0.55);
+}
+
+body[data-theme='dark'] .profile-popup-btns .btn-info {
+  background: linear-gradient(140deg, rgba(59, 130, 246, 0.22), rgba(14, 116, 144, 0.22));
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #bfdbfe;
+}
+
+body[data-theme='dark'] .profile-popup-btns .btn-info:hover {
+  background: linear-gradient(140deg, rgba(59, 130, 246, 0.32), rgba(14, 116, 144, 0.28));
+  border-color: rgba(59, 130, 246, 0.45);
+}
+
+body[data-theme='dark'] .profile-popup-btns .btn-danger {
+  background: rgba(248, 113, 113, 0.16);
+  border-color: rgba(248, 113, 113, 0.28);
+  color: #fecaca;
+}
+
+body[data-theme='dark'] .profile-popup-btns .btn-danger:hover {
+  background: rgba(248, 113, 113, 0.24);
+  border-color: rgba(248, 113, 113, 0.38);
+}
+
+body[data-theme='dark'] .google-login-button {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-color: rgba(37, 99, 235, 0.85);
+  color: #f8fafc;
+}
+
+body[data-theme='dark'] .google-login-button:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+  border-color: rgba(37, 99, 235, 0.95);
+  box-shadow: 0 16px 30px rgba(11, 16, 37, 0.58);
+}
+
+body[data-theme='dark'] .theme-toggle-button {
+  background: linear-gradient(150deg, rgba(36, 48, 78, 0.82), rgba(25, 37, 63, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #f8fafc;
+}
+
+body[data-theme='dark'] .theme-toggle-button:hover {
+  background: linear-gradient(150deg, rgba(48, 67, 104, 0.92), rgba(31, 46, 78, 0.95));
+  border-color: rgba(148, 163, 184, 0.5);
+  box-shadow: 0 16px 28px rgba(8, 13, 24, 0.6);
+}
+
+body[data-theme='dark'] .theme-toggle-button::after {
+  background: radial-gradient(circle, rgba(129, 140, 248, 0.55) 0%, rgba(129, 140, 248, 0) 70%);
+}
+
+body[data-theme='dark'] .mobile-profile-card {
+  background: linear-gradient(155deg, rgba(21, 33, 58, 0.96), rgba(11, 19, 37, 0.98));
+  border: 1px solid rgba(59, 73, 102, 0.55);
+}
+
+body[data-theme='dark'] .mobile-profile-name {
+  color: #f8fafc;
+}
+
+body[data-theme='dark'] .mobile-profile-email {
+  color: #cbd5f5;
+}
+
+body[data-theme='dark'] .profile-popup-theme {
+  margin-top: 8px;
+}
+
 @media (min-width: 992px) {
   .my-navbar-toggler { display: none; }
   .my-navbar-collapse {

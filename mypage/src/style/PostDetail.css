@@ -1,25 +1,134 @@
-/* PostDetail.css — clean & modern card */
+﻿/* PostDetail.css ??clean & modern card */
 
 :root {
   --pd-max: 1400px;
   --pd-bg: #ffffff;
-  --pd-grad: linear-gradient(145deg, #ffffff, #f9f9f9);
-  --pd-border: #e6e8eb;
-  --pd-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  --pd-shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.12);
+  --pd-grad: linear-gradient(150deg, #ffffff 0%, #f5f8ff 100%);
+  --pd-border: rgba(210, 218, 233, 0.85);
+  --pd-shadow: 0 24px 46px rgba(15, 23, 42, 0.12);
+  --pd-shadow-hover: 0 30px 56px rgba(15, 23, 42, 0.16);
 
   --pd-title: #243043;
   --pd-text: #2f3640;
   --pd-muted: #707b86;
 
-  --pd-chip-bg: #f4f6f8;
-  --pd-divider: #f0f2f4;
+  --pd-chip-bg: rgba(240, 245, 255, 0.85);
+  --pd-divider: rgba(231, 236, 247, 0.85);
 
   --pd-radius-lg: 16px;
   --pd-radius-md: 10px;
 }
 
-/* 컨테이너 카드 */
+body[data-theme='dark'] .post-detail-container {
+  background: linear-gradient(160deg, rgba(28, 40, 68, 0.94), rgba(15, 24, 45, 0.94));
+  border: 1px solid rgba(76, 90, 124, 0.6);
+  box-shadow: 0 40px 72px rgba(6, 11, 21, 0.75);
+}
+
+body[data-theme='dark'] .post-detail-container:hover {
+  box-shadow: 0 48px 86px rgba(4, 9, 18, 0.78);
+}
+
+body[data-theme='dark'] .post-header {
+  border-bottom-color: rgba(76, 90, 124, 0.5);
+}
+
+body[data-theme='dark'] .post-title,
+body[data-theme='dark'] .post-content h1,
+body[data-theme='dark'] .post-content h2,
+body[data-theme='dark'] .post-content h3,
+body[data-theme='dark'] .post-content h4,
+body[data-theme='dark'] .post-content h5,
+body[data-theme='dark'] .post-content h6 {
+  color: #f8fafc;
+}
+
+body[data-theme='dark'] .post-content {
+  color: #dbeafe;
+}
+
+body[data-theme='dark'] .post-content strong,
+body[data-theme='dark'] .post-content b {
+  color: #f8fafc;
+}
+
+body[data-theme='dark'] .post-meta {
+  background: linear-gradient(135deg, rgba(59, 73, 102, 0.55), rgba(45, 59, 95, 0.45));
+  color: #cbd5f5;
+  box-shadow: 0 16px 30px rgba(6, 11, 21, 0.55);
+}
+
+body[data-theme='dark'] .post-content blockquote {
+  border-left-color: rgba(96, 165, 250, 0.8);
+  background: rgba(30, 41, 64, 0.8);
+  color: #e0f2fe;
+}
+
+body[data-theme='dark'] .post-content table {
+  background: linear-gradient(145deg, rgba(25, 37, 63, 0.94), rgba(17, 29, 53, 0.94));
+  border-color: rgba(76, 90, 124, 0.55);
+  box-shadow: 0 24px 44px rgba(6, 11, 21, 0.65);
+}
+
+body[data-theme='dark'] .post-content table th,
+body[data-theme='dark'] .post-content table td {
+  border-color: rgba(76, 90, 124, 0.55);
+}
+
+body[data-theme='dark'] .post-content table th {
+  background: rgba(45, 59, 95, 0.85);
+  color: #ecf2ff;
+  border-bottom-color: rgba(96, 113, 157, 0.65);
+}
+
+body[data-theme='dark'] .post-content table tr:hover {
+  background: rgba(45, 59, 95, 0.45);
+}
+body[data-theme='dark'] .post-content blockquote::before {
+  color: rgba(125, 211, 252, 0.6);
+}
+
+body[data-theme='dark'] .post-content img {
+  box-shadow: 0 16px 40px rgba(8, 13, 24, 0.55);
+}
+
+body[data-theme='dark'] .post-content pre {
+  background: rgba(15, 23, 42, 0.92);
+  color: #e2e8f0;
+  border: 1px solid rgba(59, 73, 102, 0.6);
+  box-shadow: 0 20px 42px rgba(6, 11, 21, 0.6);
+}
+
+body[data-theme='dark'] .post-content pre code {
+  color: inherit;
+}
+
+body[data-theme='dark'] .post-content code {
+  background: rgba(37, 52, 77, 0.65);
+  color: #fbb6ce;
+  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+}
+
+body[data-theme='dark'] .post-content hr {
+  border-top-color: rgba(76, 90, 124, 0.4);
+}
+
+body[data-theme='dark'] .post-actions button,
+body[data-theme='dark'] .admin-actions button {
+  box-shadow: 0 12px 22px rgba(6, 11, 21, 0.45);
+}
+
+body[data-theme='dark'] .post-content a {
+  color: #93c5fd;
+}
+
+body[data-theme='dark'] .post-content .ql-syntax {
+  background: rgba(15, 23, 42, 0.9);
+  color: #f8fafc;
+}
+
+/* 而⑦뀒?대꼫 移대뱶 */
 .post-detail-container {
   max-width: var(--pd-max);
   margin: 3rem auto;
@@ -31,7 +140,7 @@
   transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
-/* 헤더 영역 */
+/* ?ㅻ뜑 ?곸뿭 */
 .post-header {
   display: flex;
   gap: 1rem;
@@ -43,7 +152,7 @@
   flex-wrap: wrap;
 }
 
-/* 제목과 액션 버튼들을 같은 줄에 배치 */
+/* ?쒕ぉ怨??≪뀡 踰꾪듉?ㅼ쓣 媛숈? 以꾩뿉 諛곗튂 */
 .title-actions-container {
   display: flex;
   justify-content: space-between;
@@ -78,7 +187,7 @@
   margin-right: 0;
 }
 
-/* 관리자 액션 */
+/* 愿由ъ옄 ?≪뀡 */
 .post-actions,
 .admin-actions {
   display: flex;
@@ -106,7 +215,7 @@
   filter: brightness(0.98);
 }
 
-/* 부트스트랩 버튼 색을 조금 더 세련되게 */
+/* 遺?몄뒪?몃옪 踰꾪듉 ?됱쓣 議곌툑 ???몃젴?섍쾶 */
 .post-actions .btn-warning {
   background-color: #ffb84d;
 }
@@ -120,7 +229,7 @@
   background-color: #e64545;
 }
 
-/* 메타 정보 */
+/* 硫뷀? ?뺣낫 */
 .post-meta {
   display: flex;
   justify-content: center;
@@ -148,24 +257,24 @@
   align-items: center;
 }
 
-/* 데스크탑에서 메타 정보의 공감버튼 숨기기 */
+/* ?곗뒪?ы깙?먯꽌 硫뷀? ?뺣낫??怨듦컧踰꾪듉 ?④린湲?*/
 .meta-right .like-section {
   display: none;
 }
 
-/* 게시물 내용 */
+/* 寃뚯떆臾??댁슜 */
 .post-content {
   font-size: 1.05rem;
   line-height: 1.75;
   color: var(--pd-text);
   word-break: keep-all;
   overflow-wrap: break-word;
-  /* 모바일에서 글자 간격 문제 해결 */
+  /* 紐⑤컮?쇱뿉??湲??媛꾧꺽 臾몄젣 ?닿껐 */
   word-spacing: normal;
   letter-spacing: normal;
 }
 
-/* 제목 스타일 */
+/* ?쒕ぉ ?ㅽ???*/
 .post-content h1, .post-content h2, .post-content h3,
 .post-content h4, .post-content h5, .post-content h6 {
   color: var(--pd-title);
@@ -181,14 +290,14 @@
 .post-content h5 { font-size: 1.1rem; }
 .post-content h6 { font-size: 1rem; }
 
-/* 문단 스타일 */
+/* 臾몃떒 ?ㅽ???*/
 .post-content p {
   margin: 1rem 0;
-  /* 모바일에서는 left 정렬로 변경하여 글자 간격 문제 방지 */
+  /* 紐⑤컮?쇱뿉?쒕뒗 left ?뺣젹濡?蹂寃쏀븯??湲??媛꾧꺽 臾몄젣 諛⑹? */
   text-align: left;
 }
 
-/* 이미지 스타일 */
+/* ?대?吏 ?ㅽ???*/
 .post-content img {
   height: auto !important;
   border-radius: 12px;
@@ -205,14 +314,14 @@
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* 추가 이미지 클래스로 더 강력한 스타일링 */
+/* 異붽? ?대?吏 ?대옒?ㅻ줈 ??媛뺣젰???ㅽ??쇰쭅 */
 .post-content-image {
   max-width: 40% !important;
   width: 40% !important;
   height: auto !important;
 }
 
-/* 이미지 모달 */
+/* ?대?吏 紐⑤떖 */
 .image-modal-overlay {
   position: fixed;
   top: 0;
@@ -237,17 +346,23 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-/* 폰트 스타일 */
+body[data-theme='dark'] .image-modal-content {
+  background: rgba(15, 23, 42, 0.95);
+  box-shadow: 0 40px 80px rgba(4, 9, 18, 0.75);
+  border: 1px solid rgba(76, 90, 124, 0.55);
+}
+
+/* ?고듃 ?ㅽ???*/
 .post-content .ql-font-arial { font-family: Arial, sans-serif; }
 .post-content .ql-font-times { font-family: 'Times New Roman', serif; }
 .post-content .ql-font-courier { font-family: 'Courier New', monospace; }
 .post-content .ql-font-georgia { font-family: Georgia, serif; }
 .post-content .ql-font-verdana { font-family: Verdana, sans-serif; }
-.post-content .ql-font-malgun { font-family: '맑은 고딕', sans-serif; }
-.post-content .ql-font-nanum { font-family: '나눔고딕', sans-serif; }
-.post-content .ql-font-nanumbarun { font-family: '나눔바른고딕', sans-serif; }
+.post-content .ql-font-malgun { font-family: '留묒? 怨좊뵓', sans-serif; }
+.post-content .ql-font-nanum { font-family: '?섎닎怨좊뵓', sans-serif; }
+.post-content .ql-font-nanumbarun { font-family: '?섎닎諛붾Ⅸ怨좊뵓', sans-serif; }
 
-/* 폰트 크기 */
+/* ?고듃 ?ш린 */
 .post-content .ql-size-8 { font-size: 8px; }
 .post-content .ql-size-9 { font-size: 9px; }
 .post-content .ql-size-10 { font-size: 10px; }
@@ -265,7 +380,7 @@
 .post-content .ql-size-48 { font-size: 48px; }
 .post-content .ql-size-72 { font-size: 72px; }
 
-/* 텍스트 스타일 */
+/* ?띿뒪???ㅽ???*/
 .post-content strong, .post-content b {
   font-weight: 700;
   color: var(--pd-title);
@@ -287,7 +402,7 @@
   color: #999;
 }
 
-/* 스크립트 */
+/* ?ㅽ겕由쏀듃 */
 .post-content sup {
   font-size: 0.75em;
   line-height: 0;
@@ -304,7 +419,7 @@
   vertical-align: baseline;
 }
 
-/* 인용구 */
+/* ?몄슜援?*/
 .post-content blockquote {
   border-left: 4px solid #007bff;
   padding: 1rem 1.5rem;
@@ -326,7 +441,7 @@
   opacity: 0.3;
 }
 
-/* 코드 블록 */
+/* 肄붾뱶 釉붾줉 */
 .post-content pre {
   background: #2d3748;
   color: #e2e8f0;
@@ -357,7 +472,7 @@
   border: none;
 }
 
-/* 리스트 스타일 */
+/* 由ъ뒪???ㅽ???*/
 .post-content ul, .post-content ol {
   margin: 1rem 0;
   padding-left: 2rem;
@@ -380,7 +495,7 @@
   margin: 0.5rem 0;
 }
 
-/* 테이블 스타일 */
+/* ?뚯씠釉??ㅽ???*/
 .post-content table {
   width: 100%;
   border-collapse: collapse;
@@ -419,7 +534,7 @@
   border-right: none;
 }
 
-/* 링크 스타일 */
+/* 留곹겕 ?ㅽ???*/
 .post-content a {
   color: #2746ff;
   text-decoration: none;
@@ -433,7 +548,7 @@
   color: #1a1a1a;
 }
 
-/* 비디오 스타일 */
+/* 鍮꾨뵒???ㅽ???*/
 .post-content video {
   max-width: 100%;
   height: auto;
@@ -442,7 +557,7 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* 색상 및 배경색 스타일 */
+/* ?됱긽 諛?諛곌꼍???ㅽ???*/
 .post-content .ql-color {
   color: inherit;
 }
@@ -451,13 +566,13 @@
   background-color: inherit;
 }
 
-/* 정렬 */
+/* ?뺣젹 */
 .post-content .ql-align-left { text-align: left; }
 .post-content .ql-align-center { text-align: center; }
 .post-content .post-content .ql-align-right { text-align: right; }
 .post-content .ql-align-justify { text-align: justify; }
 
-/* 들여쓰기 */
+/* ?ㅼ뿬?곌린 */
 .post-content .ql-indent-1 { padding-left: 2rem; }
 .post-content .ql-indent-2 { padding-left: 4rem; }
 .post-content .ql-indent-3 { padding-left: 6rem; }
@@ -469,13 +584,13 @@
 
 
 
-/* 이모지 스타일 */
+/* ?대え吏 ?ㅽ???*/
 .post-content .emoji {
   font-size: 1.2em;
   vertical-align: middle;
 }
 
-/* 상태 메시지 */
+/* ?곹깭 硫붿떆吏 */
 .post-status {
   text-align: center;
   padding: 3rem;
@@ -483,7 +598,7 @@
   font-size: 1.1rem;
 }
 
-/* 반응형 */
+/* 諛섏쓳??*/
 @media (max-width: 640px) {
   .post-detail-container {
     padding: 1.4rem;
@@ -528,11 +643,11 @@
   
   .post-content {
     font-size: 1rem;
-    /* 모바일에서 글자 간격 문제 완전 해결 */
+    /* 紐⑤컮?쇱뿉??湲??媛꾧꺽 臾몄젣 ?꾩쟾 ?닿껐 */
     text-align: left;
     word-spacing: normal;
     letter-spacing: normal;
-    /* 모바일에서 줄바꿈 최적화 */
+    /* 紐⑤컮?쇱뿉??以꾨컮轅?理쒖쟻??*/
     word-break: keep-all;
     overflow-wrap: break-word;
     hyphens: none;
@@ -556,13 +671,13 @@
     width: 100% !important;
   }
   
-  /* 모바일에서 글자 간격만 조정하고 정렬은 유지 */
+  /* 紐⑤컮?쇱뿉??湲??媛꾧꺽留?議곗젙?섍퀬 ?뺣젹? ?좎? */
   .post-content p {
     word-spacing: normal !important;
     letter-spacing: normal !important;
   }
   
-  /* 모바일에서 justify 정렬 클래스 무시 */
+  /* 紐⑤컮?쇱뿉??justify ?뺣젹 ?대옒??臾댁떆 */
   .post-content .ql-align-justify {
     text-align: left !important;
   }
@@ -573,11 +688,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 16px; /* 다른 버튼과의 간격 */
+  margin-right: 16px; /* ?ㅻⅨ 踰꾪듉怨쇱쓽 媛꾧꺽 */
   flex-wrap: nowrap;
 }
 
-/* 수정/삭제 버튼 그룹 */
+/* ?섏젙/??젣 踰꾪듉 洹몃９ */
 .edit-delete-buttons {
   display: flex;
   gap: 8px;
@@ -595,8 +710,8 @@
 .switch {
   position: relative;
   display: inline-block;
-  width: 50px; /* 너비 조정 */
-  height: 28px; /* 높이 조정 */
+  width: 50px; /* ?덈퉬 議곗젙 */
+  height: 28px; /* ?믪씠 議곗젙 */
   flex-shrink: 0;
 }
 
@@ -620,8 +735,8 @@
 .slider:before {
   position: absolute;
   content: "";
-  height: 20px; /* 핸들 높이 */
-  width: 20px;  /* 핸들 너비 */
+  height: 20px; /* ?몃뱾 ?믪씠 */
+  width: 20px;  /* ?몃뱾 ?덈퉬 */
   left: 4px;
   bottom: 4px;
   background-color: white;
@@ -637,7 +752,7 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(22px); /* 이동 거리 조정 */
+  transform: translateX(22px); /* ?대룞 嫄곕━ 議곗젙 */
 }
 
 /* Rounded sliders */
@@ -649,7 +764,7 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
-/* 모바일에서 justify 정렬 클래스 무시하여 글자 간격 문제 방지 */
+/* 紐⑤컮?쇱뿉??justify ?뺣젹 ?대옒??臾댁떆?섏뿬 湲??媛꾧꺽 臾몄젣 諛⑹? */
 @media (max-width: 640px) {
   .post-content .ql-align-justify {
     text-align: left !important;
@@ -657,7 +772,7 @@ input:checked + .slider:before {
     letter-spacing: normal !important;
   }
   
-  /* 중앙 정렬과 우측 정렬은 정상 작동하도록 허용 */
+  /* 以묒븰 ?뺣젹怨??곗륫 ?뺣젹? ?뺤긽 ?묐룞?섎룄濡??덉슜 */
   .post-content .ql-align-center {
     text-align: center !important;
     word-spacing: normal !important;
@@ -671,7 +786,7 @@ input:checked + .slider:before {
   }
 }
 
-/* 이미지 정렬 스타일 */
+/* ?대?吏 ?뺣젹 ?ㅽ???*/
 .post-content img {
   max-width: 100%;
   height: auto;
@@ -679,7 +794,7 @@ input:checked + .slider:before {
   margin: 1rem 0;
 }
 
-/* 이미지 정렬 클래스 */
+/* ?대?吏 ?뺣젹 ?대옒??*/
 .post-content .ql-align-left img {
   margin-left: 0;
   margin-right: auto;
@@ -701,7 +816,7 @@ input:checked + .slider:before {
   width: 100%;
 }
 
-/* Quill 에디터 내 이미지 정렬 */
+/* Quill ?먮뵒?????대?吏 ?뺣젹 */
 .ql-editor img {
   max-width: 100%;
   height: auto;
@@ -730,7 +845,7 @@ input:checked + .slider:before {
   width: 100%;
 }
 
-/* 이미지 컨테이너 정렬 */
+/* ?대?吏 而⑦뀒?대꼫 ?뺣젹 */
 .ql-editor .image-container {
   text-align: center;
   margin: 1rem 0;
@@ -752,7 +867,7 @@ input:checked + .slider:before {
   text-align: justify;
 }
 
-/* 이미지 정렬을 위한 추가 스타일 */
+/* ?대?吏 ?뺣젹???꾪븳 異붽? ?ㅽ???*/
 .ql-editor p:has(img) {
   text-align: inherit;
 }
@@ -773,7 +888,7 @@ input:checked + .slider:before {
   text-align: justify;
 }
 
-/* 이미지가 포함된 블록의 정렬 강제 적용 */
+/* ?대?吏媛 ?ы븿??釉붾줉???뺣젹 媛뺤젣 ?곸슜 */
 .ql-editor .ql-align-left {
   text-align: left !important;
 }
@@ -790,7 +905,7 @@ input:checked + .slider:before {
   text-align: justify !important;
 }
 
-/* 이미지 정렬 강제 적용 */
+/* ?대?吏 ?뺣젹 媛뺤젣 ?곸슜 */
 .ql-editor .ql-align-left img {
   display: block;
   margin-left: 0 !important;
@@ -816,22 +931,22 @@ input:checked + .slider:before {
   width: 100% !important;
 }
 
-/* 모바일 환경에서 모든 애니메이션과 트랜지션 비활성화 */
+/* 紐⑤컮???섍꼍?먯꽌 紐⑤뱺 ?좊땲硫붿씠?섍낵 ?몃옖吏??鍮꾪솢?깊솕 */
 @media (max-width: 768px) {
-  /* 네비게이션 메뉴가 아닌 요소들의 애니메이션만 비활성화 */
+  /* ?ㅻ퉬寃뚯씠??硫붾돱媛 ?꾨땶 ?붿냼?ㅼ쓽 ?좊땲硫붿씠?섎쭔 鍮꾪솢?깊솕 */
   *:not(.my-navbar-collapse):not(.my-navbar-nav):not(.my-navbar-collapse *) {
     transition: none !important;
     animation: none !important;
     transform: none !important;
   }
   
-  /* 컨테이너 카드 애니메이션 비활성화 */
+  /* 而⑦뀒?대꼫 移대뱶 ?좊땲硫붿씠??鍮꾪솢?깊솕 */
   .post-detail-container {
     transition: none !important;
     transform: none !important;
   }
   
-  /* 버튼 애니메이션 비활성화 */
+  /* 踰꾪듉 ?좊땲硫붿씠??鍮꾪솢?깊솕 */
   .post-actions button {
     transition: none !important;
     transform: none !important;
@@ -842,7 +957,7 @@ input:checked + .slider:before {
     filter: none !important;
   }
   
-  /* 이미지 애니메이션 비활성화 */
+  /* ?대?吏 ?좊땲硫붿씠??鍮꾪솢?깊솕 */
   .post-content img {
     transition: none !important;
     transform: none !important;
@@ -853,17 +968,17 @@ input:checked + .slider:before {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
   }
   
-  /* 링크 애니메이션 비활성화 */
+  /* 留곹겕 ?좊땲硫붿씠??鍮꾪솢?깊솕 */
   .post-content a {
     transition: none !important;
   }
   
-  /* 테이블 호버 효과 비활성화 */
+  /* ?뚯씠釉??몃쾭 ?④낵 鍮꾪솢?깊솕 */
   .post-content table tr:hover {
     background: inherit !important;
   }
   
-  /* 스위치 애니메이션은 활성화 유지 */
+  /* ?ㅼ쐞移??좊땲硫붿씠?섏? ?쒖꽦???좎? */
   .slider {
     transition: .4s !important;
   }
@@ -876,7 +991,7 @@ input:checked + .slider:before {
     transform: translateX(22px) !important;
   }
   
-  /* 부트스트랩 버튼 호버 효과 비활성화 */
+  /* 遺?몄뒪?몃옪 踰꾪듉 ?몃쾭 ?④낵 鍮꾪솢?깊솕 */
   .post-actions .btn-warning:hover {
     background-color: #ffb84d !important;
   }
@@ -886,14 +1001,14 @@ input:checked + .slider:before {
   }
 }
 
-/* 공감 버튼 스타일 */
+/* 怨듦컧 踰꾪듉 ?ㅽ???*/
 .like-section {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-/* 하트 버튼 스타일 */
+/* ?섑듃 踰꾪듉 ?ㅽ???*/
 .heart-button {
   display: flex;
   align-items: center;
@@ -932,7 +1047,7 @@ input:checked + .slider:before {
   background-color: transparent !important;
 }
 
-/* 로그인되지 않은 상태에서도 공감버튼이 클릭 가능하도록 스타일 제거 */
+/* 濡쒓렇?몃릺吏 ?딆? ?곹깭?먯꽌??怨듦컧踰꾪듉???대┃ 媛?ν븯?꾨줉 ?ㅽ????쒓굅 */
 
 @keyframes heartBeat {
   0% {
@@ -955,7 +1070,7 @@ input:checked + .slider:before {
   user-select: none;
 }
 
-/* 모바일 반응형 */
+/* 紐⑤컮??諛섏쓳??*/
 @media (max-width: 768px) {
   .title-actions-container {
     flex-direction: column;
@@ -963,17 +1078,17 @@ input:checked + .slider:before {
     gap: 1rem;
   }
   
-  /* 모바일에서 제목 옆 공감버튼 숨기기 */
+  /* 紐⑤컮?쇱뿉???쒕ぉ ??怨듦컧踰꾪듉 ?④린湲?*/
   .title-actions-container .like-section {
     display: none;
   }
   
-  /* 모바일에서 메타 정보에 공감버튼 표시 */
+  /* 紐⑤컮?쇱뿉??硫뷀? ?뺣낫??怨듦컧踰꾪듉 ?쒖떆 */
   .meta-right .like-section {
     display: flex;
   }
   
-  /* 모바일에서 메타 정보 레이아웃 변경 */
+  /* 紐⑤컮?쇱뿉??硫뷀? ?뺣낫 ?덉씠?꾩썐 蹂寃?*/
   .post-meta {
     justify-content: space-between;
     width: 100%;
@@ -1014,7 +1129,7 @@ input:checked + .slider:before {
     font-size: 13px;
   }
   
-  /* 모바일에서 공감버튼 애니메이션 완전 비활성화 */
+  /* 紐⑤컮?쇱뿉??怨듦컧踰꾪듉 ?좊땲硫붿씠???꾩쟾 鍮꾪솢?깊솕 */
   .heart-button {
     transition: none !important;
     animation: none !important;
@@ -1041,7 +1156,7 @@ input:checked + .slider:before {
     color: #ff6b6b !important;
   }
   
-  /* 모바일에서 공감버튼 키프레임 애니메이션 비활성화 */
+  /* 紐⑤컮?쇱뿉??怨듦컧踰꾪듉 ?ㅽ봽?덉엫 ?좊땲硫붿씠??鍮꾪솢?깊솕 */
   .heart-button.liked {
     animation: none !important;
   }
@@ -1066,7 +1181,7 @@ input:checked + .slider:before {
     font-size: 1.5rem;
   }
   
-  /* 작은 모바일에서도 공감버튼 애니메이션 완전 비활성화 */
+  /* ?묒? 紐⑤컮?쇱뿉?쒕룄 怨듦컧踰꾪듉 ?좊땲硫붿씠???꾩쟾 鍮꾪솢?깊솕 */
   .heart-button {
     transition: none !important;
     animation: none !important;
@@ -1092,3 +1207,4 @@ input:checked + .slider:before {
     color: #ff6b6b !important;
   }
 }
+

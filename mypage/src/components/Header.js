@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import '../style/Headerbar.css';
 import LazyImage from './LazyImage';
 import useStorageImage from '../hooks/useStorageImage';
+import ThemeToggleButton from './ThemeToggleButton';
 
 const Header = () => {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
@@ -137,9 +138,15 @@ const Header = () => {
                           로그아웃 하기
                         </button>
                       </div>
+                      <div className="profile-popup-theme">
+                        <ThemeToggleButton className="theme-toggle-button--popup" />
+                      </div>
                     </>
                   ) : (
-                    <GoogleLoginButton />
+                    <div className="profile-popup-auth-controls">
+                      <GoogleLoginButton className="google-login-button" />
+                      <ThemeToggleButton className="theme-toggle-button--popup" />
+                    </div>
                   )}
                 </div>
               )}
@@ -165,22 +172,30 @@ const Header = () => {
                 </div>
 
                 {isAuthenticated ? (
-                  <div className="profile-popup-btns">
-                    {role === 'admin' && (
-                      <Link
-                        to="/settings"
-                        className="btn btn-info"
-                        onClick={closeNav}
-                      >
-                        Settings
-                      </Link>
-                    )}
-                    <button className="btn btn-danger" onClick={handleLogout}>
-                      로그아웃 하기
-                    </button>
-                  </div>
+                  <>
+                    <div className="profile-popup-btns">
+                      {role === 'admin' && (
+                        <Link
+                          to="/settings"
+                          className="btn btn-info"
+                          onClick={closeNav}
+                        >
+                          Settings
+                        </Link>
+                      )}
+                      <button className="btn btn-danger" onClick={handleLogout}>
+                        로그아웃 하기
+                      </button>
+                    </div>
+                    <div className="profile-popup-theme">
+                      <ThemeToggleButton className="theme-toggle-button--popup" />
+                    </div>
+                  </>
                 ) : (
-                  <GoogleLoginButton />
+                  <div className="profile-popup-auth-controls">
+                    <GoogleLoginButton className="google-login-button" />
+                    <ThemeToggleButton className="theme-toggle-button--popup" />
+                  </div>
                 )}
               </div>
             </li>

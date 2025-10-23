@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ThemeProvider } from './context/ThemeContext';
 
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
@@ -16,7 +17,9 @@ root.render(
     <BrowserRouter>
       <AuthProvider>
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-          <App />
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
         </GoogleOAuthProvider>
       </AuthProvider>
     </BrowserRouter>
