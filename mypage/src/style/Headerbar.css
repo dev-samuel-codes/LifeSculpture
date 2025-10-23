@@ -92,12 +92,16 @@
 .profile-popup-btns {
   display: flex;
   gap: 10px;
-  align-items: center;
+  align-items: flex-end;
   margin-top: 2px;
 }
 .profile-popup-btns .btn {
   flex: 1 1 auto;
-  padding: 10px 12px;
+  height: 44px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 10px;
   font-weight: 700;
   border: 1px solid #e6ebf2;
@@ -135,7 +139,7 @@
 
 .profile-popup-auth-controls {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
   width: 100%;
 }
@@ -147,6 +151,7 @@
 
 
 .theme-toggle-button {
+  box-sizing: border-box;
   position: relative;
   width: 44px;
   height: 44px;
@@ -220,12 +225,13 @@
 /* 구글 로그인 버튼(공용) */
 .google-login-button {
   width: 100%;
+  height: 44px;
   border-radius: 10px;
   background: #f5f7fb;
   border: 1px solid #e6ebf2;
   color: #0f172a;
   font-weight: 700;
-  padding: 11px 14px;
+  padding: 0 14px;
   cursor: pointer;
   transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
   display: inline-flex;
@@ -472,7 +478,7 @@
 
   /* 버튼 재사용 (공용 .profile-popup-btns, .btn 스타일 그대로) */
   .mobile-profile-card .profile-popup-btns .btn {
-    padding: 12px 14px;
+    padding: 0 14px;
     border-radius: 12px;
   }
 }
