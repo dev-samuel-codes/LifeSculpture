@@ -30,23 +30,20 @@ body .App {
 
 html[data-theme='dark'],
 body[data-theme='dark'] {
-  background-color: #1c2440;
-  background-image:
-    radial-gradient(circle at 18% 20%, rgba(59, 130, 246, 0.22), transparent 58%),
-    radial-gradient(circle at 85% 15%, rgba(56, 189, 248, 0.16), transparent 58%),
-    radial-gradient(circle at 52% 88%, rgba(45, 212, 191, 0.16), transparent 62%);
-  color: #e2e8f0;
+  background-color: #1a1a2e; /* A deep, dark blue */
+  background-image: none; /* Removing the complex radial gradients for a cleaner look */
+  color: #e0e0e0; /* A softer white for text */
 }
 
 body[data-theme='dark'] a {
-  color: #9ec5ff;
+  color: #00aaff; /* A brighter, more vibrant blue for links */
 }
 
 body[data-theme='dark'] .App {
-  background: linear-gradient(155deg, rgba(16, 27, 50, 0.9), rgba(9, 16, 32, 0.92));
-  backdrop-filter: blur(18px);
+  background: linear-gradient(155deg, rgba(26, 26, 46, 0.95), rgba(20, 20, 38, 0.95)); /* A subtle gradient for the main app container */
+  backdrop-filter: blur(10px); /* Slightly reduced blur */
   color: inherit;
-  box-shadow: 0 32px 60px rgba(6, 11, 21, 0.65);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); /* A softer, more modern shadow */
 }
 
 code {
