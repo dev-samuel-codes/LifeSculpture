@@ -22,7 +22,7 @@ function Home() {
   const mainBackground = useStorageImage('image/MainBackgroundImage.png');
   const codingImage = useStorageImage('image/coding.jpg');
   const aiImage = useStorageImage('image/ai.jpg');
-  const travelImage = useStorageImage('image/travel.webp');
+  const travelImage = useStorageImage('image/travel.jpg');
   const tipImage = useStorageImage('image/tip.jpg');
 
   return (
