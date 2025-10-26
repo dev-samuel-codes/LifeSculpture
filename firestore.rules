@@ -5,34 +5,167 @@ service cloud.firestore {
       return request.auth != null &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
-    
-    // 조회수 증가를 위한 함수 (로그인 불필요)
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function commentDocPath(cat, postId, commentId) {
+      return path("/databases/$(database)/documents/" + cat + "/" + postId + "/comments/" + commentId);
+    }
+
+    // Allow view-count increments without authentication
     function isViewCountUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
              request.resource.data.viewCount == resource.data.viewCount + 1;
     }
-    
-    // 공감 기능을 위한 함수 (로그인 필요)
-    function isLikeUpdate() {
-      return request.auth != null && 
+
+    // Allow legacy like fields (kept for backward compatibility)
+    function isLegacyLikeUpdate() {
+      return request.auth != null &&
              (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) ||
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']) ||
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']));
     }
-    
-    match /blog/{postId}  { 
-      allow read: if true;  
-      allow write: if isAdmin();
-      allow update: if isViewCountUpdate() || isLikeUpdate(); // 조회수 증가 또는 공감 기능 허용
+
+    function isValidParent(cat, postId) {
+      return request.resource.data.parentId == null ||
+             (exists(commentDocPath(cat, postId, request.resource.data.parentId)) &&
+              get(commentDocPath(cat, postId, request.resource.data.parentId)).data.parentId == null);
     }
-    
-    match /study/{postId} { 
-      allow read: if true;  
-      allow write: if isAdmin();
-      allow update: if isViewCountUpdate() || isLikeUpdate(); // 조회수 증가 또는 공감 기능 허용
+
+    function isValidCommentCreate(cat, postId) {
+      return request.resource.data.keys().hasOnly([
+               'authorId',
+               'authorName',
+               'authorPhoto',
+               'content',
+               'parentId',
+               'createdAt',
+               'updatedAt'
+             ]) &&
+             request.resource.data.authorId is string &&
+             (request.resource.data.authorName == null || request.resource.data.authorName is string) &&
+             (request.resource.data.authorPhoto == null || request.resource.data.authorPhoto is string) &&
+             request.resource.data.content is string &&
+             (request.resource.data.parentId == null || request.resource.data.parentId is string) &&
+             isValidParent(cat, postId);
     }
-    
-    match /users/{uid}    { allow read, write: if isAdmin(); }
-    match /{document=**}  { allow read, write: if false; }
+
+    function isValidCommentUpdate(cat, postId) {
+      return request.resource.data.keys().hasOnly([
+               'authorId',
+               'authorName',
+               'authorPhoto',
+               'content',
+               'parentId',
+               'createdAt',
+               'updatedAt'
+             ]) &&
+             request.resource.data.authorId == resource.data.authorId &&
+             request.resource.data.authorName == resource.data.authorName &&
+             request.resource.data.authorPhoto == resource.data.authorPhoto &&
+             request.resource.data.parentId == resource.data.parentId &&
+             
+             request.resource.data.content is string &&
+             isValidParent(cat, postId);
+    }
+
+    function canDeleteComment(cat, postId) {
+      return isSignedIn() && (
+        resource.data.authorId == request.auth.uid ||
+        (resource.data.parentId != null &&
+         get(commentDocPath(cat, postId, resource.data.parentId)).data.authorId == request.auth.uid)
+      );
+    }
+
+    match /blog/{postId} {
+      allow read: if true;
+      allow write: if isAdmin();
+      allow update: if isViewCountUpdate() || isLegacyLikeUpdate();
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn() &&
+                       request.resource.data.authorId == request.auth.uid &&
+                       isValidCommentCreate("blog", postId);
+        allow update: if (isSignedIn() &&
+                         resource.data.authorId == request.auth.uid &&
+                         isValidCommentUpdate("blog", postId)) || isAdmin();
+        allow delete: if canDeleteComment("blog", postId) || isAdmin();
+
+        match /likes/{likeUid} {
+          allow read: if true;
+          allow create: if isSignedIn() &&
+                         likeUid == request.auth.uid &&
+                         request.resource.data.keys().hasOnly(['createdAt']) &&
+                         request.resource.data.createdAt == request.time;
+          allow delete: if isSignedIn() && likeUid == request.auth.uid;
+          allow update: if false;
+        }
+      }
+    }
+
+    match /study/{postId} {
+      allow read: if true;
+      allow write: if isAdmin();
+      allow update: if isViewCountUpdate() || isLegacyLikeUpdate();
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn() &&
+                       request.resource.data.authorId == request.auth.uid &&
+                       isValidCommentCreate("study", postId);
+        allow update: if (isSignedIn() &&
+                         resource.data.authorId == request.auth.uid &&
+                         isValidCommentUpdate("study", postId)) || isAdmin();
+        allow delete: if canDeleteComment("study", postId) || isAdmin();
+
+        match /likes/{likeUid} {
+          allow read: if true;
+          allow create: if isSignedIn() &&
+                         likeUid == request.auth.uid &&
+                         request.resource.data.keys().hasOnly(['createdAt']) &&
+                         request.resource.data.createdAt == request.time;
+          allow delete: if isSignedIn() && likeUid == request.auth.uid;
+          allow update: if false;
+        }
+      }
+    }
+
+    match /users/{uid} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{cat}/{postId} {
+      allow read: if true;
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if cat != "users" &&
+                       isSignedIn() &&
+                       request.resource.data.authorId == request.auth.uid &&
+                       isValidCommentCreate(cat, postId);
+        allow update: if cat != "users" &&
+                       ((isSignedIn() &&
+                         resource.data.authorId == request.auth.uid &&
+                         isValidCommentUpdate(cat, postId)) || isAdmin());
+        allow delete: if cat != "users" && (canDeleteComment(cat, postId) || isAdmin());
+
+        match /likes/{likeUid} {
+          allow read: if true;
+          allow create: if isSignedIn() &&
+                         likeUid == request.auth.uid &&
+                         request.resource.data.keys().hasOnly(['createdAt']) &&
+                         request.resource.data.createdAt == request.time;
+          allow delete: if isSignedIn() && likeUid == request.auth.uid;
+          allow update: if false;
+        }
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

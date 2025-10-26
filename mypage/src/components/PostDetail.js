@@ -7,6 +7,7 @@ import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
 import LoginRequiredPopup from './LoginRequiredPopup';
 import LazyImage from './LazyImage';
+import CommentsSection from './CommentsSection';
 import '../style/PostDetail.css';
 
 function PostDetail() {
@@ -766,23 +767,28 @@ function PostDetail() {
       {selectedImage && (
         <div className="image-modal-overlay" onClick={closeImageModal}>
           <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
-                            <LazyImage src={selectedImage} alt="Enlarged" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-            <button 
-              className="btn btn-light position-absolute top-0 end-0 m-2" 
+            <LazyImage
+              src={selectedImage}
+              alt="Enlarged"
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+            />
+                                                <button
+              className="btn btn-light position-absolute top-0 end-0 m-2"
               onClick={closeImageModal}
               style={{ zIndex: 1001 }}
             >
-              ✕
+              닫기
             </button>
           </div>
         </div>
       )}
 
-      {/* 로그인 필요 팝업 */}
+      <CommentsSection category={category} postId={id} />
+      {/* Login required popup for post likes */}
       <LoginRequiredPopup
         isOpen={showLoginPopup}
         onClose={closeLoginPopup}
-        message="공감 기능을 사용하려면 로그인이 필요합니다"
+        message="공감 기능을 사용하려면 로그인이 필요합니다."
       />
     </article>
   );

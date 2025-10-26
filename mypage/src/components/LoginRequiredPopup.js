@@ -5,7 +5,7 @@ import '../style/LoginRequiredPopup.css';
 function LoginRequiredPopup({
   isOpen,
   onClose,
-  message = '공감 기능을 사용하려면 로그인이 필요합니다.',
+  message = '로그인이 필요한 기능입니다.',
 }) {
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -33,7 +33,7 @@ function LoginRequiredPopup({
         aria-modal="true"
         aria-labelledby="login-popup-title"
       >
-        <button className="close-button" type="button" onClick={onClose} aria-label="닫기">
+        <button className="close-button" type="button" onClick={onClose} aria-label="\uB2EB\uAE30">
           <svg viewBox="0 0 24 24" fill="none" width="20" height="20" aria-hidden="true">
             <path
               d="M6 6l12 12M18 6L6 18"
@@ -60,7 +60,7 @@ function LoginRequiredPopup({
             </svg>
           </div>
           <div className="login-popup-text">
-            <h3 id="login-popup-title">로그인이 필요해요</h3>
+            <h3 id="login-popup-title">로그인이 필요한 기능입니다</h3>
             <p className="login-popup-message">{message}</p>
             <p className="login-popup-description">
               3초면 끝! Google 계정으로 간편하게 로그인하고 공감하기를 포함한 모든 기능을 즐겨보세요.
@@ -71,7 +71,7 @@ function LoginRequiredPopup({
         <div className="login-popup-actions">
           <GoogleLoginButton className="login-popup-login-button" />
           <button className="login-popup-cancel" type="button" onClick={onClose}>
-            다음에 할래요
+            다음에 할래요.
           </button>
         </div>
       </div>
@@ -80,3 +80,4 @@ function LoginRequiredPopup({
 }
 
 export default LoginRequiredPopup;
+

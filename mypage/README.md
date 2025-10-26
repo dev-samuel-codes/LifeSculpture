@@ -28,6 +28,21 @@
 - 로딩 실패 시 그레이스케일 처리
 
 ---
+# Comments Feature QA Checklist
+1. Sign in with a Google account and open any post detail page.
+2. Add a top-level comment and confirm it appears instantly and persists after refresh.
+3. Toggle likes on a comment, ensure the button reflects the state and the count updates.
+4. Open replies, post a reply, and verify the reply count and pagination controls.
+5. Soft-delete a comment and confirm it renders with the deleted placeholder text.
+6. Attempt to spam comments quickly to confirm the client-side rate limit blocks rapid submissions.
+7. For Firestore security rule validation, deploy the updated firestore.rules to an emulator and run write attempts as non-owners to confirm depth and ownership checks.
+
+
+
+## Deployment Notes
+- Deploy updated Firestore rules: firebase deploy --only firestore:rules
+- Deploy composite indexes: firebase deploy --only firestore:indexes
+- Monitor Firestore usage after launch and tune index TTL if needed.
 
 # Getting Started with Create React App
 
