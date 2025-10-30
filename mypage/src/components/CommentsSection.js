@@ -103,7 +103,7 @@ const CommentsSection = ({ category, postId }) => {
     finally{ setLoading(false); setLoadingMore(false); }
   },[category,postId,rootCursor,hasMoreRoot,loadingMore,currentUser.uid]);
 
-  useEffect(()=>{ if(category && postId){ fetchRootComments({reset:true}); } else { setLoading(false); } },[category, postId]);
+  useEffect(()=>{ if(category && postId){ fetchRootComments({reset:true}); } else { setLoading(false); } },[category, postId, fetchRootComments]);
 
   const requestLogin=()=>setShowLoginPopup(true);
 
