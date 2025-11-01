@@ -14,6 +14,7 @@ import CustomFormulaEditor from './CustomFormulaEditor';
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 import '../style/CustomFormulaEditor.css';
+import '../style/RichText.css';
 
 registerCustomImageBlot();
 
@@ -190,8 +191,20 @@ function SettingsWriting() {
                   </div>
                 </div>
                 <div className="mb-3">
-                  <div className="writing-editor-container">
-                    <ReactQuill ref={quillRef} theme="snow" value={content} onChange={handleContentChange} modules={modules} formats={formats} style={{ height: editorHeight }} />
+                  <div
+                    className="writing-editor-container"
+                    style={{ '--rich-text-editor-height': editorHeight }}
+                  >
+                    <ReactQuill
+                      ref={quillRef}
+                      className="writing-editor rich-text-editor"
+                      theme="snow"
+                      value={content}
+                      onChange={handleContentChange}
+                      modules={modules}
+                      formats={formats}
+                      style={{ height: 'auto', '--rich-text-editor-height': editorHeight }}
+                    />
                   </div>
                 </div>
                 <div className="writing-actions">

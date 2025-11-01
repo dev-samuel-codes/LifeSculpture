@@ -76,12 +76,15 @@
 }
 
 .writing-editor-container {
-  border: none !important;  /* 기존 border 제거 */
+  border: 1px solid #e4e7ee !important;
   border-radius: 12px;       /* 모서리 둥글게 유지 */
   background: #fff;
-  height: 400px;
+  min-height: calc(var(--rich-text-editor-height, 400px) + 72px);
+  height: auto;
   position: relative;
-  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   margin-bottom: 4rem; /* 모바일에서 더 큰 여백 */
   /* 모바일에서 스크롤 시 부드러운 동작 */
   -webkit-overflow-scrolling: touch;
@@ -92,10 +95,22 @@
 .writing-editor {
   border-radius: 0;
   border: none;
-  overflow: hidden;
+  overflow: visible;
   background: #fff;
-  height: 400px;
+  min-height: var(--rich-text-editor-height, 400px);
   position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-theme='dark'] .writing-editor-container {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(76, 90, 124, 0.6) !important;
+}
+
+body[data-theme='dark'] .writing-editor {
+  background: transparent;
 }
 
 /* Quill toolbar - 분리된 컨테이너에 적용 */
@@ -112,9 +127,11 @@
 
 /* Quill container & editor */
 .writing-editor .ql-container {
-  border: none !important;
-  height: 400px !important;
-  max-height: 400px !important;
+  border: 1px solid #e4e7ee !important;
+  border-top: none !important;
+  border-radius: 0 0 12px 12px !important;
+  height: var(--rich-text-editor-height, 400px) !important;
+  max-height: var(--rich-text-editor-height, 400px) !important;
   font-size: 1rem;
   overflow: hidden !important;
   position: relative;
@@ -122,10 +139,32 @@
 
 .writing-editor .ql-editor {
   padding: 14px 16px;
-  height: 400px !important;
-  max-height: 400px !important;
+  height: var(--rich-text-editor-height, 400px) !important;
+  max-height: var(--rich-text-editor-height, 400px) !important;
   overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
+}
+
+.writing-editor .ql-editor .ql-code-block-container {
+  margin: 1.75rem auto;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.writing-editor .ql-editor pre,
+.writing-editor .ql-editor .ql-code-block-container pre,
+.writing-editor .ql-editor .ql-syntax {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+  display: inline-block;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 /* Quill buttons hover focus */
@@ -400,47 +439,17 @@ input:checked + .slider:before {
   opacity: 0.6;
 }
 
-/* Quill 에디터 안 이미지 크기 조절 - 가로·세로 제한, 비율 유지 */
-.ql-editor img {
-  max-width: 60% !important;
+/* Quill 에디터 안 이미지 - 본문과 동일하게 표시 */
+.rich-text-editor .ql-editor img {
+  max-width: 100% !important;
   height: auto !important;
   display: block;
-  margin: 10px auto;
+  margin: 1rem 0;
   object-fit: contain;
-}
-
-/* ReactQuill 높이 고정 및 스크롤 설정 - 강제 적용 */
-.writing-editor .ql-container,
-.writing-editor .ql-editor,
-.writing-editor .ql-editor.ql-blank::before {
-  height: 400px !important;
-  max-height: 400px !important;
-  overflow: hidden !important;
-}
-
-/* 모바일에서 높이 동적 조정 */
-@media (max-width: 768px) {
-  .writing-editor .ql-container,
-  .writing-editor .ql-editor,
-  .writing-editor .ql-editor.ql-blank::before {
-    height: 350px !important;
-    max-height: 350px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .writing-editor .ql-container,
-  .writing-editor .ql-editor,
-  .writing-editor .ql-editor.ql-blank::before {
-    height: 300px !important;
-    max-height: 300px !important;
-  }
 }
 
 /* ReactQuill 에디터 영역 스크롤 설정 */
 .writing-editor .ql-editor {
-  height: 400px !important;
-  max-height: 400px !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   resize: none !important;
@@ -448,18 +457,9 @@ input:checked + .slider:before {
   margin-bottom: 0;
 }
 
-/* ReactQuill 루트 요소 높이 고정 */
 .writing-editor .ql-editor.ql-blank::before {
-  height: 400px !important;
-  max-height: 400px !important;
-}
-
-/* ReactQuill 컨테이너 전체 높이 고정 */
-.writing-editor .ql-container.ql-snow {
-  height: 400px !important;
-  max-height: 400px !important;
-  overflow: hidden !important;
-  margin-bottom: 0;
+  height: var(--rich-text-editor-height, 400px) !important;
+  max-height: var(--rich-text-editor-height, 400px) !important;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -510,14 +510,19 @@ input:checked + .slider:before {
   }
   
   .writing-editor-container {
-    height: 350px; /* 모바일에서 에디터 높이 줄임 */
+    min-height: calc(var(--rich-text-editor-height, 350px) + 64px);
     margin-bottom: 7rem; /* 모바일에서 더 큰 하단 여백 */
   }
-  
+
+  .writing-editor {
+    min-height: var(--rich-text-editor-height, 350px);
+  }
+
   .writing-editor .ql-container,
-  .writing-editor .ql-editor {
-    height: 350px !important;
-    max-height: 350px !important;
+  .writing-editor .ql-editor,
+  .writing-editor .ql-editor.ql-blank::before {
+    height: var(--rich-text-editor-height, 350px) !important;
+    max-height: var(--rich-text-editor-height, 350px) !important;
   }
   
   .writing-actions {
@@ -559,14 +564,19 @@ input:checked + .slider:before {
 
 @media (max-width: 480px) {
   .writing-editor-container {
-    height: 300px; /* 작은 모바일에서 에디터 높이 더 줄임 */
+    min-height: calc(var(--rich-text-editor-height, 300px) + 56px);
     margin-bottom: 8rem; /* 더 큰 하단 여백 */
   }
-  
+
+  .writing-editor {
+    min-height: var(--rich-text-editor-height, 300px);
+  }
+
   .writing-editor .ql-container,
-  .writing-editor .ql-editor {
-    height: 300px !important;
-    max-height: 300px !important;
+  .writing-editor .ql-editor,
+  .writing-editor .ql-editor.ql-blank::before {
+    height: var(--rich-text-editor-height, 300px) !important;
+    max-height: var(--rich-text-editor-height, 300px) !important;
   }
   
   .writing-actions {

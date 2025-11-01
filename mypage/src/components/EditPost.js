@@ -16,6 +16,7 @@ import CustomFormulaEditor from './CustomFormulaEditor';
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 import '../style/CustomFormulaEditor.css';
+import '../style/RichText.css';
 
 registerCustomImageBlot();
 
@@ -206,6 +207,19 @@ function EditPost() {
     };
   }, [loading, handleImageInsert]); // 로딩 상태가 변경될 때도 실행
 
+  useEffect(() => {
+    if (quillRef.current) {
+      const editor = quillRef.current.getEditor();
+      const codeBlocks = editor.root.querySelectorAll('pre');
+      codeBlocks.forEach(block => {
+        block.style.whiteSpace = 'pre';
+        block.style.overflowX = 'auto';
+        block.style.maxWidth = '800px';
+        block.style.margin = '1.75rem auto';
+      });
+    }
+  }, [content]);
+
   const uploadPendingImages = async () => {
     if (pendingImages.length === 0) return content;
     let updatedContent = content;
@@ -270,11 +284,23 @@ function EditPost() {
                   </select>
                 </div>
               </div>
-              <div className="mb-3">
-                <div className="writing-editor-container">
-                  <ReactQuill ref={quillRef} theme="snow" value={content} onChange={handleContentChange} modules={modules} formats={formats} style={{ height: editorHeight }} />
+                <div className="mb-3">
+                  <div
+                    className="writing-editor-container"
+                    style={{ '--rich-text-editor-height': editorHeight }}
+                  >
+                  <ReactQuill
+                    ref={quillRef}
+                    className="writing-editor rich-text-editor"
+                    theme="snow"
+                    value={content}
+                    onChange={handleContentChange}
+                    modules={modules}
+                    formats={formats}
+                    style={{ height: 'auto', '--rich-text-editor-height': editorHeight }}
+                  />
+                  </div>
                 </div>
-              </div>
               <div className="writing-actions d-flex justify-content-end">
                 <button type="submit" className="btn btn-primary btn-primary-solid" disabled={isUploading}>
                   {isUploading ? '업로드 중...' : '수정하기'}

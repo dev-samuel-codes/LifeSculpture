@@ -9,6 +9,7 @@ import LoginRequiredPopup from './LoginRequiredPopup';
 import LazyImage from './LazyImage';
 import CommentsSection from './CommentsSection';
 import '../style/PostDetail.css';
+import '../style/RichText.css';
 
 function PostDetail() {
   const { category, id } = useParams();
@@ -28,6 +29,7 @@ function PostDetail() {
   const [isLiked, setIsLiked] = useState(false); // 공감 상태
   const [likeCount, setLikeCount] = useState(0); // 공감 수
   const [showLoginPopup, setShowLoginPopup] = useState(false); // 로그인 팝업 상태
+  const [renderedContent, setRenderedContent] = useState('');
   const viewCountIncremented = useRef(false);
 
   useEffect(() => {
@@ -191,6 +193,139 @@ function PostDetail() {
       incrementViewCount();
     }
   }, [post, category, id, role]); // post를 의존성 배열에 추가하여 ESLint 경고 해결
+
+  const enhanceCodeBlocks = useCallback((html) => {
+    if (!html) {
+      return '';
+    }
+
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return html;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+
+    const containers = wrapper.querySelectorAll('.ql-code-block-container');
+
+    containers.forEach((container) => {
+      if (!container.classList.contains('has-separated-header')) {
+        if (!container.querySelector('.code-block-header')) {
+          const header = document.createElement('div');
+          header.className = 'code-block-header';
+
+          const indicators = document.createElement('div');
+          indicators.className = 'code-block-indicators';
+
+          ['red', 'yellow', 'green'].forEach((color) => {
+            const indicator = document.createElement('span');
+            indicator.className = `code-block-indicator ${color}`;
+            indicators.appendChild(indicator);
+          });
+
+          header.appendChild(indicators);
+          container.insertBefore(header, container.firstChild);
+        }
+
+        let body = container.querySelector('.code-block-body');
+
+        if (!body) {
+          body = document.createElement('div');
+          body.className = 'code-block-body';
+
+          while (container.children.length > 1) {
+            body.appendChild(container.children[1]);
+          }
+
+          container.appendChild(body);
+        }
+
+        const preElements = body.querySelectorAll('pre');
+
+        preElements.forEach((pre) => {
+          if (pre.dataset.lineNumbered === 'true') {
+            return;
+          }
+
+          const textContent = pre.textContent || '';
+          const normalized = textContent.replace(/\r\n/g, '\n');
+          const lines = normalized.split('\n');
+
+          if (lines.length > 1 && lines[lines.length - 1] === '') {
+            lines.pop();
+          }
+
+          const codeElement = document.createElement('code');
+
+          lines.forEach((line, index) => {
+            const lineSpan = document.createElement('span');
+
+            lineSpan.textContent = line.length === 0 ? '\u00A0' : line;
+            const lineNumber = String(index + 1);
+            lineSpan.dataset.lineNumber = lineNumber;
+            lineSpan.setAttribute('data-line-number', lineNumber);
+
+            codeElement.appendChild(lineSpan);
+          });
+
+          if (lines.length === 0) {
+            const placeholderLine = document.createElement('span');
+            placeholderLine.textContent = '\u00A0';
+            placeholderLine.dataset.lineNumber = '1';
+            placeholderLine.setAttribute('data-line-number', '1');
+            codeElement.appendChild(placeholderLine);
+          }
+
+          pre.innerHTML = '';
+          pre.appendChild(codeElement);
+          pre.dataset.lineNumbered = 'true';
+        });
+
+        container.classList.add('has-separated-header');
+      }
+    });
+
+    return wrapper.innerHTML;
+  }, []);
+
+  useEffect(() => {
+    if (post?.content) {
+      const enhanced = enhanceCodeBlocks(post.content);
+      setRenderedContent(enhanced);
+    } else {
+      setRenderedContent('');
+    }
+  }, [post?.content, enhanceCodeBlocks]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const contentEl = document.querySelector('.post-content');
+      if (!contentEl) return;
+
+      const codeBlocks = contentEl.querySelectorAll('pre'); // Target ALL <pre> tags
+      
+      codeBlocks.forEach(block => {
+          block.style.setProperty('white-space', 'pre', 'important');
+          block.style.setProperty('overflow-x', 'auto', 'important');
+          block.style.setProperty('max-width', '800px', 'important');
+          block.style.setProperty('margin', '1.75rem auto', 'important');
+          block.style.setProperty('padding', '1.5rem', 'important');
+          block.style.setProperty('background-color', '#1a1f2a', 'important');
+          block.style.setProperty('border-radius', '14px', 'important');
+          block.style.setProperty('color', '#cfd2d1', 'important');
+
+          // If it's inside a container, remove the container's background and padding
+          const container = block.closest('.ql-code-block-container');
+          if (container) {
+              container.style.setProperty('background-color', 'transparent', 'important');
+              container.style.setProperty('padding', '0', 'important');
+              container.style.setProperty('border', 'none', 'important');
+          }
+      });
+    }, 100); // 100ms delay
+
+    return () => clearTimeout(timer); // Cleanup
+  }, [renderedContent]);
 
   const handlePublicToggle = async () => {
     const newPublicState = !isPublic;
@@ -364,7 +499,6 @@ function PostDetail() {
         // 권한 관련 에러인 경우 추가 정보 출력
         if (error.code === 'storage/unauthorized') {
           console.error('Storage 권한이 없습니다. 현재 UID:', uid);
-          console.error('Storage 규칙에서 허용된 UID: Bvik2Rv5HzatCW91UNjCuro0y8I3');
         }
         
         // 개별 이미지 삭제 실패는 전체 삭제 프로세스를 중단하지 않음
@@ -415,148 +549,20 @@ function PostDetail() {
     setSelectedImage(null);
   }, []);
 
-  // 게시물 내용의 이미지에 클릭 이벤트 추가 및 고급 스타일링
+  // 게시물 내용의 이미지에 클릭 이벤트 추가
   useEffect(() => {
     if (post && post.content) {
       const contentElement = document.querySelector('.post-content');
       if (contentElement) {
-        // post-content에 클릭 이벤트 추가
+        // post-content에 클릭 이벤트 추가 (이미지 클릭 시 모달 열기)
         const handleContentClick = (event) => {
           if (event.target.tagName === 'IMG') {
-            console.log('Image clicked:', event.target.src); // 디버깅용
-            event.preventDefault();
-            event.stopPropagation();
             handleImageClick(event.target.src);
           }
         };
         
         contentElement.addEventListener('click', handleContentClick);
-        
-        // 이미지 스타일 적용
-        const images = contentElement.querySelectorAll('img');
-        images.forEach(img => {
-          img.style.cursor = 'pointer';
-          img.style.maxWidth = '40%';
-          img.style.width = '40%';
-          img.style.height = 'auto';
-          img.style.borderRadius = '8px';
-          img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-          
-          // 모바일이 아닌 경우에만 애니메이션 효과 적용
-          if (window.innerWidth > 640) {
-            img.style.transition = 'transform 0.2s ease';
-            
-            // 호버 효과 추가 (데스크톱에서만)
-            img.addEventListener('mouseenter', () => {
-              img.style.transform = 'scale(1.02)';
-            });
-            img.addEventListener('mouseleave', () => {
-              img.style.transform = 'scale(1)';
-            });
-          }
-          
-          // CSS 클래스 추가로 더 강력한 스타일링
-          img.classList.add('post-content-image');
-        });
 
-        // 문단 스타일링 - 모바일에서 글자 간격 문제 방지 (정렬은 유지)
-        const paragraphs = contentElement.querySelectorAll('p');
-        paragraphs.forEach(p => {
-          // 모바일에서는 글자 간격만 조정하고 정렬은 유지
-          if (window.innerWidth <= 640) {
-            // justify 정렬인 경우에만 left로 변경
-            if (p.classList.contains('ql-align-justify')) {
-              p.style.textAlign = 'left';
-            }
-            // 글자 간격 문제 해결
-            p.style.wordSpacing = 'normal';
-            p.style.letterSpacing = 'normal';
-          }
-        });
-
-        // 테이블 스타일링
-        const tables = contentElement.querySelectorAll('table');
-        tables.forEach(table => {
-          table.style.width = '100%';
-          table.style.borderCollapse = 'collapse';
-          table.style.margin = '1rem 0';
-          table.style.border = '1px solid #ddd';
-          
-          // 테이블 셀 스타일링
-          const cells = table.querySelectorAll('td, th');
-          cells.forEach(cell => {
-            cell.style.padding = '8px 12px';
-            cell.style.border = '1px solid #ddd';
-            cell.style.textAlign = 'left';
-          });
-          
-          // 테이블 헤더 스타일링
-          const headers = table.querySelectorAll('th');
-          headers.forEach(header => {
-            header.style.backgroundColor = '#f8f9fa';
-            header.style.fontWeight = 'bold';
-          });
-        });
-
-        // 코드 블록 스타일링
-        const codeBlocks = contentElement.querySelectorAll('pre, code');
-        codeBlocks.forEach(code => {
-          if (code.tagName === 'PRE') {
-            code.style.backgroundColor = '#f8f9fa';
-            code.style.border = '1px solid #e9ecef';
-            code.style.borderRadius = '4px';
-            code.style.padding = '1rem';
-            code.style.overflowX = 'auto';
-            code.style.fontFamily = 'Consolas, Monaco, "Courier New", monospace';
-            code.style.fontSize = '14px';
-            code.style.lineHeight = '1.5';
-          } else {
-            code.style.backgroundColor = '#f8f9fa';
-            code.style.padding = '2px 4px';
-            code.style.borderRadius = '3px';
-            code.style.fontFamily = 'Consolas, Monaco, "Courier New", monospace';
-            code.style.fontSize = '0.9em';
-          }
-        });
-
-        // 인용구 스타일링
-        const blockquotes = contentElement.querySelectorAll('blockquote');
-        blockquotes.forEach(quote => {
-          quote.style.borderLeft = '4px solid #007bff';
-          quote.style.paddingLeft = '1rem';
-          quote.style.margin = '1rem 0';
-          quote.style.fontStyle = 'italic';
-          quote.style.color = '#6c757d';
-          quote.style.backgroundColor = '#f8f9fa';
-          quote.style.padding = '1rem';
-          quote.style.borderRadius = '4px';
-        });
-
-
-
-        // 리스트 스타일링
-        const lists = contentElement.querySelectorAll('ul, ol');
-        lists.forEach(list => {
-          list.style.paddingLeft = '2rem';
-          list.style.margin = '1rem 0';
-        });
-
-        // 링크 스타일링
-        const links = contentElement.querySelectorAll('a');
-        links.forEach(link => {
-          link.style.color = '#007bff';
-          link.style.textDecoration = 'none';
-          link.style.borderBottom = '1px solid transparent';
-          link.style.transition = 'border-bottom-color 0.2s ease';
-          
-          link.addEventListener('mouseenter', () => {
-            link.style.borderBottomColor = '#007bff';
-          });
-          link.addEventListener('mouseleave', () => {
-            link.style.borderBottomColor = 'transparent';
-          });
-        });
-        
         // 클린업 함수
         return () => {
           contentElement.removeEventListener('click', handleContentClick);
@@ -760,8 +766,8 @@ function PostDetail() {
 
       {/* 서버에서 전달된 HTML을 렌더링 (고급 스타일링 적용) */}
       <section
-        className="post-content"
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        className="post-content rich-text"
+        dangerouslySetInnerHTML={{ __html: renderedContent || post.content }}
       />
 
       {selectedImage && (

@@ -1,0 +1,920 @@
+:root {
+  --rich-text-color: #2f3640;
+  --rich-text-heading: #243043;
+  --rich-text-muted: #707b86;
+  --rich-text-border: #e2e8f0;
+  --rich-text-blockquote-bg: #f8f9fa;
+  --rich-text-blockquote-border: #007bff;
+  --rich-text-inline-bg: rgba(240, 245, 255, 0.85);
+  --rich-text-inline-color: #1f2937;
+  --rich-text-code-bg: #1a1f2a;
+  --rich-text-code-color: #cfd2d1;
+  --rich-text-toolbar-offset: 72px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --rich-text-toolbar-offset: 56px;
+  }
+}
+
+.rich-text-editor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.rich-text-editor .ql-toolbar {
+  position: relative;
+  top: 0;
+  z-index: 1;
+  background: #ffffff;
+  border: none;
+  border-bottom: 1px solid #e4e7ee;
+  border-radius: 12px 12px 0 0;
+  padding: 14px 18px;
+}
+
+.rich-text-editor .ql-toolbar .ql-formats {
+  margin-right: 15px;
+}
+
+.rich-text-editor .ql-toolbar button,
+.rich-text-editor .ql-toolbar .ql-picker {
+  transition: all 0.2s ease;
+}
+
+.rich-text-editor .ql-toolbar button:hover,
+.rich-text-editor .ql-toolbar button.ql-active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.rich-text-editor .ql-toolbar .ql-picker-label:hover,
+.rich-text-editor .ql-toolbar .ql-picker-label.ql-active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.rich-text-editor .ql-container {
+  flex: 1 1 auto;
+  border: none;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+body[data-theme='dark'] .rich-text-editor .ql-toolbar {
+  background: rgba(15, 23, 42, 0.94);
+  border: none;
+  border-bottom: 1px solid rgba(76, 90, 124, 0.6);
+}
+
+body[data-theme='dark'] .rich-text-editor .ql-container {
+  background: rgba(15, 23, 42, 0.92);
+  border: none;
+}
+
+body[data-theme='dark'] .rich-text,
+body[data-theme='dark'] .rich-text-editor .ql-editor {
+  color: #dbeafe;
+}
+
+body[data-theme='dark'] .rich-text h1,
+body[data-theme='dark'] .rich-text h2,
+body[data-theme='dark'] .rich-text h3,
+body[data-theme='dark'] .rich-text h4,
+body[data-theme='dark'] .rich-text h5,
+body[data-theme='dark'] .rich-text h6,
+body[data-theme='dark'] .rich-text-editor .ql-editor h1,
+body[data-theme='dark'] .rich-text-editor .ql-editor h2,
+body[data-theme='dark'] .rich-text-editor .ql-editor h3,
+body[data-theme='dark'] .rich-text-editor .ql-editor h4,
+body[data-theme='dark'] .rich-text-editor .ql-editor h5,
+body[data-theme='dark'] .rich-text-editor .ql-editor h6 {
+  color: #f8fafc;
+}
+
+body[data-theme='dark'] .rich-text strong,
+body[data-theme='dark'] .rich-text b,
+body[data-theme='dark'] .rich-text-editor .ql-editor strong,
+body[data-theme='dark'] .rich-text-editor .ql-editor b {
+  color: #f8fafc;
+}
+
+body[data-theme='dark'] .rich-text code,
+body[data-theme='dark'] .rich-text-editor .ql-editor code {
+  background: rgba(37, 52, 77, 0.65);
+  color: #fbb6ce;
+  border-radius: 6px;
+}
+
+body[data-theme='dark'] .rich-text pre,
+body[data-theme='dark'] .rich-text-editor .ql-editor pre,
+body[data-theme='dark'] .rich-text .ql-code-block-container,
+body[data-theme='dark'] .rich-text-editor .ql-editor .ql-code-block-container {
+  background: rgba(15, 23, 42, 0.92);
+  color: #e2e8f0;
+  border: 1px solid rgba(59, 73, 102, 0.6);
+  box-shadow: 0 20px 42px rgba(6, 11, 21, 0.6);
+}
+
+body[data-theme='dark'] .rich-text blockquote,
+body[data-theme='dark'] .rich-text-editor .ql-editor blockquote {
+  border-left-color: rgba(148, 163, 184, 0.6);
+  background: none;
+  color: #e2e8f0;
+}
+
+body[data-theme='dark'] .rich-text blockquote::before,
+body[data-theme='dark'] .rich-text-editor .ql-editor blockquote::before {
+  content: none;
+}
+
+body[data-theme='dark'] .rich-text blockquote + blockquote,
+body[data-theme='dark'] .rich-text-editor .ql-editor blockquote + blockquote {
+  margin-top: -1.5rem;
+  padding-top: 0.75rem;
+}
+
+body[data-theme='dark'] .rich-text table,
+body[data-theme='dark'] .rich-text-editor .ql-editor table {
+  background: linear-gradient(145deg, rgba(25, 37, 63, 0.94), rgba(17, 29, 53, 0.94));
+  border-color: rgba(76, 90, 124, 0.55);
+  box-shadow: 0 24px 44px rgba(6, 11, 21, 0.65);
+}
+
+body[data-theme='dark'] .rich-text table th,
+body[data-theme='dark'] .rich-text table td,
+body[data-theme='dark'] .rich-text-editor .ql-editor table th,
+body[data-theme='dark'] .rich-text-editor .ql-editor table td {
+  border-color: rgba(76, 90, 124, 0.55);
+}
+
+body[data-theme='dark'] .rich-text table th,
+body[data-theme='dark'] .rich-text-editor .ql-editor table th {
+  background: rgba(45, 59, 95, 0.85);
+  color: #ecf2ff;
+  border-bottom-color: rgba(96, 113, 157, 0.65);
+}
+
+body[data-theme='dark'] .rich-text table tr:hover,
+body[data-theme='dark'] .rich-text-editor .ql-editor table tr:hover {
+  background: rgba(45, 59, 95, 0.45);
+}
+
+body[data-theme='dark'] .rich-text img,
+body[data-theme='dark'] .rich-text-editor .ql-editor img {
+  box-shadow: 0 16px 40px rgba(8, 13, 24, 0.55);
+}
+
+body[data-theme='dark'] .rich-text hr,
+body[data-theme='dark'] .rich-text-editor .ql-editor hr {
+  border-top-color: rgba(76, 90, 124, 0.4);
+}
+
+body[data-theme='dark'] .rich-text a,
+body[data-theme='dark'] .rich-text-editor .ql-editor a {
+  color: #93c5fd;
+}
+
+body[data-theme='dark'] .rich-text .ql-syntax,
+body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
+  background: rgba(15, 23, 42, 0.9);
+  color: #f8fafc;
+}
+
+.rich-text,
+.rich-text-editor .ql-editor {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--rich-text-color);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  word-spacing: normal;
+  letter-spacing: normal;
+  counter-reset: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-text {
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .rich-text,
+  .rich-text-editor .ql-editor {
+    font-size: 1rem;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    hyphens: none;
+  }
+}
+
+.rich-text h1,
+.rich-text h2,
+.rich-text h3,
+.rich-text h4,
+.rich-text h5,
+.rich-text h6,
+.rich-text-editor .ql-editor h1,
+.rich-text-editor .ql-editor h2,
+.rich-text-editor .ql-editor h3,
+.rich-text-editor .ql-editor h4,
+.rich-text-editor .ql-editor h5,
+.rich-text-editor .ql-editor h6 {
+  color: var(--rich-text-heading);
+  font-weight: 700;
+  margin: 2rem 0 1rem 0;
+  line-height: 1.4;
+}
+
+.rich-text h1,
+.rich-text-editor .ql-editor h1 { font-size: 2rem; }
+
+.rich-text h2,
+.rich-text-editor .ql-editor h2 { font-size: 1.75rem; }
+
+.rich-text h3,
+.rich-text-editor .ql-editor h3 { font-size: 1.5rem; }
+
+.rich-text h4,
+.rich-text-editor .ql-editor h4 { font-size: 1.25rem; }
+
+.rich-text h5,
+.rich-text-editor .ql-editor h5 { font-size: 1.1rem; }
+
+.rich-text h6,
+.rich-text-editor .ql-editor h6 { font-size: 1rem; }
+
+.rich-text p,
+.rich-text-editor .ql-editor p {
+  margin: 1rem 0;
+}
+
+.rich-text strong,
+.rich-text b,
+.rich-text-editor .ql-editor strong,
+.rich-text-editor .ql-editor b {
+  font-weight: 700;
+  color: var(--rich-text-heading);
+}
+
+.rich-text em,
+.rich-text i,
+.rich-text-editor .ql-editor em,
+.rich-text-editor .ql-editor i {
+  font-style: italic;
+  color: #555555;
+}
+
+.rich-text u,
+.rich-text-editor .ql-editor u {
+  text-decoration: underline;
+  text-decoration-color: #000000;
+  text-decoration-thickness: 2px;
+}
+
+.rich-text s,
+.rich-text strike,
+.rich-text-editor .ql-editor s,
+.rich-text-editor .ql-editor strike {
+  text-decoration: line-through;
+  color: #999999;
+}
+
+.rich-text sup,
+.rich-text sub,
+.rich-text-editor .ql-editor sup,
+.rich-text-editor .ql-editor sub {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+.rich-text sup,
+.rich-text-editor .ql-editor sup { top: -0.5em; }
+
+.rich-text sub,
+.rich-text-editor .ql-editor sub { bottom: -0.25em; }
+
+.rich-text blockquote,
+.rich-text-editor .ql-editor blockquote {
+  border-left: 4px solid #cccccc;
+  padding: 0.75rem 1.25rem;
+  margin: 1.5rem 0;
+  background: none;
+  border-radius: 0;
+  font-style: italic;
+  color: #555555;
+}
+
+.rich-text blockquote::before,
+.rich-text-editor .ql-editor blockquote::before {
+  content: none;
+}
+
+.rich-text blockquote + blockquote,
+.rich-text-editor .ql-editor blockquote + blockquote {
+  margin-top: -1.5rem;
+  padding-top: 0.75rem;
+}
+
+.rich-text table,
+.rich-text-editor .ql-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--rich-text-border);
+}
+
+.rich-text table th,
+.rich-text table td,
+.rich-text-editor .ql-editor table th,
+.rich-text-editor .ql-editor table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--rich-text-border);
+  border-right: 1px solid var(--rich-text-border);
+}
+
+.rich-text table th,
+.rich-text-editor .ql-editor table th {
+  background: #f7fafc;
+  font-weight: 600;
+  color: var(--rich-text-heading);
+  border-bottom: 2px solid #cbd5e0;
+}
+
+.rich-text table tr:hover,
+.rich-text-editor .ql-editor table tr:hover {
+  background: #f8f9fa;
+}
+
+.rich-text table tr:last-child td,
+.rich-text-editor .ql-editor table tr:last-child td {
+  border-bottom: none;
+}
+
+.rich-text table td:last-child,
+.rich-text table th:last-child,
+.rich-text-editor .ql-editor table td:last-child,
+.rich-text-editor .ql-editor table th:last-child {
+  border-right: none;
+}
+
+.rich-text a,
+.rich-text-editor .ql-editor a {
+  color: #2746ff;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+  padding: 0.1rem 0;
+}
+
+.rich-text a:hover,
+.rich-text-editor .ql-editor a:hover {
+  border-bottom-color: #2746ff;
+  color: #1a1a1a;
+}
+
+.rich-text img,
+.rich-text-editor .ql-editor img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem 0;
+}
+
+.rich-text pre,
+.rich-text-editor .ql-editor pre {
+  background: var(--rich-text-code-bg);
+  color: var(--rich-text-code-color);
+  border-radius: 14px;
+  padding: 1.5rem 1.85rem;
+  overflow: auto;
+  margin: 1.75rem 0;
+  font-family: Menlo, Consolas, Monaco, 'Courier New', monospace;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  text-align: left;
+}
+
+.rich-text pre code,
+.rich-text-editor .ql-editor pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  display: block;
+}
+
+.rich-text code,
+.rich-text-editor .ql-editor code {
+  background: var(--rich-text-inline-bg);
+  color: var(--rich-text-inline-color);
+  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+}
+
+.rich-text hr,
+.rich-text-editor .ql-editor hr {
+  border: none;
+  border-top: 1px solid var(--rich-text-border);
+  margin: 2rem 0;
+}
+
+.rich-text .ql-align-left,
+.rich-text-editor .ql-editor .ql-align-left { text-align: left !important; }
+
+.rich-text .ql-align-center,
+.rich-text-editor .ql-editor .ql-align-center { text-align: center !important; }
+
+.rich-text .ql-align-right,
+.rich-text-editor .ql-editor .ql-align-right { text-align: right !important; }
+
+.rich-text .ql-align-justify,
+.rich-text-editor .ql-editor .ql-align-justify { text-align: justify !important; }
+
+.rich-text .ql-indent-1,
+.rich-text-editor .ql-editor .ql-indent-1 { padding-left: 2rem; }
+
+.rich-text .ql-indent-2,
+.rich-text-editor .ql-editor .ql-indent-2 { padding-left: 4rem; }
+
+.rich-text .ql-indent-3,
+.rich-text-editor .ql-editor .ql-indent-3 { padding-left: 6rem; }
+
+.rich-text .ql-indent-4,
+.rich-text-editor .ql-editor .ql-indent-4 { padding-left: 8rem; }
+
+.rich-text .ql-indent-5,
+.rich-text-editor .ql-editor .ql-indent-5 { padding-left: 10rem; }
+
+.rich-text .ql-indent-6,
+.rich-text-editor .ql-editor .ql-indent-6 { padding-left: 12rem; }
+
+.rich-text .ql-indent-7,
+.rich-text-editor .ql-editor .ql-indent-7 { padding-left: 14rem; }
+
+.rich-text .ql-indent-8,
+.rich-text-editor .ql-editor .ql-indent-8 { padding-left: 16rem; }
+
+.rich-text .ql-code-block-container,
+.rich-text-editor .ql-editor .ql-code-block-container {
+  position: relative;
+  margin: 1.75rem auto;
+  border-radius: 14px;
+  background: var(--rich-text-code-bg);
+  border: 1px solid rgba(226, 232, 240, 0.08);
+  box-shadow: none;
+  color: var(--rich-text-code-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Keep this to clip corners */
+  text-align: left;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+
+}
+
+.rich-text .ql-code-block-container pre,
+.rich-text-editor .ql-editor .ql-code-block-container pre {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: Menlo, Consolas, Monaco, 'Courier New', monospace;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  margin: 0;
+  padding: 1.5rem;
+
+  /* Crucial properties for scrolling */
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  white-space: pre !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  
+  /* Reset conflicting properties */
+  display: block;
+  width: auto;
+  min-width: initial;
+  box-sizing: border-box;
+}
+
+.rich-text .ql-code-block-container code,
+.rich-text-editor .ql-editor .ql-code-block-container code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  display: block;
+  text-align: left;
+  white-space: pre !important;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.rich-text .ql-code-block-container code span,
+.rich-text-editor .ql-editor .ql-code-block-container code span {
+  text-align: left;
+  white-space: pre !important;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.rich-text video,
+.rich-text-editor .ql-editor video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rich-text .emoji,
+.rich-text-editor .ql-editor .emoji {
+  font-size: 1.2em;
+  vertical-align: middle;
+}
+.rich-text ul,
+.rich-text ol,
+.rich-text-editor .ql-editor ul,
+.rich-text-editor .ql-editor ol {
+  margin: 1rem 0;
+  padding-left: 2rem;
+  counter-reset: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-text li,
+.rich-text-editor .ql-editor li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.rich-text ul ul,
+.rich-text ol ol,
+.rich-text-editor .ql-editor ul ul,
+.rich-text-editor .ql-editor ol ol {
+  margin: 0.5rem 0;
+}
+
+.rich-text li[data-list],
+.rich-text-editor .ql-editor li[data-list] {
+  list-style-type: none;
+  padding-left: 1.5em;
+  position: relative;
+  counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-text li[data-list] > .ql-ui,
+.rich-text-editor .ql-editor li[data-list] > .ql-ui {
+  position: static;
+  pointer-events: none;
+  color: inherit;
+}
+
+.rich-text li[data-list] > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list] > .ql-ui:before {
+  display: inline-block;
+  margin-left: -1.5em;
+  margin-right: 0.3em;
+  white-space: nowrap;
+  text-align: right;
+  width: 1.2em;
+}
+
+.rich-text li[data-list="bullet"] > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="bullet"] > .ql-ui:before {
+  content: '\2022';
+}
+
+.rich-text li[data-list="checked"] > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="checked"] > .ql-ui:before {
+  content: '\2611';
+}
+
+.rich-text li[data-list="unchecked"] > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="unchecked"] > .ql-ui:before {
+  content: '\2610';
+}
+
+.rich-text li[data-list="ordered"],
+.rich-text-editor .ql-editor li[data-list="ordered"] {
+  counter-increment: list-0;
+}
+
+.rich-text li[data-list="ordered"] > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"] > .ql-ui:before {
+  content: counter(list-0, decimal) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-1,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-1 {
+  counter-increment: list-1;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-1 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-1 > .ql-ui:before {
+  content: counter(list-1, lower-alpha) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-2,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-2 {
+  counter-increment: list-2;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-2 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-2 > .ql-ui:before {
+  content: counter(list-2, lower-roman) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-3,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-3 {
+  counter-increment: list-3;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-3 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-3 > .ql-ui:before {
+  content: counter(list-3, decimal) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-4,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-4 {
+  counter-increment: list-4;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-4 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-4 > .ql-ui:before {
+  content: counter(list-4, lower-alpha) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-5,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-5 {
+  counter-increment: list-5;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-5 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-5 > .ql-ui:before {
+  content: counter(list-5, lower-roman) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-6,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-6 {
+  counter-increment: list-6;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-6 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-6 > .ql-ui:before {
+  content: counter(list-6, decimal) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-7,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-7 {
+  counter-increment: list-7;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-7 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-7 > .ql-ui:before {
+  content: counter(list-7, lower-alpha) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-8,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-8 {
+  counter-increment: list-8;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-8 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-8 > .ql-ui:before {
+  content: counter(list-8, lower-roman) '. ';
+}
+
+.rich-text li[data-list="ordered"].ql-indent-9,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-9 {
+  counter-increment: list-9;
+}
+
+.rich-text li[data-list="ordered"].ql-indent-9 > .ql-ui:before,
+.rich-text-editor .ql-editor li[data-list="ordered"].ql-indent-9 > .ql-ui:before {
+  content: counter(list-9, decimal) '. ';
+}
+
+.rich-text .ql-indent-1:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-1:not(.ql-direction-rtl) {
+  padding-left: 3em;
+}
+
+.rich-text li.ql-indent-1:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-1:not(.ql-direction-rtl) {
+  padding-left: 4.5em;
+}
+
+.rich-text .ql-indent-2:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-2:not(.ql-direction-rtl) {
+  padding-left: 6em;
+}
+
+.rich-text li.ql-indent-2:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-2:not(.ql-direction-rtl) {
+  padding-left: 7.5em;
+}
+
+.rich-text .ql-indent-3:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-3:not(.ql-direction-rtl) {
+  padding-left: 9em;
+}
+
+.rich-text li.ql-indent-3:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-3:not(.ql-direction-rtl) {
+  padding-left: 10.5em;
+}
+
+.rich-text .ql-indent-4:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-4:not(.ql-direction-rtl) {
+  padding-left: 12em;
+}
+
+.rich-text li.ql-indent-4:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-4:not(.ql-direction-rtl) {
+  padding-left: 13.5em;
+}
+
+.rich-text .ql-indent-5:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-5:not(.ql-direction-rtl) {
+  padding-left: 15em;
+}
+
+.rich-text li.ql-indent-5:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-5:not(.ql-direction-rtl) {
+  padding-left: 16.5em;
+}
+
+.rich-text .ql-indent-6:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-6:not(.ql-direction-rtl) {
+  padding-left: 18em;
+}
+
+.rich-text li.ql-indent-6:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-6:not(.ql-direction-rtl) {
+  padding-left: 19.5em;
+}
+
+.rich-text .ql-indent-7:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-7:not(.ql-direction-rtl) {
+  padding-left: 21em;
+}
+
+.rich-text li.ql-indent-7:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-7:not(.ql-direction-rtl) {
+  padding-left: 22.5em;
+}
+
+.rich-text .ql-indent-8:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-8:not(.ql-direction-rtl) {
+  padding-left: 24em;
+}
+
+.rich-text li.ql-indent-8:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-8:not(.ql-direction-rtl) {
+  padding-left: 25.5em;
+}
+
+.rich-text .ql-indent-9:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor .ql-indent-9:not(.ql-direction-rtl) {
+  padding-left: 27em;
+}
+
+.rich-text li.ql-indent-9:not(.ql-direction-rtl),
+.rich-text-editor .ql-editor li.ql-indent-9:not(.ql-direction-rtl) {
+  padding-left: 28.5em;
+}
+
+.rich-text li.ql-direction-rtl,
+.rich-text-editor .ql-editor li.ql-direction-rtl {
+  padding-right: 1.5em;
+  padding-left: 0;
+}
+
+.rich-text li.ql-direction-rtl > .ql-ui:before,
+.rich-text-editor .ql-editor li.ql-direction-rtl > .ql-ui:before {
+  margin-left: 0.3em;
+  margin-right: -1.5em;
+  text-align: left;
+}
+.rich-text li[data-list].ql-indent-1,
+.rich-text-editor .ql-editor li[data-list].ql-indent-1 {
+  counter-reset: list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-text li[data-list].ql-indent-2,
+.rich-text-editor .ql-editor li[data-list].ql-indent-2 {
+  counter-reset: list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-text li[data-list].ql-indent-3,
+.rich-text-editor .ql-editor li[data-list].ql-indent-3 {
+  counter-reset: list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-text li[data-list].ql-indent-4,
+.rich-text-editor .ql-editor li[data-list].ql-indent-4 {
+  counter-reset: list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-text li[data-list].ql-indent-5,
+.rich-text-editor .ql-editor li[data-list].ql-indent-5 {
+  counter-reset: list-6 list-7 list-8 list-9;
+}
+
+.rich-text li[data-list].ql-indent-6,
+.rich-text-editor .ql-editor li[data-list].ql-indent-6 {
+  counter-reset: list-7 list-8 list-9;
+}
+
+.rich-text li[data-list].ql-indent-7,
+.rich-text-editor .ql-editor li[data-list].ql-indent-7 {
+  counter-reset: list-8 list-9;
+}
+
+.rich-text li[data-list].ql-indent-8,
+.rich-text-editor .ql-editor li[data-list].ql-indent-8 {
+  counter-reset: list-9;
+}
+.rich-text .ql-font-Arial,
+.rich-text-editor .ql-editor .ql-font-Arial { font-family: Arial, sans-serif; }
+.rich-text .ql-font-Times\ New\ Roman,
+.rich-text-editor .ql-editor .ql-font-Times\ New\ Roman { font-family: 'Times New Roman', serif; }
+.rich-text .ql-font-Courier\ New,
+.rich-text-editor .ql-editor .ql-font-Courier\ New { font-family: 'Courier New', monospace; }
+.rich-text .ql-font-Georgia,
+.rich-text-editor .ql-editor .ql-font-Georgia { font-family: Georgia, serif; }
+.rich-text .ql-font-Verdana,
+.rich-text-editor .ql-editor .ql-font-Verdana { font-family: Verdana, sans-serif; }
+.rich-text .ql-font-맑은\ 고딕,
+.rich-text-editor .ql-editor .ql-font-맑은\ 고딕 { font-family: 'Malgun Gothic','맑은 고딕', sans-serif; }
+.rich-text .ql-font-나눔고딕,
+.rich-text-editor .ql-editor .ql-font-나눔고딕 { font-family: 'Nanum Gothic','나눔고딕', sans-serif; }
+.rich-text .ql-font-나눔바른고딕,
+.rich-text-editor .ql-editor .ql-font-나눔바른고딕 { font-family: 'NanumBarunGothic','나눔바른고딕', sans-serif; }
+
+.rich-text .ql-size-8,
+.rich-text-editor .ql-editor .ql-size-8 { font-size: 8px; }
+.rich-text .ql-size-9,
+.rich-text-editor .ql-editor .ql-size-9 { font-size: 9px; }
+.rich-text .ql-size-10,
+.rich-text-editor .ql-editor .ql-size-10 { font-size: 10px; }
+.rich-text .ql-size-11,
+.rich-text-editor .ql-editor .ql-size-11 { font-size: 11px; }
+.rich-text .ql-size-12,
+.rich-text-editor .ql-editor .ql-size-12 { font-size: 12px; }
+.rich-text .ql-size-14,
+.rich-text-editor .ql-editor .ql-size-14 { font-size: 14px; }
+.rich-text .ql-size-16,
+.rich-text-editor .ql-editor .ql-size-16 { font-size: 16px; }
+.rich-text .ql-size-18,
+.rich-text-editor .ql-editor .ql-size-18 { font-size: 18px; }
+.rich-text .ql-size-20,
+.rich-text-editor .ql-editor .ql-size-20 { font-size: 20px; }
+.rich-text .ql-size-22,
+.rich-text-editor .ql-editor .ql-size-22 { font-size: 22px; }
+.rich-text .ql-size-24,
+.rich-text-editor .ql-editor .ql-size-24 { font-size: 24px; }
+.rich-text .ql-size-26,
+.rich-text-editor .ql-editor .ql-size-26 { font-size: 26px; }
+.rich-text .ql-size-28,
+.rich-text-editor .ql-editor .ql-size-28 { font-size: 28px; }
+.rich-text .ql-size-36,
+.rich-text-editor .ql-editor .ql-size-36 { font-size: 36px; }
+.rich-text .ql-size-48,
+.rich-text-editor .ql-editor .ql-size-48 { font-size: 48px; }
+.rich-text .ql-size-72,
+.rich-text-editor .ql-editor .ql-size-72 { font-size: 72px; }
+.rich-text .ql-align-left { text-align: left !important; }
+.rich-text .ql-align-center { text-align: center !important; }
+.rich-text .ql-align-right { text-align: right !important; }
+.rich-text .ql-align-justify { text-align: justify !important; }
+
+.rich-text .ql-code-block-container {
+    overflow-x: auto !important;
+    max-width: 800px;
+    white-space: pre !important;
+    word-wrap: normal !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+}
+
+.rich-text .ql-code-block-container pre {
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: transparent !important;
+    white-space: inherit !important;
+    word-wrap: inherit !important;
+    overflow-wrap: inherit !important;
+    word-break: inherit !important;
+}
