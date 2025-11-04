@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import GoogleLoginButton from './GoogleLoginButton';
-import '../style/LoginRequiredPopup.css';
+import '../../style/LoginRequiredPopup.css';
 
 function LoginRequiredPopup({
   isOpen,

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import '../style/CustomFormulaEditor.css';
+import '../../style/CustomFormulaEditor.css';
 
 // KaTeX 렌더링을 위한 버튼 컴포넌트
 const KatexButton = ({ latex, onClick }) => {

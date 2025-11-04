@@ -9,10 +9,10 @@ import {
   hasUserLiked,
   likeComment,
   unlikeComment,
-} from '../services/comments';
-import { AuthContext } from '../context/AuthContext';
-import LoginRequiredPopup from './LoginRequiredPopup';
-import '../style/Comments.css';
+} from '../../services/comments';
+import { AuthContext } from '../../context/AuthContext';
+import LoginRequiredPopup from '../auth/LoginRequiredPopup';
+import '../../style/Comments.css';
 
 const ANONYMOUS_NAME = '익명 사용자';
 

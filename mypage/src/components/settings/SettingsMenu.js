@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { FiLayout, FiEdit3, FiUsers } from 'react-icons/fi';
-import '../style/SettingsMenu.css';
+import '../../style/SettingsMenu.css';
 
 function SettingsMenu() {
   return (

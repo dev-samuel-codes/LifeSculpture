@@ -2,19 +2,19 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SettingsMenu from './SettingsMenu';
-import { db } from '../firebase/firebase';
+import { db } from '../../firebase/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import heic2any from 'heic2any';
-import { useQuillToolbar } from './QuillToolbar';
-import { registerCustomImageBlot } from './QuillCustomBlots';
-import CustomFormulaEditor from './CustomFormulaEditor';
-import '../style/SettingsWriting.css';
-import '../style/QuillToolbar.css';
-import '../style/CustomFormulaEditor.css';
-import '../style/RichText.css';
+import { useQuillToolbar } from '../rich-text/QuillToolbar';
+import { registerCustomImageBlot } from '../rich-text/QuillCustomBlots';
+import CustomFormulaEditor from '../rich-text/CustomFormulaEditor';
+import '../../style/SettingsWriting.css';
+import '../../style/QuillToolbar.css';
+import '../../style/CustomFormulaEditor.css';
+import '../../style/RichText.css';
 
 registerCustomImageBlot();
 

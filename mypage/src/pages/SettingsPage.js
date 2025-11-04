@@ -1,8 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import SettingsDashboard from '../components/SettingsDashboard';
-import SettingsWriting from '../components/SettingsWriting';
-import SettingsUsers from '../components/SettingsUsers';
+import { SettingsDashboard, SettingsWriting, SettingsUsers } from '../components';
 
 function SettingsPage() {
   return (

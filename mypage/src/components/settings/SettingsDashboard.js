@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SettingsMenu from './SettingsMenu';
-import { db } from '../firebase/firebase';
+import { db } from '../../firebase/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Line } from 'react-chartjs-2';
 import {
@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import '../style/SettingsDashboard.css';
+import '../../style/SettingsDashboard.css';
 
 ChartJS.register(
   CategoryScale,

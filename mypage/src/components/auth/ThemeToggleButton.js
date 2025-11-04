@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiMoon, FiSun } from 'react-icons/fi';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 function ThemeToggleButton({ className = '', iconSize = 20 }) {
   const { theme, toggleTheme } = useTheme();

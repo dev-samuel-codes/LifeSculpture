@@ -1,9 +1,8 @@
 import './style/App.css';
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Connect from './components/Connect';
+import { Connect, Header } from './components';
 import { AuthContext } from './context/AuthContext';
-import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import IntroducePage from './pages/IntroducePage';
 import StudyPage from './pages/StudyPage';

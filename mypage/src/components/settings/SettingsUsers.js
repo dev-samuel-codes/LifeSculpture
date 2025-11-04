@@ -1,10 +1,10 @@
 // src/components/SettingsUsers.js
 import React, { useState, useEffect, useMemo } from 'react';
 import SettingsMenu from './SettingsMenu';
-import { db } from '../firebase/firebase';
+import { db } from '../../firebase/firebase';
 import { collection, getDocs, query, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import '../style/SettingsUsers.css';
+import '../../style/SettingsUsers.css';
 
 function SettingsUsers() {
   const [users, setUsers] = useState([]);

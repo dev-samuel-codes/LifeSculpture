@@ -1,11 +1,11 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import GoogleLoginButton from './GoogleLoginButton';
-import { AuthContext } from '../context/AuthContext';
-import '../style/Headerbar.css';
-import LazyImage from './LazyImage';
-import useStorageImage from '../hooks/useStorageImage';
-import ThemeToggleButton from './ThemeToggleButton';
+import GoogleLoginButton from '../auth/GoogleLoginButton';
+import { AuthContext } from '../../context/AuthContext';
+import '../../style/Headerbar.css';
+import LazyImage from '../media/LazyImage';
+import useStorageImage from '../../hooks/useStorageImage';
+import ThemeToggleButton from '../auth/ThemeToggleButton';
 
 const Header = () => {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);

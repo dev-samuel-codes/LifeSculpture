@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import LazyBackgroundImage from '../components/LazyBackgroundImage';
+import { LazyBackgroundImage } from '../components';
 import useStorageImage from '../hooks/useStorageImage';
 import '../style/Home.css';
 

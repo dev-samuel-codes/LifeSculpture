@@ -2,7 +2,7 @@
 import { useMemo, useCallback, useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase/firebase';
+import { storage } from '../../firebase/firebase';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import ReactQuill from 'react-quill-new';
