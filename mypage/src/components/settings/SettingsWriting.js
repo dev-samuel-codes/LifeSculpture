@@ -8,7 +8,7 @@ import { getAuth } from 'firebase/auth';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import heic2any from 'heic2any';
-import { useQuillToolbar } from '../text-editor/QuillToolbar';
+import { useQuillToolbar } from '../text-editor/hooks/useQuillToolbar';
 import { registerCustomImageBlot } from '../text-editor/QuillCustomBlots';
 import CustomFormulaEditor from '../text-editor/CustomFormulaEditor';
 import '../../style/SettingsWriting.css';

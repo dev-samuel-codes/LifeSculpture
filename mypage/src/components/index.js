@@ -19,9 +19,9 @@ export { default as CustomFormulaEditor } from './text-editor/CustomFormulaEdito
 export { default as CustomImageBlot } from './text-editor/QuillCustomBlots';
 export { registerCustomImageBlot } from './text-editor/QuillCustomBlots';
 export {
-  handleImageUpload,
   useImageHandler,
   useQuillModules,
   quillFormats,
   useQuillToolbar,
-} from './text-editor/QuillToolbar';
+} from './text-editor/hooks/useQuillToolbar';
+export { handleImageUpload } from './text-editor/utils/imageUpload';
