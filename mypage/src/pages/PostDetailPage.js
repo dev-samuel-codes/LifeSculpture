@@ -1,17 +1,17 @@
-// PostDetail.js
+// PostDetailPage.js
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { db, storage } from '../firebase/firebase';
 import { doc, getDoc, updateDoc, increment, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
-import LoginRequiredPopup from './LoginRequiredPopup';
-import LazyImage from './LazyImage';
-import CommentsSection from './CommentsSection';
+import LoginRequiredPopup from '../components/LoginRequiredPopup';
+import LazyImage from '../components/LazyImage';
+import CommentsSection from '../components/CommentsSection';
 import '../style/PostDetail.css';
 import '../style/RichText.css';
 
-function PostDetail() {
+function PostDetailPage() {
   const { category, id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -800,4 +800,4 @@ function PostDetail() {
   );
 }
 
-export default PostDetail;
+export default PostDetailPage;

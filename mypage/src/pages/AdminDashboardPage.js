@@ -3,7 +3,7 @@ import React from 'react';
 import '../style/SettingsDashboard.css';
 import { FaUserShield, FaTools, FaChartLine } from 'react-icons/fa';
 
-function AdminDashboard() {
+function AdminDashboardPage() {
   return (
     <div className="settings-dashboard-container">
       <h3>관리자 대시보드</h3>
@@ -32,4 +32,4 @@ function AdminDashboard() {
   );
 }
 
-export default AdminDashboard;
+export default AdminDashboardPage;

@@ -1,4 +1,4 @@
-// src/components/EditPost.js
+// src/pages/EditPostPage.js
 import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, storage } from '../firebase/firebase';
@@ -10,9 +10,9 @@ import heic2any from 'heic2any';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
-import { useQuillToolbar } from './QuillToolbar';
-import { registerCustomImageBlot } from './QuillCustomBlots';
-import CustomFormulaEditor from './CustomFormulaEditor';
+import { useQuillToolbar } from '../components/QuillToolbar';
+import { registerCustomImageBlot } from '../components/QuillCustomBlots';
+import CustomFormulaEditor from '../components/CustomFormulaEditor';
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 import '../style/CustomFormulaEditor.css';
@@ -22,7 +22,7 @@ registerCustomImageBlot();
 
 const MAX_CONTENT_SIZE = 1000000;
 
-function EditPost() {
+function EditPostPage() {
   const { category: categoryParam, id } = useParams();
   const navigate = useNavigate();
   const { uid, role } = useContext(AuthContext);
@@ -322,4 +322,4 @@ function EditPost() {
   );
 }
 
-export default EditPost;
+export default EditPostPage;

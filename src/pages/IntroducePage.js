@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Introduce() {
+function IntroducePage() {
   return (
     <div>
       <h2>Introduce Page</h2>
@@ -9,4 +9,4 @@ function Introduce() {
   );
 }
 
-export default Introduce;
+export default IntroducePage;

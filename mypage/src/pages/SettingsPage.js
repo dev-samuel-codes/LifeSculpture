@@ -1,10 +1,10 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import SettingsDashboard from './SettingsDashboard';
-import SettingsWriting from './SettingsWriting';
-import SettingsUsers from './SettingsUsers';
+import SettingsDashboard from '../components/SettingsDashboard';
+import SettingsWriting from '../components/SettingsWriting';
+import SettingsUsers from '../components/SettingsUsers';
 
-function Settings() {
+function SettingsPage() {
   return (
     <Routes>
       <Route path="/" element={<SettingsDashboard />} />
@@ -14,4 +14,4 @@ function Settings() {
   );
 }
 
-export default Settings;
+export default SettingsPage;
