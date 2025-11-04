@@ -12,6 +12,7 @@
     "chart.js": "^4.5.0",
     "dotenv-cli": "^10.0.0",
     "firebase": "^12.1.0",
+    "heic2any": "^0.0.4",
     "jwt-decode": "^4.0.0",
     "katex": "^0.16.22",
     "my-fullstack-app": "file:..",
@@ -26,7 +27,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "dotenv -e .env react-scripts start",
+    "start": "dotenv -e .env -- react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
