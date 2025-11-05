@@ -1,8 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { LazyBackgroundImage } from '../components';
+import React, { useMemo } from 'react';
+import { HomeContentCards } from '../components';
 import useStorageImage from '../hooks/useStorageImage';
 import '../style/Home.css';
+
+const CARD_CONFIG = [
+  { key: 'coding', link: '/study', title: '웹, 앱 개발' },
+  { key: 'ai', link: '/study', title: 'AI' },
+  { key: 'travel', link: '/blog', title: '여행' },
+  { key: 'tip', link: '/blog', title: '팁' },
+];
 
 function HomePage() {
   const mainBackground = useStorageImage('image/MainBackgroundImage.png');
@@ -11,11 +17,28 @@ function HomePage() {
   const travelImage = useStorageImage('image/travel.jpg');
   const tipImage = useStorageImage('image/tip.jpg');
 
+  const cards = useMemo(() => {
+    const imageMap = {
+      coding: codingImage,
+      ai: aiImage,
+      travel: travelImage,
+      tip: tipImage,
+    };
+    return CARD_CONFIG.map((config) => ({
+      ...config,
+      image: imageMap[config.key],
+    }));
+  }, [codingImage, aiImage, travelImage, tipImage]);
+
+  const mainSectionStyle = mainBackground.url
+    ? { backgroundImage: `url(${mainBackground.url})` }
+    : undefined;
+
   return (
     <div>
       <div
         className="main-section1"
-        style={mainBackground.url ? { backgroundImage: `url(${mainBackground.url})` } : undefined}
+        style={mainSectionStyle}
         data-loading={mainBackground.loading || !mainBackground.url}
       >
         <h2>Every Day, A New Page</h2>
@@ -24,59 +47,7 @@ function HomePage() {
       <div className="main-section2">
         <div className="main-section2-title">Contents</div>
 
-        <div className="main-section2-content">
-          <LazyBackgroundImage
-            src={codingImage.url}
-            className="main-card"
-            data-loading={codingImage.loading || !codingImage.url}
-          >
-            <Link to="/study" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
-              <div className="main-card-overlay"></div>
-              <div className="main-card-body">
-                <h3>웹, 앱 개발</h3>
-              </div>
-            </Link>
-          </LazyBackgroundImage>
-
-          <LazyBackgroundImage
-            src={aiImage.url}
-            className="main-card"
-            data-loading={aiImage.loading || !aiImage.url}
-          >
-            <Link to="/study" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
-              <div className="main-card-overlay"></div>
-              <div className="main-card-body">
-                <h3>AI</h3>
-              </div>
-            </Link>
-          </LazyBackgroundImage>
-
-          <LazyBackgroundImage
-            src={travelImage.url}
-            className="main-card"
-            data-loading={travelImage.loading || !travelImage.url}
-          >
-            <Link to="/blog" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
-              <div className="main-card-overlay"></div>
-              <div className="main-card-body">
-                <h3>여행</h3>
-              </div>
-            </Link>
-          </LazyBackgroundImage>
-
-          <LazyBackgroundImage
-            src={tipImage.url}
-            className="main-card"
-            data-loading={tipImage.loading || !tipImage.url}
-          >
-            <Link to="/blog" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
-              <div className="main-card-overlay"></div>
-              <div className="main-card-body">
-                <h3>팁</h3>
-              </div>
-            </Link>
-          </LazyBackgroundImage>
-        </div>
+        <HomeContentCards cards={cards} />
       </div>
     </div>
   );
