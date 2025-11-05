@@ -235,7 +235,7 @@ const useComments = ({ category, postId }) => {
         alert('좋아요 처리에 실패했습니다.');
       }
     },
-    [category, currentUser.uid, postId, requestLogin],
+    [category, currentUser.uid, currentUser.isAuthenticated, postId, requestLogin],
   );
 
   const handleDeleteComment = useCallback(
