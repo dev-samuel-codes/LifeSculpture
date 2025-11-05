@@ -4,7 +4,6 @@ import { Routes, Route } from 'react-router-dom';
 import { Connect, Header } from './components';
 import { AuthContext } from './context/AuthContext';
 import HomePage from './pages/HomePage';
-import IntroducePage from './pages/IntroducePage';
 import StudyPage from './pages/StudyPage';
 import BlogPage from './pages/BlogPage';
 import SettingsPage from './pages/SettingsPage';
@@ -37,7 +36,6 @@ function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/introduce" element={<Page><IntroducePage /></Page>} />
         <Route path="/study" element={<Page><StudyPage /></Page>} />
         <Route path="/blog" element={<Page><BlogPage /></Page>} />
         <Route path="/settings/*" element={<Page><SettingsPage /></Page>} />
