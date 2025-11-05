@@ -10,7 +10,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import { TextEditorFormulaDialog, registerTextEditorImageBlot, useQuillToolbar } from '../components';
-import { calculateContentSize, sanitizeContent } from '../components/text-editor/utils/content';
+import { calculateContentSize, sanitizeHtml } from '../components/text-editor/utils/content';
 import {
   convertHeicToJpeg,
   extractImageUrls,
@@ -195,7 +195,7 @@ function EditPostPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !sanitizeContent(content)) {
+    if (!title.trim() || !sanitizeHtml(content)) {
       return alert('제목과 내용을 입력해주세요.');
     }
     if (contentSize > MAX_CONTENT_SIZE) {
@@ -212,7 +212,7 @@ function EditPostPage() {
       if (removedUrls.length > 0 && window.confirm(`${removedUrls.length}개의 이미지를 삭제하시겠습니까?`)) {
         await deleteImagesFromStorage(removedUrls);
       }
-      await updateDoc(doc(db, categoryParam, id), { title: title.trim(), content: finalContent, category: category.trim() });
+      await updateDoc(doc(db, categoryParam, id), { title: title.trim(), content: sanitizeHtml(finalContent), category: category.trim() });
       alert('게시글이 성공적으로 수정되었습니다.');
       if (window.opener) {
         window.opener.location.reload();

@@ -4,5 +4,29 @@ export const calculateContentSize = (htmlContent) => {
   return new Blob([textContent]).size;
 };
 
+export const sanitizeHtml = (html) => {
+  if (!html) return '';
+
+  // 1. Remove script tags
+  let sanitized = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/g, '');
+
+  // 2. Remove event handlers (e.g., onerror, onload)
+  sanitized = sanitized.replace(/on\w+="[^"]*"/g, '');
+  sanitized = sanitized.replace(/on\w+='[^']*'/g, '');
+  sanitized = sanitized.replace(/on\w+=`[^`]*`/g, '');
+  sanitized = sanitized.replace(/on\w+=\w+/g, '');
+
+
+  // 3. Remove javascript: URLs
+  sanitized = sanitized.replace(/href="javascript:[^"]*"/g, 'href="#"');
+  sanitized = sanitized.replace(/src="javascript:[^"]*"/g, 'src="#"');
+
+
+  // 4. Remove empty paragraphs (existing logic)
+  sanitized = sanitized.trim().replace(/<p><br><\/p>/g, '');
+
+  return sanitized;
+};
+
 export const sanitizeContent = (html) =>
   String(html || '').trim().replace(/<p><br><\/p>/g, '');
