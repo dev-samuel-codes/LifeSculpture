@@ -1,13 +1,19 @@
 // PostDetailPage.js
-import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { db, storage } from '../firebase/firebase';
-import { doc, getDoc, updateDoc, increment, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { storage } from '../firebase/firebase';
 import { AuthContext } from '../context/AuthContext';
 import { CommentsSection, LazyImage, LoginRequiredPopup, LikeButton } from '../components';
 import { formatDateOnly } from '../utils/date';
 import { extractImageUrls } from '../components/text-editor/utils/media';
 import { deleteStorageImages } from '../utils/storage';
+import {
+  deletePost as removePost,
+  getPost,
+  incrementPostView,
+  setPostLike,
+  setPostVisibility,
+} from '../services/posts';
 import '../style/PostDetail.css';
 import '../style/RichText.css';
 
@@ -122,32 +128,27 @@ function PostDetailPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const docRef = doc(db, category, id);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const postData = { id: docSnap.id, ...data };
-
-          if (typeof postData.viewCount !== 'number') {
-            postData.viewCount = 0;
-          }
-          if (typeof postData.likeCount !== 'number') {
-            postData.likeCount = 0;
-          }
-          if (!postData.likedBy) {
-            postData.likedBy = [];
-          }
-
-          setPost(postData);
-          setIsPublic(typeof data.isPublic === 'boolean' ? data.isPublic : true);
-          setLikeCount(postData.likeCount || 0);
-
-          if (isAuthenticated && uid && postData.likedBy.includes(uid)) {
-            setIsLiked(true);
-          }
-        } else {
+        const postData = await getPost({ category, id });
+        if (!postData) {
           setError('게시물을 찾을 수 없습니다.');
+          return;
+        }
+
+        const normalizedPost = {
+          viewCount: 0,
+          likeCount: 0,
+          likedBy: [],
+          ...postData,
+        };
+
+        setPost(normalizedPost);
+        setIsPublic(
+          typeof normalizedPost.isPublic === 'boolean' ? normalizedPost.isPublic : true,
+        );
+        setLikeCount(normalizedPost.likeCount || 0);
+
+        if (isAuthenticated && uid && normalizedPost.likedBy.includes(uid)) {
+          setIsLiked(true);
         }
       } catch (err) {
         setError('게시물을 불러오는 데 실패했습니다.');
@@ -170,10 +171,7 @@ function PostDetailPage() {
 
     const incrementViewCount = async () => {
       try {
-        const docRef = doc(db, category, id);
-        await updateDoc(docRef, {
-          viewCount: increment(1),
-        });
+        await incrementPostView({ category, id });
         setPost((prev) => ({
           ...prev,
           viewCount: (prev?.viewCount || 0) + 1,
@@ -281,8 +279,7 @@ function PostDetailPage() {
     const nextPublicState = !isPublic;
     setIsPublic(nextPublicState);
     try {
-      const docRef = doc(db, category, id);
-      await updateDoc(docRef, { isPublic: nextPublicState });
+      await setPostVisibility({ category, id, isPublic: nextPublicState });
     } catch (err) {
       setIsPublic(!nextPublicState);
       if (process.env.NODE_ENV !== 'production') {
@@ -302,22 +299,10 @@ function PostDetailPage() {
     }
 
     try {
-      const docRef = doc(db, category, id);
-      const newLikeCount = isLiked ? likeCount - 1 : likeCount + 1;
-
-      if (isLiked) {
-        await updateDoc(docRef, {
-          likeCount: increment(-1),
-          likedBy: arrayRemove(uid),
-        });
-      } else {
-        await updateDoc(docRef, {
-          likeCount: increment(1),
-          likedBy: arrayUnion(uid),
-        });
-      }
-
-      setIsLiked(!isLiked);
+      const nextLikedState = !isLiked;
+      const newLikeCount = nextLikedState ? likeCount + 1 : likeCount - 1;
+      await setPostLike({ category, id, uid, like: nextLikedState });
+      setIsLiked(nextLikedState);
       setLikeCount(newLikeCount);
     } catch (err) {
       alert('공감 상태를 업데이트하는 중 오류가 발생했습니다.');
@@ -329,7 +314,7 @@ function PostDetailPage() {
 
     try {
       const imageUrls = extractImageUrls(post.content);
-      await deleteDoc(doc(db, category, id));
+      await removePost({ category, id });
 
       if (imageUrls.length > 0) {
         await deleteStorageImages({ urls: imageUrls, storage, uid, role });

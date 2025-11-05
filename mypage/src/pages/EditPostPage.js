@@ -1,8 +1,7 @@
 // src/pages/EditPostPage.js
 import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db, storage } from '../firebase/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { storage } from '../firebase/firebase';
 import { AuthContext } from '../context/AuthContext';
 
 import ReactQuill from 'react-quill-new';
@@ -17,6 +16,7 @@ import {
 } from '../components/text-editor/utils/media';
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { deleteStorageImages } from '../utils/storage';
+import { getPost, updatePostFields } from '../services/posts';
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 import '../style/CustomFormulaEditor.css';
@@ -97,13 +97,12 @@ function EditPostPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const snapshot = await getDoc(doc(db, categoryParam, id));
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          const initialContent = data.content || '';
-          setTitle(data.title || '');
+        const postData = await getPost({ category: categoryParam, id });
+        if (postData) {
+          const initialContent = postData.content || '';
+          setTitle(postData.title || '');
           setContent(initialContent);
-          setCategory(data.category || categoryParam);
+          setCategory(postData.category || categoryParam);
           setOriginalImageUrls(getTrackedImageUrls(initialContent));
           setContentSize(calculateContentSize(initialContent));
         } else {
@@ -198,10 +197,14 @@ function EditPostPage() {
         }
       }
 
-      await updateDoc(doc(db, categoryParam, id), {
-        title: title.trim(),
-        content: sanitizeHtml(finalContent),
-        category: category.trim(),
+      await updatePostFields({
+        category: categoryParam,
+        id,
+        data: {
+          title: title.trim(),
+          content: sanitizeHtml(finalContent),
+          category: category.trim(),
+        },
       });
       alert('게시글이 성공적으로 수정되었습니다.');
       if (window.opener) {

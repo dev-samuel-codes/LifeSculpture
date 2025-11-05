@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+import { listPosts } from '../services/posts';
 
 const POSTS_PER_PAGE_DEFAULT = 6;
 
@@ -41,14 +40,10 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
       setLoading(true);
       setError(null);
       try {
-        const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        if (isCancelled) return;
-        const posts = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }));
-        setAllPosts(posts);
+        const posts = await listPosts({ category: collectionName, order: 'desc' });
+        if (!isCancelled) {
+          setAllPosts(posts);
+        }
       } catch (err) {
         if (!isCancelled) {
           setError('Failed to load posts.');
