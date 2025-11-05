@@ -5,12 +5,19 @@ import { db, storage } from '../firebase/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
-import heic2any from 'heic2any';
 
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import { TextEditorFormulaDialog, registerTextEditorImageBlot, useQuillToolbar } from '../components';
+import { calculateContentSize, sanitizeContent } from '../components/text-editor/utils/content';
+import {
+  convertHeicToJpeg,
+  extractImageUrls,
+  extractStoragePath,
+  isSameStorageImage,
+} from '../components/text-editor/utils/media';
+import { getResponsiveEditorHeight } from '../components/text-editor/utils/layout';
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 import '../style/CustomFormulaEditor.css';
@@ -43,62 +50,21 @@ function EditPostPage() {
   const quillRef = useRef(null);
   const { modules, formats, handleImageUpload } = useQuillToolbar();
 
-  const calculateContentSize = (htmlContent) => {
-    const textContent = htmlContent.replace(/<[^>]*>/g, '');
-    return new Blob([textContent]).size;
-  };
+  const shouldTrackImage = useCallback(
+    (url) =>
+      (url.startsWith('https://firebasestorage.googleapis.com') && url.includes('/o/')) ||
+      url.startsWith('data:image/'),
+    [],
+  );
+
+  const getTrackedImageUrls = useCallback(
+    (html) => extractImageUrls(html, { filter: shouldTrackImage }),
+    [shouldTrackImage],
+  );
 
   const handleContentChange = (newContent) => {
     setContent(newContent);
     setContentSize(calculateContentSize(newContent));
-  };
-
-  const extractImageUrls = (content) => {
-    if (!content) return [];
-    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/g;
-    const urls = [];
-    let match;
-    while ((match = imgRegex.exec(content)) !== null) {
-      const url = match[1];
-      if ((url.startsWith('https://firebasestorage.googleapis.com') && url.includes('/o/')) || url.startsWith('data:image/')) {
-        urls.push(url);
-      }
-    }
-    return urls;
-  };
-
-  const extractStoragePath = (imageUrl) => {
-    if (!imageUrl.startsWith('https://firebasestorage.googleapis.com')) return null;
-    try {
-      const url = new URL(imageUrl);
-      const pathParts = url.pathname.split('/');
-      const oIndex = pathParts.findIndex(part => part === 'o');
-      if (oIndex !== -1 && oIndex + 1 < pathParts.length) {
-        let filePath = decodeURIComponent(pathParts.slice(oIndex + 1).join('/'));
-        return filePath.includes('?') ? null : filePath;
-      }
-    } catch (e) { /* ignore */ }
-    return null;
-  };
-
-  const isSameStorageImage = (url1, url2) => {
-    if (!url1 || !url2) return false;
-    if (url1.startsWith('https://firebasestorage.googleapis.com') && url2.startsWith('https://firebasestorage.googleapis.com')) {
-      return extractStoragePath(url1) === extractStoragePath(url2);
-    }
-    return url1 === url2;
-  };
-
-  const convertHeicToJpeg = async (file) => {
-    if (/image\/(heic|heif)/.test(file.type) || /\.(heic|heif)$/i.test(file.name)) {
-      try {
-        const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
-        return new File([convertedBlob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
-      } catch (error) {
-        throw new Error('HEIC 파일 변환에 실패했습니다.');
-      }
-    }
-    return file;
   };
 
   const handleImageInsert = useCallback(() => {
@@ -131,8 +97,7 @@ function EditPostPage() {
 
   useEffect(() => {
     const updateEditorHeight = () => {
-      const height = window.innerWidth <= 480 ? '300px' : (window.innerWidth <= 768 ? '350px' : '400px');
-      setEditorHeight(height);
+      setEditorHeight(getResponsiveEditorHeight());
     };
     updateEditorHeight();
     window.addEventListener('resize', updateEditorHeight);
@@ -148,7 +113,7 @@ function EditPostPage() {
           setTitle(data.title || '');
           setContent(data.content || '');
           setCategory(data.category || categoryParam);
-          setOriginalImageUrls(extractImageUrls(data.content || ''));
+          setOriginalImageUrls(getTrackedImageUrls(data.content || ''));
           setContentSize(calculateContentSize(data.content || ''));
         } else {
           setError('Post not found.');
@@ -160,7 +125,7 @@ function EditPostPage() {
       }
     };
     fetchPost();
-  }, [categoryParam, id]);
+  }, [categoryParam, getTrackedImageUrls, id]);
 
   const deleteImagesFromStorage = async (imageUrls) => {
     const promises = imageUrls.map(url => {
@@ -230,7 +195,7 @@ function EditPostPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim().replace(/<p><br><\/p>/g, '')) {
+    if (!title.trim() || !sanitizeContent(content)) {
       return alert('제목과 내용을 입력해주세요.');
     }
     if (contentSize > MAX_CONTENT_SIZE) {
@@ -239,9 +204,11 @@ function EditPostPage() {
     setIsUploading(true);
     try {
       const finalContent = await uploadPendingImages();
-      const currentUrls = extractImageUrls(finalContent).filter(url => url.startsWith('https'));
-      const originalUrls = originalImageUrls.filter(url => url.startsWith('https'));
-      const removedUrls = originalUrls.filter(url => !currentUrls.some(cUrl => isSameStorageImage(url, cUrl)));
+      const currentUrls = getTrackedImageUrls(finalContent).filter((url) => url.startsWith('https'));
+      const originalUrls = originalImageUrls.filter((url) => url.startsWith('https'));
+      const removedUrls = originalUrls.filter((url) =>
+        !currentUrls.some((cUrl) => isSameStorageImage(url, cUrl))
+      );
       if (removedUrls.length > 0 && window.confirm(`${removedUrls.length}개의 이미지를 삭제하시겠습니까?`)) {
         await deleteImagesFromStorage(removedUrls);
       }

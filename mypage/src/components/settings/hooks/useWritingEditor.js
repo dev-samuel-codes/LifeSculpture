@@ -2,13 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import heic2any from 'heic2any';
 import { db } from '../../../firebase/firebase';
 import { useQuillToolbar } from '../../text-editor/hooks/useQuillToolbar';
+import {
+  calculateContentSize,
+  sanitizeContent,
+} from '../../text-editor/utils/content';
+import { convertHeicToJpeg } from '../../text-editor/utils/media';
+import { getResponsiveEditorHeight } from '../../text-editor/utils/layout';
 
 const MAX_CONTENT_SIZE = 1000000;
-
-const sanitizeContent = (html) => html.trim().replace(/<p><br><\/p>/g, '');
 
 const useWritingEditor = () => {
   const navigate = useNavigate();
@@ -31,30 +34,13 @@ const useWritingEditor = () => {
 
   const { modules, formats, handleImageUpload } = useQuillToolbar();
 
-  const calculateContentSize = useCallback((htmlContent) => {
-    const textContent = htmlContent.replace(/<[^>]*>/g, '');
-    return new Blob([textContent]).size;
-  }, []);
-
   const handleContentChange = useCallback(
     (newContent) => {
       setContent(newContent);
       setContentSize(calculateContentSize(newContent));
     },
-    [calculateContentSize],
+    [],
   );
-
-  const convertHeicToJpeg = useCallback(async (file) => {
-    if (/image\/(heic|heif)/.test(file.type) || /\.(heic|heif)$/i.test(file.name)) {
-      const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
-      return new File(
-        [convertedBlob],
-        file.name.replace(/\.(heic|heif)$/i, '.jpg'),
-        { type: 'image/jpeg' },
-      );
-    }
-    return file;
-  }, []);
 
   const handleImageInsert = useCallback(() => {
     const input = document.createElement('input');
@@ -86,18 +72,11 @@ const useWritingEditor = () => {
         alert('이미지 처리 실패: ' + error.message);
       }
     };
-  }, [convertHeicToJpeg]);
+  }, []);
 
   useEffect(() => {
     const updateEditorHeight = () => {
-      const { innerWidth } = window;
-      if (innerWidth <= 480) {
-        setEditorHeight('300px');
-      } else if (innerWidth <= 768) {
-        setEditorHeight('350px');
-      } else {
-        setEditorHeight('400px');
-      }
+      setEditorHeight(getResponsiveEditorHeight());
     };
 
     updateEditorHeight();
