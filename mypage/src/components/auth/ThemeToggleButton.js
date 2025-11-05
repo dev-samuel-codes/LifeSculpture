@@ -1,3 +1,4 @@
+// ThemeToggleButton 컴포넌트: 라이트/다크 테마를 전환하는 토글 버튼
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiMoon, FiSun } from 'react-icons/fi';
 import { useTheme } from '../../context/ThemeContext';

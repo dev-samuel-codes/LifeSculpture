@@ -1,3 +1,4 @@
+// components/index: 재사용 가능한 컴포넌트를 배럴 방식으로 재노출
 export { default as Header } from './layout/Header';
 export { default as Connect } from './layout/Connect';
 

@@ -1,3 +1,4 @@
+// useWritingEditor 훅: 글 작성 폼 상태와 편집기 동작을 관리
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';

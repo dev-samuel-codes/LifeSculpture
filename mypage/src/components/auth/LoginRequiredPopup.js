@@ -1,3 +1,4 @@
+// LoginRequiredPopup 컴포넌트: 인증이 필요한 기능에 대한 안내 팝업
 import React, { useEffect } from 'react';
 import GoogleLoginButton from './GoogleLoginButton';
 import '../../style/LoginRequiredPopup.css';

@@ -1,4 +1,4 @@
-// src/components/SettingsUsers.js
+// SettingsUsers 컴포넌트: 관리자용 사용자 목록과 권한 관리 화면
 import React, { useState, useEffect, useMemo } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../../firebase/firebase';

@@ -1,4 +1,4 @@
-// src/components/GoogleLoginButton.js
+// GoogleLoginButton 컴포넌트: Google 로그인 플로우를 실행하는 버튼
 import React, { useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';

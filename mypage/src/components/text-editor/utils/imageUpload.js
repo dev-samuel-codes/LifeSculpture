@@ -1,3 +1,4 @@
+// imageUpload utils: 에디터 이미지 업로드와 Storage 연동 로직
 import { getAuth } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../firebase/firebase';
@@ -169,4 +170,3 @@ export const handleImageUpload = async (file) => {
     throw err;
   }
 };
-

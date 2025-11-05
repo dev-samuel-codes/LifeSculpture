@@ -1,4 +1,4 @@
-// src/components/SettingsWriting.js
+// SettingsWriting 컴포넌트: 글 작성 페이지의 UI 레이아웃을 구성
 import React from 'react';
 import SettingsMenu from './SettingsMenu';
 import ReactQuill from 'react-quill-new';

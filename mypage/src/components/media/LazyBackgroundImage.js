@@ -1,3 +1,4 @@
+// LazyBackgroundImage 컴포넌트: 배경 이미지를 지연 로딩해 성능을 최적화
 import React, { useState, useRef, useEffect } from 'react';
 
 const LazyBackgroundImage = ({ 

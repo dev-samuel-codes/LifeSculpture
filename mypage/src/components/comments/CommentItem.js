@@ -1,3 +1,4 @@
+// CommentItem 컴포넌트: 단일 댓글과 액션 버튼을 렌더링
 import React from 'react';
 import { ANONYMOUS_NAME } from './utils';
 import { formatDateOnly } from '../../utils/date';

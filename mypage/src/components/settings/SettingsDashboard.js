@@ -1,3 +1,4 @@
+// SettingsDashboard 컴포넌트: 설정 대시보드의 통계와 요약 정보를 표시
 import React, { useState, useEffect } from 'react';
 import SettingsMenu from './SettingsMenu';
 import { db } from '../../firebase/firebase';

@@ -1,3 +1,4 @@
+// layout utils: 뷰포트에 따른 편집기 높이 계산
 export const getResponsiveEditorHeight = (width) => {
   const viewport =
     typeof width === 'number'

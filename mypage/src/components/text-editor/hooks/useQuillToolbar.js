@@ -1,3 +1,4 @@
+// useQuillToolbar 훅: Quill 편집기의 모듈과 핸들러를 초기화
 import { useCallback, useEffect, useMemo } from 'react';
 import ReactQuill from 'react-quill-new';
 import katex from 'katex';

@@ -1,4 +1,4 @@
-// text-editor/TextEditorFormulaDialog.js
+// TextEditorFormulaDialog: 수식 입력을 위한 모달 에디터
 import React, { useState, useEffect, useRef } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';

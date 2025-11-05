@@ -1,3 +1,4 @@
+// useComments 훅: 댓글 데이터 조회와 상호작용 로직을 관리
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createComment,

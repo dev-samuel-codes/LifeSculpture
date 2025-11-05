@@ -1,3 +1,4 @@
+// CommentsSection 컴포넌트: 댓글 목록과 작성 UI 전체를 구성
 import React from 'react';
 import LoginRequiredPopup from '../auth/LoginRequiredPopup';
 import CommentComposer from './CommentComposer';

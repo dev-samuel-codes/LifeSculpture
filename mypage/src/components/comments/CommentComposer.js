@@ -1,3 +1,4 @@
+// CommentComposer 컴포넌트: 댓글 입력과 제출 폼을 담당
 import React, { useState } from 'react';
 
 function CommentComposer({

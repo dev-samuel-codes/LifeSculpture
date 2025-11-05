@@ -1,3 +1,4 @@
+// LazyImage 컴포넌트: 일반 이미지를 뷰포트 진입 시 로딩하도록 처리
 import React, { useState, useRef, useEffect } from 'react';
 
 const LazyImage = ({ 

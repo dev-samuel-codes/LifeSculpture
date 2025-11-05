@@ -1,3 +1,4 @@
+// media utils: 이미지 변환과 경로 분석, 비교 기능 제공
 import heic2any from 'heic2any';
 
 export const convertHeicToJpeg = async (file) => {

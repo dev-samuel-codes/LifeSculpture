@@ -1,4 +1,4 @@
-// text-editor/TextEditorCustomBlots.js
+// TextEditorCustomBlots: Quill에서 사용하는 커스텀 이미지 블롯 정의
 import ReactQuill from 'react-quill-new';
 
 const BlockEmbed = ReactQuill.Quill.import('blots/block/embed');

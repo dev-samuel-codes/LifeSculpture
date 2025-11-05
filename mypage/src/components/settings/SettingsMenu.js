@@ -1,4 +1,4 @@
-// src/components/SettingsMenu.js
+// SettingsMenu 컴포넌트: 설정 화면의 내비게이션 메뉴
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { FiLayout, FiEdit3, FiUsers } from 'react-icons/fi';

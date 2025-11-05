@@ -1,3 +1,4 @@
+// quillSetup utils: Quill 포맷 등록과 테이블 핸들러 초기화
 import ReactQuill from 'react-quill-new';
 
 let quillFormatsRegistered = false;

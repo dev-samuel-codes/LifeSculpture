@@ -1,3 +1,4 @@
+// Header 컴포넌트: 사이트 공통 네비게이션과 사용자 메뉴를 제공
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import GoogleLoginButton from '../auth/GoogleLoginButton';
