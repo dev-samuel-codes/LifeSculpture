@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc, increment, deleteDoc, arrayUnion, arrayRemove }
 import { ref, deleteObject } from 'firebase/storage';
 import { AuthContext } from '../context/AuthContext';
 import { CommentsSection, LazyImage, LoginRequiredPopup } from '../components';
+import { formatDateOnly } from '../utils/date';
 import '../style/PostDetail.css';
 import '../style/RichText.css';
 
@@ -625,42 +626,6 @@ function PostDetailPage() {
       window.removeEventListener('resize', handleResize);
     };
   }, [post]);
-
-  // 날짜만 표시 (YYYY-MM-DD)
-  const formatDateOnly = (value) => {
-    if (!value) return '';
-    let date;
-
-    // Firestore Timestamp 객체
-    if (value.toDate && typeof value.toDate === 'function') {
-      date = value.toDate();
-    } 
-    // JS Date 객체
-    else if (value instanceof Date) {
-      date = value;
-    } 
-    // number(ms) 또는 문자열
-    else {
-      const parsed = new Date(value);
-      if (isNaN(parsed.getTime())) return '';
-      date = parsed;
-    }
-
-    // 한국 표준(yyyy. MM. dd.) 대신 고정형식 YYYY-MM-DD 원하시면 아래로 사용
-    // return date.toISOString().slice(0, 10);
-
-    // "날짜까지만" + 로캘: ko-KR (예: 2025. 8. 12.)
-    // 필요시 위의 ISO 형식 주석 해제해 사용하세요.
-    return new Intl.DateTimeFormat('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      timeZone: 'Asia/Seoul',
-    })
-      .format(date)
-      .replace(/\.\s?/g, '. ') // 보기 좋게 공백 유지 (원하시면 제거 가능)
-      .trim();
-  };
 
   if (loading) return <div className="post-status">게시물을 불러오는 중...</div>;
   if (error)   return <div className="post-status">오류: {error}</div>;

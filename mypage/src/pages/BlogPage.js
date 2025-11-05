@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { AuthContext } from '../context/AuthContext';
+import { formatDate } from '../utils/date';
 import '../style/Study.css'; // 스타일 재사용
 
 const POSTS_PER_PAGE = 6;
@@ -152,9 +153,6 @@ function BlogPage() {
     setSortKey('createdAt_desc');
     setCurrentPage(1);
   };
-
-  const formatDate = (ts) =>
-    ts?.toDate ? new Date(ts.toDate()).toLocaleDateString() : '';
 
   if (loading) return <div className="container mt-4">Loading blog posts...</div>;
   if (error) return <div className="container mt-4 text-danger">Error: {error}</div>;

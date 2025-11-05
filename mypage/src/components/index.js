@@ -15,9 +15,9 @@ export { default as SettingsDashboard } from './settings/SettingsDashboard';
 export { default as SettingsUsers } from './settings/SettingsUsers';
 export { default as SettingsWriting } from './settings/SettingsWriting';
 
-export { default as CustomFormulaEditor } from './text-editor/CustomFormulaEditor';
-export { default as CustomImageBlot } from './text-editor/QuillCustomBlots';
-export { registerCustomImageBlot } from './text-editor/QuillCustomBlots';
+export { default as TextEditorFormulaDialog } from './text-editor/TextEditorFormulaDialog';
+export { default as TextEditorImageBlot } from './text-editor/TextEditorCustomBlots';
+export { registerTextEditorImageBlot } from './text-editor/TextEditorCustomBlots';
 export {
   useImageHandler,
   useQuillModules,

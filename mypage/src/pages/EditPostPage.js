@@ -10,13 +10,13 @@ import heic2any from 'heic2any';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
-import { CustomFormulaEditor, registerCustomImageBlot, useQuillToolbar } from '../components';
+import { TextEditorFormulaDialog, registerTextEditorImageBlot, useQuillToolbar } from '../components';
 import '../style/SettingsWriting.css';
 import '../style/QuillToolbar.css';
 import '../style/CustomFormulaEditor.css';
 import '../style/RichText.css';
 
-registerCustomImageBlot();
+registerTextEditorImageBlot();
 
 const MAX_CONTENT_SIZE = 1000000;
 
@@ -308,7 +308,7 @@ function EditPostPage() {
           </form>
         </div>
       </div>
-      <CustomFormulaEditor
+      <TextEditorFormulaDialog
         isOpen={isFormulaEditorOpen}
         onClose={() => setIsFormulaEditorOpen(false)}
         onSave={(latex) => {

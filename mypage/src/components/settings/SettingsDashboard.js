@@ -13,6 +13,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { formatDate } from '../../utils/date';
 import '../../style/SettingsDashboard.css';
 
 ChartJS.register(
@@ -63,7 +64,7 @@ function SettingsDashboard() {
 
         const stats = {};
         fetchedAllPosts.forEach(post => {
-          const date = new Date(post.createdAt.toDate()).toLocaleDateString();
+          const date = formatDate(post.createdAt);
           if (!stats[date]) stats[date] = { posts: 0, views: 0 };
           stats[date].posts += 1;
           stats[date].views += post.viewCount || 0;

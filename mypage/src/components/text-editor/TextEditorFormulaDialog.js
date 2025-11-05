@@ -1,4 +1,4 @@
-// src/components/CustomFormulaEditor.js
+// text-editor/TextEditorFormulaDialog.js
 import React, { useState, useEffect, useRef } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
@@ -25,7 +25,7 @@ const KatexButton = ({ latex, onClick }) => {
   );
 };
 
-const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => {
+const TextEditorFormulaDialog = ({ isOpen, onClose, onSave, initialValue = '' }) => {
   const [latex, setLatex] = useState(initialValue);
   const previewRef = useRef(null);
   const textareaRef = useRef(null);
@@ -144,4 +144,4 @@ const CustomFormulaEditor = ({ isOpen, onClose, onSave, initialValue = '' }) => 
   );
 };
 
-export default CustomFormulaEditor;
+export default TextEditorFormulaDialog;
