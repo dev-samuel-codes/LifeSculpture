@@ -126,7 +126,7 @@ function SettingsUsers() {
     // 특정 계정은 편집 불가
     if (user.email === 'sksksjakskska@gmail.com') {
       return (
-        <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
+        <span className={`settings-badge role-badge role-${(user.role || 'user').toLowerCase()}`}>
           {user.role === 'admin' ? '관리자' : '일반 사용자'}
         </span>
       );
@@ -171,11 +171,11 @@ function SettingsUsers() {
   const renderMobileCards = () => (
     <div className="users-mobile-cards">
       {filtered.map((user) => (
-        <div key={user.id} className="user-card">
+        <div key={user.id} className="settings-surface user-card">
           <div className="user-card-header">
             <div className="user-card-name">{user.name || 'N/A'}</div>
             {viewMode === 'edit' ? null : (
-              <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
+      <span className={`settings-badge role-badge role-${(user.role || 'user').toLowerCase()}`}>
                 {user.role === 'admin' ? '관리자' : '일반 사용자'}
               </span>
             )}
@@ -219,7 +219,7 @@ function SettingsUsers() {
                 </td>
               ) : (
                 <td>
-                  <span className={`role-badge role-${(user.role || 'user').toLowerCase()}`}>
+                  <span className={`settings-badge role-badge role-${(user.role || 'user').toLowerCase()}`}>
                     {user.role === 'admin' ? '관리자' : '일반 사용자'}
                   </span>
                 </td>

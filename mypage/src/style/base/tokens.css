@@ -6,8 +6,11 @@
   --color-text-heading: #1f2937;
   --color-text-strong: #374151;
   --color-text-muted: #6b7280;
+  --color-text-secondary: #4b5563;
 
   --color-surface-default: #ffffff;
+  --color-surface-soft: #f8f9fa;
+  --color-surface-subtle: #f4f6fb;
   --color-surface-muted: #f9fafc;
   --color-background-body: #f5f7ff;
   --body-background-pattern:
@@ -25,10 +28,13 @@
   --color-status-negative: #dc2626;
 
   --color-border-subtle: rgba(20, 24, 35, 0.06);
+  --color-border-strong: #d1d9e6;
+  --color-border-neutral: #e5e7eb;
   --color-border-muted: #d7dbe7;
 
   --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.06);
   --shadow-card-strong: 0 6px 18px rgba(0, 0, 0, 0.08);
+  --shadow-card-soft: 0 3px 8px rgba(0, 0, 0, 0.08);
 
   --skeleton-gradient-default: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   --skeleton-gradient-overlay: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0) 100%);
@@ -44,8 +50,11 @@ body[data-theme='dark'] {
   --color-text-heading: #f3f4ff;
   --color-text-strong: #d6dcff;
   --color-text-muted: #9aa4c2;
+  --color-text-secondary: #c0caee;
 
   --color-surface-default: #1f2333;
+  --color-surface-soft: #232e45;
+  --color-surface-subtle: rgba(62, 75, 110, 0.35);
   --color-surface-muted: #232c3f;
   --color-background-body: #1a1a2e;
   --body-background-pattern: none;
@@ -55,8 +64,11 @@ body[data-theme='dark'] {
   --app-surface-backdrop-filter: blur(10px);
 
   --color-border-subtle: rgba(205, 214, 255, 0.14);
+  --color-border-strong: rgba(129, 140, 196, 0.32);
+  --color-border-neutral: rgba(148, 163, 207, 0.28);
   --color-border-muted: rgba(148, 163, 207, 0.22);
 
   --shadow-card: 0 12px 28px rgba(0, 0, 0, 0.6);
   --shadow-card-strong: 0 10px 24px rgba(0, 0, 0, 0.65);
+  --shadow-card-soft: 0 12px 28px rgba(0, 0, 0, 0.5);
 }

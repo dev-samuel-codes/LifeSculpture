@@ -23,12 +23,9 @@
 /* 공통 카드 스타일: 차트 & Top 박스 */
 .chart-container,
 .top-posts-container {
-  background: #ffffff;
   padding: 1.25rem;
-  border-radius: 10px;
-  border: 2px solid #d1d9e6;           /* 선명한 테두리 */
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-  transition: border-color .25s ease, box-shadow .25s ease, transform .12s ease;
+  border-radius: 12px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.12s ease;
 }
 
 .chart-container h4,
@@ -36,21 +33,21 @@
   font-size: 1.1rem;
   margin-bottom: 1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-strong);
   text-align: center;
 }
 
 /* Top 5 리스트 */
 .top-posts-list .list-group-item {
   border: none;
-  background: #f8f9fa;
+  background: var(--color-surface-soft);
   margin-bottom: 0.5rem;
   border-radius: 8px;
   padding: 0.75rem 1rem;
-  color: #444;
+  color: var(--color-text-secondary);
   transition: background-color 0.25s ease;
 }
-.top-posts-list .list-group-item:hover { background-color: #e9ecef; }
+.top-posts-list .list-group-item:hover { background-color: var(--color-surface-subtle); }
 
 .top-posts-list .badge {
   background: linear-gradient(90deg, #4facfe, #00f2fe);

@@ -210,19 +210,19 @@ function SettingsDashboard() {
         <p>No data available.</p>
       ) : (
         <div className="dashboard-grid">
-          <div className="chart-container">
+          <div className="settings-surface settings-surface-strong chart-container">
             <h4>게시물 수</h4>
             <Line options={chartOptions} data={postsData} />
           </div>
-          <div className="chart-container">
+          <div className="settings-surface settings-surface-strong chart-container">
             <h4>총 조회수</h4>
             <Line options={chartOptions} data={viewsData} />
           </div>
-          <div className="chart-container">
+          <div className="settings-surface settings-surface-strong chart-container">
             <h4>방문자 수</h4>
             <Line options={chartOptions} data={siteVisitorsData} />
           </div>
-          <div className="top-posts-container">
+          <div className="settings-surface settings-surface-strong top-posts-container">
             <h4>가장 많이 본 분야</h4>
             {topCategories.length === 0 ? (
               <p>No category data available.</p>
