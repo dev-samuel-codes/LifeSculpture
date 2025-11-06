@@ -41,9 +41,9 @@ function SettingsWriting() {
   return (
     <>
       <div className="container mt-4 h-100">
-        <div className="row settings-row d-flex h-100">
+        <div className="settings-layout">
           <SettingsMenu />
-          <div className="col-md-9 h-100 flex-grow-1 settings-writing-container">
+          <div className="settings-card settings-writing-container">
             <form onSubmit={handleSubmit} className="writing-form">
               <div className="writing-fields-group">
                 <div className="row mb-3 writing-row">

@@ -1,0 +1,49 @@
+/* Shared layout and surface styles for settings screens */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  align-items: flex-start;
+  min-height: calc(100vh - 100px);
+}
+
+.settings-card {
+  background: var(--color-surface-default);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.settings-card-header {
+  color: var(--color-text-heading);
+  margin: 0;
+}
+
+@media (max-width: 992px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .settings-layout > .settings-menu-container {
+    width: 100%;
+    min-width: unset;
+    position: static;
+  }
+
+  .settings-layout > .settings-menu-container + * {
+    margin-top: 0;
+  }
+
+  .settings-layout .settings-menu {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .settings-layout .settings-menu-item {
+    flex: 1;
+    justify-content: center;
+  }
+}

@@ -235,7 +235,7 @@ function SettingsUsers() {
     <div className="container mt-4 h-100">
       <div className="settings-layout">
         <SettingsMenu />
-        <main className="settings-users-container">
+        <main className="settings-card settings-users-container">
           <header className={`users-header ${isMobile ? 'users-header-mobile' : ''}`}>
             <div className="users-header-title">
               <h3>Users Management</h3>

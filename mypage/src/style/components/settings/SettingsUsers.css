@@ -1,16 +1,8 @@
 /* style/components/settings/SettingsUsers.css */
-.settings-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 1.5rem;
-}
+@import url('./shared.css');
 
 .settings-users-container {
-  background: #fff;
-  border-radius: 14px;
   padding: 1.25rem 1.25rem 1rem;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  border: 1px solid rgba(20,24,35,0.06);
 }
 
 .users-header {
@@ -24,13 +16,13 @@
 .users-header h3 {
   font-size: 1.4rem;
   font-weight: 800;
-  color: #1f2937;
+  color: var(--color-text-heading);
   margin: 0;
 }
 
 .users-sub {
   margin: .25rem 0 0;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: .95rem;
 }
 
@@ -43,18 +35,18 @@
   height: 38px;
   padding: 0 .75rem;
   border-radius: 10px;
-  border: 1px solid #d7dbe7;
+  border: 1px solid var(--color-border-muted);
   outline: none;
   min-width: 220px;
-  background: #f9fafc;
+  background: var(--color-surface-muted);
 }
 
 .users-select {
   height: 38px;
   padding: 0 .6rem;
   border-radius: 10px;
-  border: 1px solid #d7dbe7;
-  background: #fff;
+  border: 1px solid var(--color-border-muted);
+  background: var(--color-surface-default);
 }
 
 /* Table */
@@ -70,7 +62,7 @@
 
 .users-table thead th {
   background: #f4f6fb;
-  color: #374151;
+  color: var(--color-text-strong);
   font-weight: 700;
   padding: 12px 14px;
   border: none;
@@ -80,7 +72,7 @@
 }
 
 .users-table tbody tr {
-  background: #ffffff;
+  background: var(--color-surface-default);
   box-shadow: 0 1px 0 rgba(0,0,0,.02), 0 2px 6px rgba(0,0,0,.04);
 }
 
@@ -147,7 +139,7 @@
 .users-empty {
   padding: 2rem 1rem;
   text-align: center;
-  color: #6b7280;
+  color: var(--color-text-muted);
 }
 
 /* Mobile Cards */
@@ -157,7 +149,7 @@
 }
 
 .user-card {
-  background: #ffffff;
+  background: var(--color-surface-default);
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 16px;
@@ -180,11 +172,11 @@
 .user-card-name {
   font-weight: 600;
   font-size: 1rem;
-  color: #1f2937;
+  color: var(--color-text-heading);
 }
 
 .user-card-email {
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
   word-break: break-all;
 }
@@ -198,9 +190,9 @@
 
 .role-change-select {
   padding: 6px 10px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-muted);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-surface-default);
   font-size: 0.875rem;
   min-width: 120px;
 }
@@ -216,7 +208,7 @@
   border: none;
   border-radius: 8px;
   background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -244,7 +236,7 @@
 
 .role-change-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
-  color: #374151;
+  color: var(--color-text-strong);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -295,9 +287,6 @@
 
 /* Responsive */
 @media (max-width: 992px) {
-  .settings-layout {
-    grid-template-columns: 1fr;
-  }
   .users-tools { width: 100%; }
   .users-search { flex: 1; min-width: 120px; }
 }

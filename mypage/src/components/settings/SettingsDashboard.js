@@ -201,7 +201,7 @@ function SettingsDashboard() {
     .slice(0, 3);
 
   const Content = () => (
-    <main className="settings-dashboard-main">
+    <main className="settings-card settings-dashboard-main">
       <header className="dashboard-header">
         <h3>Dashboard</h3>
       </header>
@@ -250,7 +250,7 @@ function SettingsDashboard() {
       <div className="container mt-4 h-100">
         <div className="settings-layout">
           <SettingsMenu />
-          <main className="settings-dashboard-main">
+          <main className="settings-card settings-dashboard-main">
             <h3>Dashboard</h3>
             <div className={error ? 'text-danger' : ''}>
               {error ? error : 'Loading dashboard data...'}

@@ -1,4 +1,6 @@
 /* style/components/settings/SettingsMenu.css */
+@import url('./shared.css');
+
 .settings-menu-container {
   width: 260px;
   min-width: 220px;
@@ -8,11 +10,11 @@
 }
 
 .settings-menu {
-  background: #fff;
+  background: var(--color-surface-default);
   border-radius: 14px;
   padding: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-  border: 1px solid rgba(20, 24, 35, 0.06);
+  box-shadow: var(--shadow-card-strong);
+  border: 1px solid var(--color-border-subtle);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -24,7 +26,7 @@
   gap: 10px;
   padding: 12px 14px;
   border-radius: 10px;
-  color: #374151;
+  color: var(--color-text-strong);
   text-decoration: none;
   font-weight: 600;
   transition: background-color .18s ease, color .18s ease, transform .12s ease;
@@ -45,10 +47,4 @@
   background: #e9edff;
   color: #2746ff;
   box-shadow: inset 0 0 0 1px rgba(39,70,255,.15);
-}
-
-@media (max-width: 992px) {
-  .settings-menu-container { width: 100%; min-width: unset; position: static; }
-  .settings-menu { flex-direction: row; gap: 8px; }
-  .settings-menu-item { flex: 1; justify-content: center; }
 }

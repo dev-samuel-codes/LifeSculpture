@@ -3,6 +3,12 @@
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 
   --color-text-primary: #0f172a;
+  --color-text-heading: #1f2937;
+  --color-text-strong: #374151;
+  --color-text-muted: #6b7280;
+
+  --color-surface-default: #ffffff;
+  --color-surface-muted: #f9fafc;
   --color-background-body: #f5f7ff;
   --body-background-pattern:
     radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.75), transparent 55%),
@@ -18,6 +24,12 @@
   --color-status-positive: #16a34a;
   --color-status-negative: #dc2626;
 
+  --color-border-subtle: rgba(20, 24, 35, 0.06);
+  --color-border-muted: #d7dbe7;
+
+  --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.06);
+  --shadow-card-strong: 0 6px 18px rgba(0, 0, 0, 0.08);
+
   --skeleton-gradient-default: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   --skeleton-gradient-overlay: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0) 100%);
   --skeleton-gradient-soft: linear-gradient(90deg, #f0f3f9 25%, #e5e9f2 37%, #f0f3f9 63%);
@@ -29,10 +41,22 @@
 html[data-theme='dark'],
 body[data-theme='dark'] {
   --color-text-primary: #e0e0e0;
+  --color-text-heading: #f3f4ff;
+  --color-text-strong: #d6dcff;
+  --color-text-muted: #9aa4c2;
+
+  --color-surface-default: #1f2333;
+  --color-surface-muted: #232c3f;
   --color-background-body: #1a1a2e;
   --body-background-pattern: none;
 
   --app-surface-background: linear-gradient(155deg, rgba(26, 26, 46, 0.95), rgba(20, 20, 38, 0.95));
   --app-surface-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   --app-surface-backdrop-filter: blur(10px);
+
+  --color-border-subtle: rgba(205, 214, 255, 0.14);
+  --color-border-muted: rgba(148, 163, 207, 0.22);
+
+  --shadow-card: 0 12px 28px rgba(0, 0, 0, 0.6);
+  --shadow-card-strong: 0 10px 24px rgba(0, 0, 0, 0.65);
 }

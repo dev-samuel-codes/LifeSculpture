@@ -1,25 +1,26 @@
 /* style/components/settings/SettingsWriting.css */
+@import url('./shared.css');
 @import url('../editor/QuillToolbar.css');
 
 /* ===== Card Shell ===== */
 .settings-writing-container {
-  background: #ffffff;
-  border: none;
-  border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
   padding: 1.25rem;
+  border: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .writing-header h3 {
   font-size: 1.45rem;
   font-weight: 800;
-  color: #1f2937;
+  color: var(--color-text-heading);
   margin: 0 0 0.25rem;
 }
 
 .writing-subtitle {
   margin: 0 0 1.1rem;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: .95rem;
 }
 
@@ -40,7 +41,7 @@
 
 .writing-label {
   font-weight: 700;
-  color: #374151;
+  color: var(--color-text-strong);
 }
 
 /* Inputs */
@@ -49,9 +50,9 @@
   height: 42px;
   padding: 0 .85rem;
   border-radius: 10px !important;
-  border: 1px solid #d7dbe7 !important;
-  background: #f9fafc;
-  color: #1f2937;
+  border: 1px solid var(--color-border-muted) !important;
+  background: var(--color-surface-muted);
+  color: var(--color-text-heading);
   outline: none;
   transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
 }
@@ -60,7 +61,7 @@
 .writing-select:focus {
   border-color: #2746ff !important;
   box-shadow: 0 0 0 3px rgba(39,70,255,0.12) !important;
-  background: #fff;
+  background: var(--color-surface-default);
 }
 
 /* ===== 분리된 툴바와 에디터 영역 ===== */
@@ -78,7 +79,7 @@
 .writing-editor-container {
   border: 1px solid #e4e7ee !important;
   border-radius: 12px;       /* 모서리 둥글게 유지 */
-  background: #fff;
+  background: var(--color-surface-default);
   min-height: calc(var(--rich-text-editor-height, 400px) + 72px);
   height: auto;
   position: relative;
@@ -96,7 +97,7 @@
   border-radius: 0;
   border: none;
   overflow: visible;
-  background: #fff;
+  background: var(--color-surface-default);
   min-height: var(--rich-text-editor-height, 400px);
   position: relative;
   flex: 1 1 auto;
@@ -343,7 +344,6 @@ body[data-theme='dark'] .writing-editor {
 }
 
 /* ===== Misc ===== */
-.settings-row { gap: 1rem; }
 
 /* ===== Public/Private Switch Styles ===== */
 .public-switch-container {
