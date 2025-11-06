@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { formatDate } from '../utils/date';
 import { PostFilterPanel, PostListToolbar, PostList, PostPagination } from '../components';
 import usePostList from '../hooks/usePostList';
-import '../style/Study.css';
+import '../style/pages/study/Study.css';
 
 const BLOG_SECTIONS = [
   { title: '에세이 · 일상', tags: ['일상', '생각', '회고', '일기'] },

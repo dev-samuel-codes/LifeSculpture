@@ -17,10 +17,10 @@ import {
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { deleteStorageImages } from '../utils/storage';
 import { getPost, updatePostFields } from '../services/posts';
-import '../style/SettingsWriting.css';
-import '../style/QuillToolbar.css';
-import '../style/CustomFormulaEditor.css';
-import '../style/RichText.css';
+import '../style/components/settings/SettingsWriting.css';
+import '../style/components/editor/QuillToolbar.css';
+import '../style/components/editor/CustomFormulaEditor.css';
+import '../style/components/editor/RichText.css';
 
 registerTextEditorImageBlot();
 

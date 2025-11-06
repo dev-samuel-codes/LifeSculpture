@@ -1,0 +1,31 @@
+body {
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background-body);
+  background-image: var(--body-background-pattern);
+  color: var(--color-text-primary);
+  transition:
+    background-color var(--transition-duration-medium) ease,
+    color var(--transition-duration-medium) ease,
+    background-image var(--transition-duration-medium) ease;
+}
+
+body .App {
+  background: var(--app-surface-background);
+  color: inherit;
+  transition:
+    background var(--transition-duration-medium) ease,
+    color var(--transition-duration-medium) ease,
+    box-shadow var(--transition-duration-medium) ease;
+  box-shadow: var(--app-surface-shadow);
+  backdrop-filter: var(--app-surface-backdrop-filter);
+}
+
+body[data-theme='dark'] a {
+  color: var(--color-link-dark-mode);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}

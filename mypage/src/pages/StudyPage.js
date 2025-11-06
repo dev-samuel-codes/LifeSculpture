@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { formatDate } from '../utils/date';
 import { PostFilterPanel, PostListToolbar, PostList, PostPagination } from '../components';
 import usePostList from '../hooks/usePostList';
-import '../style/Study.css';
+import '../style/pages/study/Study.css';
 
 const TAG_SECTIONS = [
   {

@@ -14,8 +14,8 @@ import {
   setPostLike,
   setPostVisibility,
 } from '../services/posts';
-import '../style/PostDetail.css';
-import '../style/RichText.css';
+import '../style/pages/post/PostDetail.css';
+import '../style/components/editor/RichText.css';
 
 const enhanceCodeBlocks = (html) => {
   if (!html) return '';

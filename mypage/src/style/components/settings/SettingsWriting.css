@@ -1,5 +1,5 @@
-/* src/style/SettingsWriting.css */
-@import url('./QuillToolbar.css');
+/* style/components/settings/SettingsWriting.css */
+@import url('../editor/QuillToolbar.css');
 
 /* ===== Card Shell ===== */
 .settings-writing-container {

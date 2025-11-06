@@ -3,7 +3,7 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import GoogleLoginButton from '../auth/GoogleLoginButton';
 import { AuthContext } from '../../context/AuthContext';
-import '../../style/Headerbar.css';
+import '../../style/components/layout/Headerbar.css';
 import LazyImage from '../media/LazyImage';
 import useStorageImage from '../../hooks/useStorageImage';
 import ThemeToggleButton from '../auth/ThemeToggleButton';

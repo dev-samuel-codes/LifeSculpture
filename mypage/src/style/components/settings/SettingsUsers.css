@@ -1,4 +1,4 @@
-/* src/style/SettingsUsers.css */
+/* style/components/settings/SettingsUsers.css */
 .settings-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -134,19 +134,14 @@
 .sk {
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(90deg, #f0f3f9 25%, #e5e9f2 37%, #f0f3f9 63%);
+  background: var(--skeleton-gradient-soft);
   background-size: 400% 100%;
-  animation: shimmer 1.2s infinite;
+  animation: shimmer-soft-pan 1.2s infinite;
 }
 
 .sk-name { }
 .sk-email { }
 .sk-role { }
-
-@keyframes shimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: 0 0; }
-}
 
 /* Empty state */
 .users-empty {

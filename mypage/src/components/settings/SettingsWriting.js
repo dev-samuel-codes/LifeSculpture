@@ -6,10 +6,10 @@ import 'react-quill-new/dist/quill.snow.css';
 import { registerTextEditorImageBlot } from '../text-editor/TextEditorCustomBlots';
 import TextEditorFormulaDialog from '../text-editor/TextEditorFormulaDialog';
 import useWritingEditor from './hooks/useWritingEditor';
-import '../../style/SettingsWriting.css';
-import '../../style/QuillToolbar.css';
-import '../../style/CustomFormulaEditor.css';
-import '../../style/RichText.css';
+import '../../style/components/settings/SettingsWriting.css';
+import '../../style/components/editor/QuillToolbar.css';
+import '../../style/components/editor/CustomFormulaEditor.css';
+import '../../style/components/editor/RichText.css';
 
 registerTextEditorImageBlot();
 

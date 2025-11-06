@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { HomeContentCards } from '../components';
 import useStorageImage from '../hooks/useStorageImage';
-import '../style/Home.css';
+import '../style/pages/home/Home.css';
 
 const CARD_CONFIG = [
   { key: 'coding', link: '/study', title: '웹, 앱 개발' },

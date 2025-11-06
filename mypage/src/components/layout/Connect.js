@@ -1,6 +1,6 @@
 // Connect 컴포넌트: 다양한 연락 채널 링크를 표시
 import React from 'react';
-import '../../style/Connect.css';
+import '../../style/components/layout/Connect.css';
 
 function Connect() {
   return (

@@ -4,7 +4,7 @@ import SettingsMenu from './SettingsMenu';
 import { db } from '../../firebase/firebase';
 import { collection, getDocs, query, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import '../../style/SettingsUsers.css';
+import '../../style/components/settings/SettingsUsers.css';
 
 function SettingsUsers() {
   const [users, setUsers] = useState([]);

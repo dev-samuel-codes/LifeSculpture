@@ -15,7 +15,7 @@ import {
   Legend,
 } from 'chart.js';
 import { formatDate } from '../../utils/date';
-import '../../style/SettingsDashboard.css';
+import '../../style/components/settings/SettingsDashboard.css';
 
 ChartJS.register(
   CategoryScale,

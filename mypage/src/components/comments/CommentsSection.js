@@ -4,7 +4,7 @@ import LoginRequiredPopup from '../auth/LoginRequiredPopup';
 import CommentComposer from './CommentComposer';
 import CommentItem from './CommentItem';
 import useComments from './hooks/useComments';
-import '../../style/Comments.css';
+import '../../style/components/comments/Comments.css';
 
 const CommentsSection = ({ category, postId }) => {
   const {
