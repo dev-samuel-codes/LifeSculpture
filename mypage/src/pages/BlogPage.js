@@ -52,7 +52,7 @@ function BlogPage() {
     [navigate],
   );
 
-  if (loading) return <div className="container mt-4">Loading blog posts...</div>;
+  if (loading) return <div className="container mt-4"></div>;
   if (error) return <div className="container mt-4 text-danger">Error: {error}</div>;
 
   return (

@@ -31,41 +31,38 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (authLoading) {
-    return (
-      <div className="App">
-        <Header />
-        <div style={{ padding: 16 }}>Loading session…</div>
-        <Connect />
-      </div>
-    );
-  }
-
   return (
     <div className="App">
       <Header />
 
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/study" element={<Page><StudyPage /></Page>} />
-        <Route path="/blog" element={<Page><BlogPage /></Page>} />
-        <Route path="/settings/*" element={<Page><SettingsPage /></Page>} />
+      {authLoading ? (
+        <>
+          <div style={{ padding: 16 }}>Loading session…</div>
+          <Connect />
+        </>
+      ) : (
+        <>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/study" element={<Page><StudyPage /></Page>} />
+            <Route path="/blog" element={<Page><BlogPage /></Page>} />
+            <Route path="/settings/*" element={<Page><SettingsPage /></Page>} />
 
-        {role === 'admin' && (
-          <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
-        )}
-        {role === 'admin' && (
-          <Route path="/edit-post/:category/:id" element={<Page><EditPostPage /></Page>} />
-        )}
+            {role === 'admin' && (
+              <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
+            )}
+            {role === 'admin' && (
+              <Route path="/edit-post/:category/:id" element={<Page><EditPostPage /></Page>} />
+            )}
 
-        <Route path="/posts/:category/:id" element={<Page><PostDetailPage /></Page>} />
-      </Routes>
+            <Route path="/posts/:category/:id" element={<Page><PostDetailPage /></Page>} />
+          </Routes>
 
-      <Connect />
+          <Connect />
+        </>
+      )}
+
+      {isLoading && <LoadingScreen />}
     </div>
   );
 }
