@@ -387,9 +387,9 @@ body[data-theme='dark'] .image-modal-content {
 .post-content .ql-font-courier { font-family: 'Courier New', monospace; }
 .post-content .ql-font-georgia { font-family: Georgia, serif; }
 .post-content .ql-font-verdana { font-family: Verdana, sans-serif; }
-.post-content .ql-font-malgun { font-family: '留묒? 怨좊뵓', sans-serif; }
-.post-content .ql-font-nanum { font-family: '?섎닎怨좊뵓', sans-serif; }
-.post-content .ql-font-nanumbarun { font-family: '?섎닎諛붾Ⅸ怨좊뵓', sans-serif; }
+.post-content .ql-font-malgun { font-family: '맑은 고딕', 'Malgun Gothic', sans-serif; }
+.post-content .ql-font-nanum { font-family: '나눔고딕', 'Nanum Gothic', sans-serif; }
+.post-content .ql-font-nanumbarun { font-family: '나눔바른고딕', 'NanumBarunGothic', sans-serif; }
 
 /* ?고듃 ?ш린 */
 .post-content .ql-size-8 { font-size: 8px; }
@@ -1399,4 +1399,3 @@ input:checked + .slider:before {
     color: #ff6b6b !important;
   }
 }
-
