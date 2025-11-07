@@ -305,6 +305,13 @@ body[data-theme='dark'] .post-toc__item a {
   }
 }
 
+@media (max-width: 768px) {
+  .post-toc,
+  .post-toc--outside {
+    display: none;
+  }
+}
+
 /* ?쒕ぉ ?ㅽ???*/
 .post-content h1, .post-content h2, .post-content h3,
 .post-content h4, .post-content h5, .post-content h6 {
