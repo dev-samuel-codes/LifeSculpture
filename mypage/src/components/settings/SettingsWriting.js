@@ -25,6 +25,8 @@ function SettingsWriting() {
       isUploading,
       isFormulaEditorOpen,
       formulaInitialValue,
+      draftStatus,
+      draftUpdatedAt,
     },
     actions: {
       setTitle,
@@ -37,6 +39,36 @@ function SettingsWriting() {
     },
     quill: { modules, formats },
   } = useWritingEditor();
+
+  const formatDraftTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    try {
+      return new Intl.DateTimeFormat('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(timestamp));
+    } catch {
+      return '';
+    }
+  };
+
+  const draftStatusMessage = (() => {
+    const formattedTime = draftUpdatedAt
+      ? ` • ${formatDraftTimestamp(draftUpdatedAt)}`
+      : '';
+    switch (draftStatus) {
+      case 'saving':
+        return '임시 저장 중...';
+      case 'saved':
+        return `임시 저장 완료${formattedTime}`;
+      case 'loaded':
+        return `임시 저장본을 불러왔어요${formattedTime}`;
+      case 'error':
+        return '임시 저장에 실패했어요. 잠시 후 다시 시도해주세요.';
+      default:
+        return '입력 내용이 자동으로 임시 저장돼요.';
+    }
+  })();
 
   return (
     <>
@@ -77,12 +109,15 @@ function SettingsWriting() {
                   </div>
                 </div>
                 <div className="writing-actions">
-                  <div className="public-switch-container d-none d-md-flex">
-                    <label className="switch">
-                      <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-                      <span className="slider round"></span>
-                    </label>
-                    <span className="ms-2">{isPublic ? '공개' : '비공개'}</span>
+                  <div className="writing-actions-left">
+                    <div className="public-switch-container d-none d-md-flex">
+                      <label className="switch">
+                        <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+                        <span className="slider round"></span>
+                      </label>
+                      <span className="ms-2">{isPublic ? '공개' : '비공개'}</span>
+                    </div>
+                    <span className="draft-status-text">{draftStatusMessage}</span>
                   </div>
                   <button type="submit" className="btn btn-primary btn-primary-solid" disabled={isUploading}>
                     {isUploading ? '업로드 중...' : '게시하기'}

@@ -302,6 +302,20 @@ body[data-theme='dark'] .writing-editor {
   min-height: 60px;
 }
 
+.writing-actions-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.draft-status-text {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
 .btn-primary-solid {
   background: #2746ff !important;
   border-color: #2746ff !important;
