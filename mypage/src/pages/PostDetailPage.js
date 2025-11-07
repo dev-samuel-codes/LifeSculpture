@@ -106,6 +106,49 @@ const enhanceCodeBlocks = (html) => {
   return wrapper.innerHTML;
 };
 
+const buildContentWithToc = (html) => {
+  if (!html) {
+    return { html: '', toc: [] };
+  }
+
+  const enhancedHtml = enhanceCodeBlocks(html);
+
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return { html: enhancedHtml, toc: [] };
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = enhancedHtml;
+
+  const idCounts = {};
+  const headings = wrapper.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+  const tocItems = Array.from(headings)
+    .filter((heading) => heading.textContent && heading.textContent.trim().length > 0)
+    .map((heading, index) => {
+      const text = heading.textContent.trim();
+      const normalizedBase = text
+        .toLowerCase()
+        .replace(/[^0-9a-zA-Z\u3131-\u318E\uAC00-\uD7A3\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+      const baseId = normalizedBase || `heading-${index + 1}`;
+      const count = idCounts[baseId] || 0;
+      idCounts[baseId] = count + 1;
+      const uniqueId = count === 0 ? baseId : `${baseId}-${count}`;
+
+      heading.id = uniqueId;
+
+      return {
+        id: uniqueId,
+        text,
+        level: Number(heading.tagName.replace('H', '')) || 2,
+      };
+    });
+
+  return { html: wrapper.innerHTML, toc: tocItems };
+};
+
 function PostDetailPage() {
   const { category, id } = useParams();
   const navigate = useNavigate();
@@ -121,6 +164,7 @@ function PostDetailPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [renderedContent, setRenderedContent] = useState('');
+  const [tocItems, setTocItems] = useState([]);
   const viewCountIncremented = useRef(false);
 
   const isAdmin = role === 'admin';
@@ -189,7 +233,15 @@ function PostDetailPage() {
   }, [post, category, id, isAdmin]);
 
   useEffect(() => {
-    setRenderedContent(post?.content ? enhanceCodeBlocks(post.content) : '');
+    if (!post?.content) {
+      setRenderedContent('');
+      setTocItems([]);
+      return;
+    }
+
+    const { html, toc } = buildContentWithToc(post.content);
+    setRenderedContent(html);
+    setTocItems(toc);
   }, [post?.content]);
 
   useEffect(() => {
@@ -338,6 +390,15 @@ function PostDetailPage() {
   const createdAtText = formatDateOnly(post?.createdAt);
   const likeButtonTitle = isAuthenticated ? (isLiked ? '공감 취소' : '공감하기') : '로그인이 필요합니다';
   const likeButtonAria = likeButtonTitle;
+  const handleTocItemClick = (event, targetId) => {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    event.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', `#${targetId}`);
+    }
+  };
 
   return (
     <article className="post-detail-container">
@@ -396,7 +457,27 @@ function PostDetailPage() {
         </div>
       </div>
 
-      <section className="post-content rich-text" dangerouslySetInnerHTML={{ __html: renderedContent || post.content }} />
+      <div className="post-body">
+        <section
+          className="post-content rich-text"
+          dangerouslySetInnerHTML={{ __html: renderedContent || post.content }}
+        />
+
+        {tocItems.length > 0 && (
+          <aside className="post-toc">
+            <div className="post-toc__title">목차</div>
+            <ul className="post-toc__list">
+              {tocItems.map(({ id, text, level }) => (
+                <li className={`post-toc__item level-${level}`} key={id}>
+                  <a href={`#${id}`} onClick={(event) => handleTocItemClick(event, id)}>
+                    {text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+      </div>
 
       {selectedImage && (
         <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
