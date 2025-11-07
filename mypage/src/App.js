@@ -1,5 +1,5 @@
 import './style/App.css';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Connect, Header } from './components';
 import { AuthContext } from './context/AuthContext';
@@ -10,6 +10,7 @@ import SettingsPage from './pages/SettingsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import EditPostPage from './pages/EditPostPage';
 import PostDetailPage from './pages/PostDetailPage';
+import LoadingScreen from './components/common/LoadingScreen';
 
 
 // 페이지 공통 래퍼 (홈 제외)
@@ -18,9 +19,23 @@ function Page({ children }) {
 }
 
 function App() {
-  const { role, loading } = React.useContext(AuthContext);
+  const { role, loading: authLoading } = React.useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    // 초기 로딩 시뮬레이션
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // 2초 후에 로딩 화면 제거
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (authLoading) {
     return (
       <div className="App">
         <Header />
