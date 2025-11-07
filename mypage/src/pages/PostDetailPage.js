@@ -402,6 +402,21 @@ function PostDetailPage() {
 
   return (
     <div className="post-detail-layout">
+      {tocItems.length > 0 && (
+        <aside className="post-toc post-toc--outside">
+          <div className="post-toc__title">목차</div>
+          <ul className="post-toc__list">
+            {tocItems.map(({ id, text, level }) => (
+              <li className={`post-toc__item level-${level}`} key={id}>
+                <a href={`#${id}`} onClick={(event) => handleTocItemClick(event, id)}>
+                  {text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
+
       <article className="post-detail-container">
         <header className="post-header">
           <div className="title-actions-container">
@@ -489,21 +504,6 @@ function PostDetailPage() {
           message="공감 기능을 사용하려면 로그인이 필요합니다."
         />
       </article>
-
-      {tocItems.length > 0 && (
-        <aside className="post-toc post-toc--outside">
-          <div className="post-toc__title">목차</div>
-          <ul className="post-toc__list">
-            {tocItems.map(({ id, text, level }) => (
-              <li className={`post-toc__item level-${level}`} key={id}>
-                <a href={`#${id}`} onClick={(event) => handleTocItemClick(event, id)}>
-                  {text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </aside>
-      )}
     </div>
   );
 }
