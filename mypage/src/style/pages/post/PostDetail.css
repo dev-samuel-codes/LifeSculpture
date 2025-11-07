@@ -205,7 +205,7 @@ body[data-theme='dark'] .admin-actions button {
 
 .post-toc {
   position: sticky;
-  top: 120px;
+  top: 20px;
   background: #f7f9ff;
   border: 1px solid #d9e2ff;
   border-radius: 14px;
