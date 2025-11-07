@@ -66,7 +66,7 @@ body {
   color: #fff;
   display: flex;
   align-items: center;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
   overflow: hidden;
   transition: transform .3s ease; /* 지그재그/호버 전환 부드럽게 */
   background-size: cover;
@@ -221,24 +221,24 @@ body {
 /* 홀수 카드 호버 시 */
 .main-card:nth-child(odd):hover {
   transform: translateY(-10px); /* 기본보다 10px 위 */
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.21);
 }
 
 /* 짝수 카드 호버 시 (지그재그 고려) */
 .main-card:nth-child(even):hover {
   transform: translateY(80px); /* 원래 90px → 80px로 위로 10px */
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.21);
 }
 
 /* 모바일에서는 호버 효과 제거 */
 @media (max-width: 600px) {
   .main-card:nth-child(odd):hover {
     transform: none !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14) !important;
   }
   
   .main-card:nth-child(even):hover {
     transform: none !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.20) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14) !important;
   }
 }

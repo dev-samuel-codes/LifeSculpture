@@ -50,7 +50,7 @@
 .comment-sort-select:focus {
   outline: none;
   border-color: #1f7aec;
-  box-shadow: 0 0 0 2px rgba(31, 122, 236, 0.2);
+  box-shadow: 0 0 0 2px rgba(31, 122, 236, 0.14);
 }
 
 .comment-composer {

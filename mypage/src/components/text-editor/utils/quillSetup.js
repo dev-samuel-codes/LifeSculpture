@@ -130,7 +130,7 @@ export const showTableSizeModal = () =>
           border-radius: 12px;
           padding: 24px 28px;
           width: min(320px, 90vw);
-          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
+          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.196);
           font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
           color: #e5e7eb;
         }
@@ -168,7 +168,7 @@ export const showTableSizeModal = () =>
         }
         #quill-table-modal input[type="number"]:focus {
           border-color: #60a5fa;
-          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.175);
           background: rgba(17, 24, 39, 0.85);
         }
         #quill-table-modal .qt-actions {
@@ -196,7 +196,7 @@ export const showTableSizeModal = () =>
         }
         #quill-table-modal .qt-btn:hover {
           transform: translateY(-1px);
-          box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+          box-shadow: 0 8px 16px rgba(15, 23, 42, 0.084);
         }
         #quill-table-modal .qt-btn:active {
           transform: translateY(0);

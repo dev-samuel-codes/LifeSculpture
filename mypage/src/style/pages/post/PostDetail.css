@@ -22,11 +22,11 @@
 body[data-theme='dark'] .post-detail-container {
   background: linear-gradient(160deg, rgba(28, 40, 68, 0.94), rgba(15, 24, 45, 0.94));
   border: 1px solid rgba(76, 90, 124, 0.6);
-  box-shadow: 0 40px 72px rgba(6, 11, 21, 0.75);
+  box-shadow: 0 40px 72px rgba(6, 11, 21, 0.525);
 }
 
 body[data-theme='dark'] .post-detail-container:hover {
-  box-shadow: 0 48px 86px rgba(4, 9, 18, 0.78);
+  box-shadow: 0 48px 86px rgba(4, 9, 18, 0.546);
 }
 
 body[data-theme='dark'] .post-header {
@@ -40,12 +40,12 @@ body[data-theme='dark'] .post-title {
 body[data-theme='dark'] .post-meta {
   background: linear-gradient(135deg, rgba(59, 73, 102, 0.55), rgba(45, 59, 95, 0.45));
   color: #cbd5f5;
-  box-shadow: 0 16px 30px rgba(6, 11, 21, 0.55);
+  box-shadow: 0 16px 30px rgba(6, 11, 21, 0.385);
 }
 
 body[data-theme='dark'] .post-actions button,
 body[data-theme='dark'] .admin-actions button {
-  box-shadow: 0 12px 22px rgba(6, 11, 21, 0.45);
+  box-shadow: 0 12px 22px rgba(6, 11, 21, 0.315);
 }
 
 /* 而⑦뀒?대꼫 移대뱶 */
@@ -135,7 +135,7 @@ body[data-theme='dark'] .admin-actions button {
   line-height: 1;
   border: none;
   transition: transform 0.15s ease, filter 0.15s ease;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.028);
 }
 
 .post-actions button:hover,
@@ -372,12 +372,12 @@ body[data-theme='dark'] .post-toc__item a {
   background: white;
   border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.21);
 }
 
 body[data-theme='dark'] .image-modal-content {
   background: rgba(15, 23, 42, 0.95);
-  box-shadow: 0 40px 80px rgba(4, 9, 18, 0.75);
+  box-shadow: 0 40px 80px rgba(4, 9, 18, 0.525);
   border: 1px solid rgba(76, 90, 124, 0.55);
 }
 
@@ -498,7 +498,7 @@ body[data-theme='dark'] .image-modal-content {
   margin: 1.5rem 0;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
   border: 1px solid #e2e8f0;
 }
 
@@ -550,7 +550,7 @@ body[data-theme='dark'] .image-modal-content {
   height: auto;
   border-radius: 8px;
   margin: 1rem 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
 
 /* ?됱긽 諛?諛곌꼍???ㅽ???*/

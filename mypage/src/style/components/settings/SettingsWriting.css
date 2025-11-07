@@ -60,7 +60,7 @@
 .writing-input:focus,
 .writing-select:focus {
   border-color: #2746ff !important;
-  box-shadow: 0 0 0 3px rgba(39,70,255,0.12) !important;
+  box-shadow: 0 0 0 3px rgba(39,70,255,0.084) !important;
   background: var(--color-surface-default);
 }
 
@@ -71,7 +71,7 @@
   border-bottom: 2px solid rgba(0,0,0,0.1);
   border-radius: 12px 12px 0 0;
   padding: 16px 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.056);
   backdrop-filter: blur(10px);
   margin-bottom: 0;
 }
@@ -181,13 +181,13 @@ body[data-theme='dark'] .writing-editor {
   background: rgba(0,0,0,0.08) !important;
   color: var(--color-text-primary) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.105);
 }
 
 .writing-toolbar-container .ql-toolbar .ql-formats button.ql-active {
   background: rgba(0,0,0,0.12) !important;
   color: var(--color-text-primary) !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.14);
 }
 
 .writing-toolbar-container .ql-toolbar .ql-formats button svg {
@@ -224,7 +224,7 @@ body[data-theme='dark'] .writing-editor {
 .writing-toolbar-container .ql-toolbar .ql-picker-options {
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.21);
   background: rgba(255,255,255,0.95);
   backdrop-filter: blur(20px);
   margin-top: 8px;
@@ -265,7 +265,7 @@ body[data-theme='dark'] .writing-editor {
 .writing-toolbar-container .ql-background .ql-picker-options .ql-picker-item:hover {
   transform: scale(1.2);
   border-color: rgba(255,255,255,0.8);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.21);
 }
 
 /* Quill 테이블 스타일 */
@@ -345,7 +345,7 @@ body[data-theme='dark'] .writing-editor {
   background: #1e3a8a !important;
   border-color: #1e3a8a !important;
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(39,70,255,0.3), 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 25px rgba(39,70,255,0.21), 0 4px 10px rgba(0,0,0,0.07);
 }
 
 .btn-primary-solid:hover::before {

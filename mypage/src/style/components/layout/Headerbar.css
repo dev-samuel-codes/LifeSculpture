@@ -31,7 +31,7 @@
   min-width: 360px;
   max-width: 420px;
   padding: 16px 16px 14px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12), 0 3px 8px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.084), 0 3px 8px rgba(15, 23, 42, 0.056);
 
   display: flex;
   flex-direction: column;
@@ -112,7 +112,7 @@
 }
 .profile-popup-btns .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
   border-color: #d9e1ec;
   background: #f7f9fc;
 }
@@ -176,7 +176,7 @@
 
 .theme-toggle-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
   border-color: #d9e1ec;
   background: linear-gradient(145deg, #f8fbff, #eef3ff);
 }
@@ -241,7 +241,7 @@
 }
 .google-login-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
   border-color: #d9e1ec;
   background: #eef2f7;
 }
@@ -285,7 +285,7 @@
 .my-navbar {
   background-color: #ffffff;
   padding: 15px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -414,7 +414,7 @@
     background: #ffffff;
     border: 1px solid #e8edf3;
     border-radius: 16px;
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16), 0 4px 10px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.112), 0 4px 10px rgba(15, 23, 42, 0.056);
     padding: 8px;
     gap: 6px;
     overflow: hidden;
@@ -488,7 +488,7 @@
 body[data-theme='dark'] .my-navbar {
   background: linear-gradient(135deg, #101b35 0%, #0b1328 65%, #091020 100%);
   border-bottom: 1px solid rgba(148, 163, 184, 0.22);
-  box-shadow: 0 16px 36px rgba(9, 13, 28, 0.6);
+  box-shadow: 0 16px 36px rgba(9, 13, 28, 0.42);
 }
 
 body[data-theme='dark'] .Header-container {
@@ -540,7 +540,7 @@ body[data-theme='dark'] .my-navbar-nav .my-nav-link:hover {
 body[data-theme='dark'] .profile-popup {
   background: linear-gradient(155deg, rgba(21, 33, 58, 0.96), rgba(13, 23, 43, 0.98));
   border: 1px solid rgba(59, 73, 102, 0.6);
-  box-shadow: 0 24px 40px rgba(8, 13, 24, 0.65), 0 6px 18px rgba(8, 13, 24, 0.45);
+  box-shadow: 0 24px 40px rgba(8, 13, 24, 0.455), 0 6px 18px rgba(8, 13, 24, 0.315);
 }
 
 body[data-theme='dark'] .profile-popup::before {
@@ -567,7 +567,7 @@ body[data-theme='dark'] .profile-popup-btns .btn {
 body[data-theme='dark'] .profile-popup-btns .btn:hover {
   background: rgba(37, 52, 77, 0.8);
   border-color: rgba(148, 163, 184, 0.45);
-  box-shadow: 0 16px 28px rgba(8, 13, 24, 0.55);
+  box-shadow: 0 16px 28px rgba(8, 13, 24, 0.385);
 }
 
 body[data-theme='dark'] .profile-popup-btns .btn-info {
@@ -601,7 +601,7 @@ body[data-theme='dark'] .google-login-button {
 body[data-theme='dark'] .google-login-button:hover {
   background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
   border-color: rgba(37, 99, 235, 0.95);
-  box-shadow: 0 16px 30px rgba(11, 16, 37, 0.58);
+  box-shadow: 0 16px 30px rgba(11, 16, 37, 0.406);
 }
 
 body[data-theme='dark'] .theme-toggle-button {
@@ -613,7 +613,7 @@ body[data-theme='dark'] .theme-toggle-button {
 body[data-theme='dark'] .theme-toggle-button:hover {
   background: linear-gradient(150deg, rgba(48, 67, 104, 0.92), rgba(31, 46, 78, 0.95));
   border-color: rgba(148, 163, 184, 0.5);
-  box-shadow: 0 16px 28px rgba(8, 13, 24, 0.6);
+  box-shadow: 0 16px 28px rgba(8, 13, 24, 0.42);
 }
 
 body[data-theme='dark'] .theme-toggle-button::after {
@@ -687,7 +687,7 @@ body[data-theme='dark'] .mobile-profile-email {
   
   .profile-popup-btns .btn:hover {
     transform: none !important;
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056) !important;
     border-color: #d9e1ec !important;
     background: #f7f9fc !important;
   }
@@ -698,7 +698,7 @@ body[data-theme='dark'] .mobile-profile-email {
   
   .google-login-button:hover {
     transform: none !important;
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056) !important;
     border-color: #d9e1ec !important;
     background: #eef2f7 !important;
   }

@@ -19,7 +19,7 @@
     radial-gradient(circle at 50% 88%, rgba(229, 239, 255, 0.65), transparent 62%);
 
   --app-surface-background: linear-gradient(155deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.98));
-  --app-surface-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+  --app-surface-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
   --app-surface-backdrop-filter: none;
 
   --color-link-dark-mode: #00aaff;
@@ -32,9 +32,9 @@
   --color-border-neutral: #e5e7eb;
   --color-border-muted: #d7dbe7;
 
-  --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.06);
-  --shadow-card-strong: 0 6px 18px rgba(0, 0, 0, 0.08);
-  --shadow-card-soft: 0 3px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.05);
+  --shadow-card-strong: 0 5px 16px rgba(0, 0, 0, 0.06);
+  --shadow-card-soft: 0 2px 6px rgba(0, 0, 0, 0.05);
 
   --skeleton-gradient-default: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   --skeleton-gradient-overlay: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0) 100%);
@@ -60,7 +60,7 @@ body[data-theme='dark'] {
   --body-background-pattern: none;
 
   --app-surface-background: linear-gradient(155deg, rgba(26, 26, 46, 0.95), rgba(20, 20, 38, 0.95));
-  --app-surface-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --app-surface-shadow: 0 14px 32px rgba(0, 0, 0, 0.4);
   --app-surface-backdrop-filter: blur(10px);
 
   --color-border-subtle: rgba(205, 214, 255, 0.14);
@@ -68,7 +68,7 @@ body[data-theme='dark'] {
   --color-border-neutral: rgba(148, 163, 207, 0.28);
   --color-border-muted: rgba(148, 163, 207, 0.22);
 
-  --shadow-card: 0 12px 28px rgba(0, 0, 0, 0.6);
-  --shadow-card-strong: 0 10px 24px rgba(0, 0, 0, 0.65);
-  --shadow-card-soft: 0 12px 28px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 10px 24px rgba(0, 0, 0, 0.5);
+  --shadow-card-strong: 0 8px 20px rgba(0, 0, 0, 0.52);
+  --shadow-card-soft: 0 10px 22px rgba(0, 0, 0, 0.42);
 }
