@@ -401,110 +401,110 @@ function PostDetailPage() {
   };
 
   return (
-    <article className="post-detail-container">
-      <header className="post-header">
-        <div className="title-actions-container">
-                    <div class="left-section">
-                      <h2 class="post-title">{post.title}</h2>
-                    </div>
-          
-                    {!isAdmin && (
-                      <LikeButton
-                        isLiked={isLiked}
-                        likeCount={likeCount}
-                        onToggle={handleLikeClick}
-                        title={likeButtonTitle}
-                        ariaLabel={likeButtonAria}
-                      />
-                    )}
-          
-                    {isAdmin && (            <div className="admin-actions">
-              <div className="public-switch-container">
-                <label className="switch">
-                  <input type="checkbox" checked={isPublic} onChange={handlePublicToggle} />
-                  <span className="slider round"></span>
-                </label>
-                <span className="public-status">{isPublic ? '공개' : '비공개'}</span>
+    <div className="post-detail-layout">
+      <article className="post-detail-container">
+        <header className="post-header">
+          <div className="title-actions-container">
+                      <div class="left-section">
+                        <h2 class="post-title">{post.title}</h2>
+                      </div>
+            
+                      {!isAdmin && (
+                        <LikeButton
+                          isLiked={isLiked}
+                          likeCount={likeCount}
+                          onToggle={handleLikeClick}
+                          title={likeButtonTitle}
+                          ariaLabel={likeButtonAria}
+                        />
+                      )}
+            
+                      {isAdmin && (            <div className="admin-actions">
+                <div className="public-switch-container">
+                  <label className="switch">
+                    <input type="checkbox" checked={isPublic} onChange={handlePublicToggle} />
+                    <span className="slider round"></span>
+                  </label>
+                  <span className="public-status">{isPublic ? '공개' : '비공개'}</span>
+                </div>
+                <div className="edit-delete-buttons">
+                  <button
+                    className="btn btn-warning btn-sm"
+                    onClick={() => window.open(`/edit-post/${category}/${id}`, '_blank')}
+                    aria-label="Edit post"
+                  >
+                    수정
+                  </button>
+                  <button className="btn btn-danger btn-sm" onClick={handleDelete} aria-label="Delete post">
+                    삭제
+                  </button>
+                </div>
               </div>
-              <div className="edit-delete-buttons">
-                <button
-                  className="btn btn-warning btn-sm"
-                  onClick={() => window.open(`/edit-post/${category}/${id}`, '_blank')}
-                  aria-label="Edit post"
-                >
-                  수정
-                </button>
-                <button className="btn btn-danger btn-sm" onClick={handleDelete} aria-label="Delete post">
-                  삭제
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
+            )}
+          </div>
+        </header>
 
-      <div className="post-meta">
-        <div className="meta-left">
-          <span>{createdAtText}</span>
-          <span>·</span>
-          <span>Views: {post.viewCount || 0}</span>
-          {isAdmin && (
-            <>
-              <span>·</span>
-              <span>공감: {likeCount}</span>
-            </>
-          )}
+        <div className="post-meta">
+          <div className="meta-left">
+            <span>{createdAtText}</span>
+            <span>·</span>
+            <span>Views: {post.viewCount || 0}</span>
+            {isAdmin && (
+              <>
+                <span>·</span>
+                <span>공감: {likeCount}</span>
+              </>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="post-body">
         <section
           className="post-content rich-text"
           dangerouslySetInnerHTML={{ __html: renderedContent || post.content }}
         />
 
-        {tocItems.length > 0 && (
-          <aside className="post-toc">
-            <div className="post-toc__title">목차</div>
-            <ul className="post-toc__list">
-              {tocItems.map(({ id, text, level }) => (
-                <li className={`post-toc__item level-${level}`} key={id}>
-                  <a href={`#${id}`} onClick={(event) => handleTocItemClick(event, id)}>
-                    {text}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </aside>
-        )}
-      </div>
-
-      {selectedImage && (
-        <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
-          <div className="image-modal-content" onClick={(event) => event.stopPropagation()}>
-            <LazyImage
-              src={selectedImage}
-              alt="Enlarged"
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-            />
-            <button
-              className="btn btn-light position-absolute top-0 end-0 m-2"
-              onClick={() => setSelectedImage(null)}
-              style={{ zIndex: 1001 }}
-            >
-              닫기
-            </button>
+        {selectedImage && (
+          <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
+            <div className="image-modal-content" onClick={(event) => event.stopPropagation()}>
+              <LazyImage
+                src={selectedImage}
+                alt="Enlarged"
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+              />
+              <button
+                className="btn btn-light position-absolute top-0 end-0 m-2"
+                onClick={() => setSelectedImage(null)}
+                style={{ zIndex: 1001 }}
+              >
+                닫기
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <CommentsSection category={category} postId={id} />
-      <LoginRequiredPopup
-        isOpen={showLoginPopup}
-        onClose={closeLoginPopup}
-        message="공감 기능을 사용하려면 로그인이 필요합니다."
-      />
-    </article>
+        <CommentsSection category={category} postId={id} />
+        <LoginRequiredPopup
+          isOpen={showLoginPopup}
+          onClose={closeLoginPopup}
+          message="공감 기능을 사용하려면 로그인이 필요합니다."
+        />
+      </article>
+
+      {tocItems.length > 0 && (
+        <aside className="post-toc post-toc--outside">
+          <div className="post-toc__title">목차</div>
+          <ul className="post-toc__list">
+            {tocItems.map(({ id, text, level }) => (
+              <li className={`post-toc__item level-${level}`} key={id}>
+                <a href={`#${id}`} onClick={(event) => handleTocItemClick(event, id)}>
+                  {text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
+    </div>
   );
 }
 

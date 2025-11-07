@@ -49,15 +49,24 @@ body[data-theme='dark'] .admin-actions button {
 }
 
 /* 而⑦뀒?대꼫 移대뱶 */
+.post-detail-layout {
+  display: flex;
+  gap: 2.5rem;
+  align-items: flex-start;
+  max-width: calc(var(--pd-max) + 320px);
+  margin: 3rem auto;
+}
+
 .post-detail-container {
   max-width: var(--pd-max);
-  margin: 3rem auto;
+  margin: 0;
   padding: 2.4rem;
   background: var(--pd-grad);
   border: 1px solid var(--pd-border);
   border-radius: var(--pd-radius-lg);
   box-shadow: var(--pd-shadow);
   transition: box-shadow 0.25s ease, transform 0.25s ease;
+  flex: 1 1 auto;
 }
 
 /* ?ㅻ뜑 ?곸뿭 */
@@ -194,21 +203,9 @@ body[data-theme='dark'] .admin-actions button {
   letter-spacing: normal;
 }
 
-.post-body {
-  display: flex;
-  gap: 2.5rem;
-  align-items: flex-start;
-}
-
-.post-body .post-content {
-  flex: 1;
-  min-width: 0;
-}
-
 .post-toc {
   position: sticky;
   top: 120px;
-  flex: 0 0 250px;
   background: #f7f9ff;
   border: 1px solid #d9e2ff;
   border-radius: 14px;
@@ -216,6 +213,10 @@ body[data-theme='dark'] .admin-actions button {
   box-shadow: 0 18px 30px rgba(36, 54, 94, 0.08);
   max-height: calc(100vh - 160px);
   overflow-y: auto;
+}
+
+.post-toc--outside {
+  flex: 0 0 250px;
 }
 
 body[data-theme='dark'] .post-toc {
@@ -283,11 +284,16 @@ body[data-theme='dark'] .post-toc__item a {
 }
 
 @media (max-width: 1024px) {
-  .post-body {
+  .post-detail-layout {
     flex-direction: column;
+    padding: 0 1rem;
   }
 
-  .post-toc {
+  .post-detail-container {
+    width: 100%;
+  }
+
+  .post-toc--outside {
     position: relative;
     top: 0;
     width: 100%;
