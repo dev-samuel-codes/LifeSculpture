@@ -174,8 +174,8 @@
   font-weight: 600;
 }
 
-.comment-like-button:hover,
-.comment-action-button:hover {
+body:not(.tablet-no-hover) .comment-like-button:hover,
+body:not(.tablet-no-hover) .comment-action-button:hover {
   color: rgba(0, 0, 0, 0.85);
 }
 

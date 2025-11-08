@@ -42,7 +42,7 @@
   border: 1px solid rgba(148, 163, 184, 0.55);
   color: #0f172a;
 }
-.parent-chip:hover {
+body:not(.tablet-no-hover) .parent-chip:hover {
   background: rgb(0, 98, 255);
   border-color: rgb(0, 98, 255);
   color: #fff;
@@ -62,7 +62,7 @@
   border: 1px solid rgba(148, 163, 184, 0.45);
   color: var(--color-text-heading);
 }
-.child-chip:hover {
+body:not(.tablet-no-hover) .child-chip:hover {
   background: linear-gradient(145deg, rgba(16, 185, 129, 0.9), rgba(52, 211, 153, 0.9));
   border-color: rgba(16, 185, 129, 0.8);
   color: #fff;
@@ -114,7 +114,7 @@
   transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
-.clickable-card:hover {
+body:not(.tablet-no-hover) .clickable-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 26px 38px rgba(15,23,42,0.084);
 }
@@ -123,7 +123,7 @@
   outline: none;
 }
 
-.card:hover {
+body:not(.tablet-no-hover) .card:hover {
   transform: translateY(-3px);
   box-shadow: 0 26px 38px rgba(15,23,42,0.084);
 }
@@ -233,12 +233,12 @@
     transition: none !important;
   }
   
-  .parent-chip:hover {
+  body:not(.tablet-no-hover) .parent-chip:hover {
     transform: none !important;
     box-shadow: 0 2px 6px rgba(13,110,253,0.126) !important;
   }
   
-  .child-chip:hover {
+  body:not(.tablet-no-hover) .child-chip:hover {
     transform: none !important;
     box-shadow: 0 2px 6px rgba(25,135,84,0.126) !important;
   }
@@ -248,7 +248,7 @@
     transition: none !important;
   }
   
-  .card:hover {
+  body:not(.tablet-no-hover) .card:hover {
     transform: none !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.042) !important;
   }
@@ -275,7 +275,7 @@
     user-select: none;
   }
   
-  .clickable-card:hover {
+  body:not(.tablet-no-hover) .clickable-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 24px rgba(0,0,0,0.056);
   }
@@ -295,7 +295,7 @@
     border-radius: 8px;
   }
   
-  .clickable-card-content:hover {
+  body:not(.tablet-no-hover) .clickable-card-content:hover {
     background-color: transparent;
   }
   
@@ -309,7 +309,7 @@
     height: 100%;
   }
   
-  .card-left a:hover {
+  body:not(.tablet-no-hover) .card-left a:hover {
     text-decoration: none;
   }
   
@@ -327,7 +327,7 @@
     cursor: pointer;
   }
   
-  .card:hover {
+  body:not(.tablet-no-hover) .card:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 24px rgba(0,0,0,0.056);
   }
@@ -347,7 +347,7 @@
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.btn-all-posts:hover {
+body:not(.tablet-no-hover) .btn-all-posts:hover {
   transform: translateY(-2px);
   background: rgb(0, 98, 255);
   border-color: rgb(0, 98, 255);
@@ -364,7 +364,7 @@
   color: var(--color-text-heading);
 }
 
-.study-pagination .btn:hover {
+body:not(.tablet-no-hover) .study-pagination .btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 18px 30px rgba(15, 23, 42, 0.084);
 }
@@ -381,7 +381,7 @@
   color: #1d4ed8;
 }
 
-.study-pagination .btn.btn-outline-primary:hover {
+body:not(.tablet-no-hover) .study-pagination .btn.btn-outline-primary:hover {
   color: #fff;
   border-color: rgba(37, 99, 235, 0.85);
 }
@@ -392,7 +392,7 @@
   color: #475569;
 }
 
-.study-pagination .btn.btn-secondary:hover:not(:disabled) {
+body:not(.tablet-no-hover) .study-pagination .btn.btn-secondary:hover:not(:disabled) {
   background: rgba(148, 163, 184, 0.22);
   border-color: rgba(148, 163, 184, 0.55);
   color: var(--color-text-heading);
@@ -415,7 +415,7 @@
   padding: 0;
 }
 
-.heart-button:hover {
+body:not(.tablet-no-hover) .heart-button:hover {
   color: #ff6b6b;
   transform: scale(1.05);
   background-color: transparent !important;
@@ -431,7 +431,7 @@
   background-color: transparent !important;
 }
 
-.heart-button.liked:hover {
+body:not(.tablet-no-hover) .heart-button.liked:hover {
   color: #ff6b6b !important;
   transform: scale(1.02);
   background-color: transparent !important;
@@ -510,7 +510,7 @@ body[data-theme='dark'] .parent-chip {
   color: #f1f5f9;
 }
 
-body[data-theme='dark'] .parent-chip:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .parent-chip:hover {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.45), rgba(96, 165, 250, 0.4));
   border-color: rgba(59, 130, 246, 0.65);
   color: #f8fafc;
@@ -528,7 +528,7 @@ body[data-theme='dark'] .child-chip {
   color: #e2e8f0;
 }
 
-body[data-theme='dark'] .child-chip:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .child-chip:hover {
   background: linear-gradient(135deg, rgba(22, 163, 74, 0.4), rgba(16, 185, 129, 0.45));
   border-color: rgba(16, 185, 129, 0.65);
   color: #f8fafc;
@@ -601,8 +601,8 @@ body[data-theme='dark'] .card {
   color: #e2e8f0;
 }
 
-body[data-theme='dark'] .card:hover,
-body[data-theme='dark'] .clickable-card:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .card:hover,
+body:not(.tablet-no-hover)[data-theme='dark'] .clickable-card:hover {
   box-shadow: 0 32px 52px rgba(8, 13, 24, 0.49);
 }
 
@@ -649,7 +649,7 @@ body[data-theme='dark'] .btn-all-posts {
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-body[data-theme='dark'] .btn-all-posts:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .btn-all-posts:hover {
   transform: translateY(-2px);
   background: linear-gradient(145deg, rgba(59, 130, 246, 0.65), rgba(37, 99, 235, 0.6));
   border-color: rgba(96, 165, 250, 0.8);
@@ -669,7 +669,7 @@ body[data-theme='dark'] .study-pagination .btn.btn-secondary {
   color: #e2e8f0;
 }
 
-body[data-theme='dark'] .study-pagination .btn.btn-secondary:hover:not(:disabled) {
+body:not(.tablet-no-hover)[data-theme='dark'] .study-pagination .btn.btn-secondary:hover:not(:disabled) {
   background: rgba(148, 163, 184, 0.28);
   border-color: rgba(148, 163, 184, 0.55);
 }
@@ -685,7 +685,7 @@ body[data-theme='dark'] .study-pagination .btn.btn-outline-primary {
   background: rgba(37, 99, 235, 0.12);
 }
 
-body[data-theme='dark'] .study-pagination .btn.btn-outline-primary:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .study-pagination .btn.btn-outline-primary:hover {
   color: #f8fafc;
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.65), rgba(59, 130, 246, 0.6));
   border-color: rgba(37, 99, 235, 0.85);

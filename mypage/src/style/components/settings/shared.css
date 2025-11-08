@@ -49,7 +49,7 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.settings-badge:hover {
+body:not(.tablet-no-hover) .settings-badge:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(39, 70, 255, 0.105);
 }

@@ -12,6 +12,39 @@ import EditPostPage from './pages/EditPostPage';
 import PostDetailPage from './pages/PostDetailPage';
 import LoadingScreen from './components/common/LoadingScreen';
 
+const TABLET_MAX_WIDTH = 1200;
+const TABLET_ASPECT_RATIO = 16 / 10;
+const TABLET_ASPECT_TOLERANCE = 0.03;
+
+function useTabletHoverGuard() {
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const applyClass = () => {
+      const { innerWidth: width, innerHeight: height } = window;
+      const aspectRatio = height === 0 ? 0 : width / height;
+      const isTabletWidth = width <= TABLET_MAX_WIDTH;
+      const isSixteenTen =
+        height > 0 && Math.abs(aspectRatio - TABLET_ASPECT_RATIO) <= TABLET_ASPECT_TOLERANCE;
+      const shouldDisableHover = isTabletWidth || isSixteenTen;
+
+      document.body.classList.toggle('tablet-no-hover', shouldDisableHover);
+    };
+
+    applyClass();
+    window.addEventListener('resize', applyClass);
+    window.addEventListener('orientationchange', applyClass);
+
+    return () => {
+      window.removeEventListener('resize', applyClass);
+      window.removeEventListener('orientationchange', applyClass);
+      document.body.classList.remove('tablet-no-hover');
+    };
+  }, []);
+}
+
 
 // 페이지 공통 래퍼 (홈 제외)
 function Page({ children }) {
@@ -21,6 +54,7 @@ function Page({ children }) {
 function App() {
   const { role, loading: authLoading } = React.useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(true);
+  useTabletHoverGuard();
 
   useEffect(() => {
     // 초기 로딩 시뮬레이션

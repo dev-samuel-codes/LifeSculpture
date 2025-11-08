@@ -46,12 +46,12 @@
   transition: all 0.2s ease;
 }
 
-.rich-text-editor .ql-toolbar button:hover,
+body:not(.tablet-no-hover) .rich-text-editor .ql-toolbar button:hover,
 .rich-text-editor .ql-toolbar button.ql-active {
   background: rgba(0, 0, 0, 0.06);
 }
 
-.rich-text-editor .ql-toolbar .ql-picker-label:hover,
+body:not(.tablet-no-hover) .rich-text-editor .ql-toolbar .ql-picker-label:hover,
 .rich-text-editor .ql-toolbar .ql-picker-label.ql-active {
   background: rgba(0, 0, 0, 0.06);
 }
@@ -158,8 +158,8 @@ body[data-theme='dark'] .rich-text-editor .ql-editor table th {
   border-bottom-color: rgba(96, 113, 157, 0.65);
 }
 
-body[data-theme='dark'] .rich-text table tr:hover,
-body[data-theme='dark'] .rich-text-editor .ql-editor table tr:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .rich-text table tr:hover,
+body:not(.tablet-no-hover)[data-theme='dark'] .rich-text-editor .ql-editor table tr:hover {
   background: rgba(45, 59, 95, 0.45);
 }
 
@@ -349,8 +349,8 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
   border-bottom: 2px solid #cbd5e0;
 }
 
-.rich-text table tr:hover,
-.rich-text-editor .ql-editor table tr:hover {
+body:not(.tablet-no-hover) .rich-text table tr:hover,
+body:not(.tablet-no-hover) .rich-text-editor .ql-editor table tr:hover {
   background: #f8f9fa;
 }
 
@@ -375,8 +375,8 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
   padding: 0.1rem 0;
 }
 
-.rich-text a:hover,
-.rich-text-editor .ql-editor a:hover {
+body:not(.tablet-no-hover) .rich-text a:hover,
+body:not(.tablet-no-hover) .rich-text-editor .ql-editor a:hover {
   border-bottom-color: #2746ff;
   color: #1a1a1a;
 }

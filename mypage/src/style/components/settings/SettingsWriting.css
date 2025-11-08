@@ -177,7 +177,7 @@ body[data-theme='dark'] .writing-editor {
   padding: 6px 8px;
 }
 
-.writing-toolbar-container .ql-toolbar .ql-formats button:hover {
+body:not(.tablet-no-hover) .writing-toolbar-container .ql-toolbar .ql-formats button:hover {
   background: rgba(0,0,0,0.08) !important;
   color: var(--color-text-primary) !important;
   transform: translateY(-2px);
@@ -215,7 +215,7 @@ body[data-theme='dark'] .writing-editor {
   transition: all 0.3s ease;
 }
 
-.writing-toolbar-container .ql-toolbar .ql-picker-label:hover {
+body:not(.tablet-no-hover) .writing-toolbar-container .ql-toolbar .ql-picker-label:hover {
   background: rgba(255,255,255,1);
   border-color: rgba(0,0,0,0.25);
   transform: translateY(-1px);
@@ -236,7 +236,7 @@ body[data-theme='dark'] .writing-editor {
   transition: all 0.2s ease;
 }
 
-.writing-toolbar-container .ql-toolbar .ql-picker-options .ql-picker-item:hover {
+body:not(.tablet-no-hover) .writing-toolbar-container .ql-toolbar .ql-picker-options .ql-picker-item:hover {
   background: rgba(102, 126, 234, 0.1);
   color: #667eea;
 }
@@ -261,8 +261,8 @@ body[data-theme='dark'] .writing-editor {
   cursor: pointer;
 }
 
-.writing-toolbar-container .ql-color .ql-picker-options .ql-picker-item:hover,
-.writing-toolbar-container .ql-background .ql-picker-options .ql-picker-item:hover {
+body:not(.tablet-no-hover) .writing-toolbar-container .ql-color .ql-picker-options .ql-picker-item:hover,
+body:not(.tablet-no-hover) .writing-toolbar-container .ql-background .ql-picker-options .ql-picker-item:hover {
   transform: scale(1.2);
   border-color: rgba(255,255,255,0.8);
   box-shadow: 0 2px 8px rgba(0,0,0,0.21);
@@ -341,14 +341,14 @@ body[data-theme='dark'] .writing-editor {
   transition: left 0.5s ease;
 }
 
-.btn-primary-solid:hover {
+body:not(.tablet-no-hover) .btn-primary-solid:hover {
   background: #1e3a8a !important;
   border-color: #1e3a8a !important;
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 8px 25px rgba(39,70,255,0.21), 0 4px 10px rgba(0,0,0,0.07);
 }
 
-.btn-primary-solid:hover::before {
+body:not(.tablet-no-hover) .btn-primary-solid:hover::before {
   left: 100%;
 }
 
@@ -478,13 +478,13 @@ input:checked + .slider:before {
 
 @media (hover: none) and (pointer: coarse) {
   /* .btn-primary-solid 호버 애니메이션 제거 */
-  .btn-primary-solid:hover {
+  body:not(.tablet-no-hover) .btn-primary-solid:hover {
     transform: none !important;
     box-shadow: none !important;
     transition: none !important; /* 모든 transition 제거 */
   }
 
-  .btn-primary-solid:hover::before {
+  body:not(.tablet-no-hover) .btn-primary-solid:hover::before {
     left: -100% !important; /* 원래 위치로 되돌림 */
     transition: none !important; /* transition 제거 */
   }
@@ -496,21 +496,21 @@ input:checked + .slider:before {
   }
 
   /* Quill 버튼 호버 애니메이션 제거 */
-  .writing-toolbar-container .ql-toolbar .ql-formats button:hover {
+  body:not(.tablet-no-hover) .writing-toolbar-container .ql-toolbar .ql-formats button:hover {
     transform: none !important;
     box-shadow: none !important;
     transition: none !important;
   }
 
   /* Quill 드롭다운 라벨 호버 애니메이션 제거 */
-  .writing-toolbar-container .ql-toolbar .ql-picker-label:hover {
+  body:not(.tablet-no-hover) .writing-toolbar-container .ql-toolbar .ql-picker-label:hover {
     transform: none !important;
     transition: none !important;
   }
 
   /* Quill 색상/배경 선택기 아이템 호버 애니메이션 제거 */
-  .writing-toolbar-container .ql-color .ql-picker-options .ql-picker-item:hover,
-  .writing-toolbar-container .ql-background .ql-picker-options .ql-picker-item:hover {
+  body:not(.tablet-no-hover) .writing-toolbar-container .ql-color .ql-picker-options .ql-picker-item:hover,
+  body:not(.tablet-no-hover) .writing-toolbar-container .ql-background .ql-picker-options .ql-picker-item:hover {
     transform: none !important;
     box-shadow: none !important;
     transition: none !important;
@@ -660,7 +660,7 @@ input:checked + .slider:before {
   transition: background-color 0.2s;
 }
 
-.file-input-wrapper .file-input-label:hover {
+body:not(.tablet-no-hover) .file-input-wrapper .file-input-label:hover {
   background-color: #0056b3;
 }
 

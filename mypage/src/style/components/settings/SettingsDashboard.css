@@ -47,7 +47,7 @@
   color: var(--color-text-secondary);
   transition: background-color 0.25s ease;
 }
-.top-posts-list .list-group-item:hover { background-color: var(--color-surface-subtle); }
+body:not(.tablet-no-hover) .top-posts-list .list-group-item:hover { background-color: var(--color-surface-subtle); }
 
 .top-posts-list .badge {
   background: linear-gradient(90deg, #4facfe, #00f2fe);

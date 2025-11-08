@@ -38,7 +38,7 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
 }
 
-.connect-box:hover {
+body:not(.tablet-no-hover) .connect-box:hover {
     transform: translateY(-10px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.14);
 }

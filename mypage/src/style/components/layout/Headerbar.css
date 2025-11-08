@@ -10,7 +10,7 @@
   outline: 2px solid transparent;
   transition: outline-color .25s ease, transform .25s ease;
 }
-.profile-pic:hover {
+body:not(.tablet-no-hover) .profile-pic:hover {
   outline-color: #e9eef6;
   transform: translateY(-1px);
 }
@@ -110,7 +110,7 @@
   cursor: pointer;
   transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
 }
-.profile-popup-btns .btn:hover {
+body:not(.tablet-no-hover) .profile-popup-btns .btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
   border-color: #d9e1ec;
@@ -123,7 +123,7 @@
   border-color: #dae6ff;
   color: #1e3a8a;
 }
-.profile-popup-btns .btn-info:hover {
+body:not(.tablet-no-hover) .profile-popup-btns .btn-info:hover {
   background: #eef4ff;
   border-color: #cfe0ff;
 }
@@ -132,7 +132,7 @@
   border-color: #ffe1e1;
   color: #9f1239;
 }
-.profile-popup-btns .btn-danger:hover {
+body:not(.tablet-no-hover) .profile-popup-btns .btn-danger:hover {
   background: #ffefef;
   border-color: #ffd6d6;
 }
@@ -174,7 +174,7 @@
   overflow: hidden;
 }
 
-.theme-toggle-button:hover {
+body:not(.tablet-no-hover) .theme-toggle-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
   border-color: #d9e1ec;
@@ -239,7 +239,7 @@
   justify-content: center;
   gap: 10px;
 }
-.google-login-button:hover {
+body:not(.tablet-no-hover) .google-login-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
   border-color: #d9e1ec;
@@ -247,7 +247,7 @@
 }
 
 /* 팝업 열림 (호버 또는 .is-open 클래스) */
-.my-profile-nav-item:hover .profile-popup,
+body:not(.tablet-no-hover) .my-profile-nav-item:hover .profile-popup,
 .my-profile-nav-item.is-open .profile-popup {
   opacity: 1;
   visibility: visible;
@@ -360,7 +360,7 @@
   text-decoration: none;
   transition: color 0.25s ease, transform 0.2s ease;
 }
-.my-nav-link:hover {
+body:not(.tablet-no-hover) .my-nav-link:hover {
   color: #007bff;
   transform: translateY(-1px);
 }
@@ -433,7 +433,7 @@
     border-radius: 12px;
     color: #0f172a;
   }
-  .my-navbar-nav .my-nav-link:hover { background: #f7f9fc; color: #0b5ed7; }
+  body:not(.tablet-no-hover) .my-navbar-nav .my-nav-link:hover { background: #f7f9fc; color: #0b5ed7; }
 
   /* 구분선 */
   .my-navbar-nav > .my-nav-item + .my-nav-item {
@@ -503,7 +503,7 @@ body[data-theme='dark'] .my-nav-link {
   color: #e2e8f0;
 }
 
-body[data-theme='dark'] .my-nav-link:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .my-nav-link:hover {
   background: rgba(99, 102, 241, 0.16);
   color: #a5b4fc;
 }
@@ -532,7 +532,7 @@ body[data-theme='dark'] .my-navbar-nav .my-nav-link {
   color: #e2e8f0;
 }
 
-body[data-theme='dark'] .my-navbar-nav .my-nav-link:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .my-navbar-nav .my-nav-link:hover {
   background: rgba(99, 102, 241, 0.18);
   color: #a5b4fc;
 }
@@ -564,7 +564,7 @@ body[data-theme='dark'] .profile-popup-btns .btn {
   backdrop-filter: blur(6px);
 }
 
-body[data-theme='dark'] .profile-popup-btns .btn:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .profile-popup-btns .btn:hover {
   background: rgba(37, 52, 77, 0.8);
   border-color: rgba(148, 163, 184, 0.45);
   box-shadow: 0 16px 28px rgba(8, 13, 24, 0.385);
@@ -576,7 +576,7 @@ body[data-theme='dark'] .profile-popup-btns .btn-info {
   color: #bfdbfe;
 }
 
-body[data-theme='dark'] .profile-popup-btns .btn-info:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .profile-popup-btns .btn-info:hover {
   background: linear-gradient(140deg, rgba(59, 130, 246, 0.32), rgba(14, 116, 144, 0.28));
   border-color: rgba(59, 130, 246, 0.45);
 }
@@ -587,7 +587,7 @@ body[data-theme='dark'] .profile-popup-btns .btn-danger {
   color: #fecaca;
 }
 
-body[data-theme='dark'] .profile-popup-btns .btn-danger:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .profile-popup-btns .btn-danger:hover {
   background: rgba(248, 113, 113, 0.24);
   border-color: rgba(248, 113, 113, 0.38);
 }
@@ -598,7 +598,7 @@ body[data-theme='dark'] .google-login-button {
   color: #f8fafc;
 }
 
-body[data-theme='dark'] .google-login-button:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .google-login-button:hover {
   background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
   border-color: rgba(37, 99, 235, 0.95);
   box-shadow: 0 16px 30px rgba(11, 16, 37, 0.406);
@@ -610,7 +610,7 @@ body[data-theme='dark'] .theme-toggle-button {
   color: #f8fafc;
 }
 
-body[data-theme='dark'] .theme-toggle-button:hover {
+body:not(.tablet-no-hover)[data-theme='dark'] .theme-toggle-button:hover {
   background: linear-gradient(150deg, rgba(48, 67, 104, 0.92), rgba(31, 46, 78, 0.95));
   border-color: rgba(148, 163, 184, 0.5);
   box-shadow: 0 16px 28px rgba(8, 13, 24, 0.42);
@@ -668,7 +668,7 @@ body[data-theme='dark'] .mobile-profile-email {
     transform: none !important;
   }
   
-  .profile-pic:hover {
+  body:not(.tablet-no-hover) .profile-pic:hover {
     transform: none !important;
     outline-color: transparent !important;
   }
@@ -677,7 +677,7 @@ body[data-theme='dark'] .mobile-profile-email {
     transition: none !important;
   }
   
-  .my-nav-link:hover {
+  body:not(.tablet-no-hover) .my-nav-link:hover {
     transform: none !important;
   }
   
@@ -685,7 +685,7 @@ body[data-theme='dark'] .mobile-profile-email {
     transition: none !important;
   }
   
-  .profile-popup-btns .btn:hover {
+  body:not(.tablet-no-hover) .profile-popup-btns .btn:hover {
     transform: none !important;
     box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056) !important;
     border-color: #d9e1ec !important;
@@ -696,7 +696,7 @@ body[data-theme='dark'] .mobile-profile-email {
     transition: none !important;
   }
   
-  .google-login-button:hover {
+  body:not(.tablet-no-hover) .google-login-button:hover {
     transform: none !important;
     box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056) !important;
     border-color: #d9e1ec !important;
