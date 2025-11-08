@@ -343,7 +343,7 @@ export const useQuillModules = () =>
             [{ script: 'sub' }, { script: 'super' }],
             ['blockquote', 'code-block'],
             [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-            [{ align: ['justify', 'left', 'center', 'right', ''] }],
+            [{ align: ['', 'center', 'right', 'justify'] }],
             ['link', 'image', 'video', 'formula', 'table'],
             ['clean'],
           ],

@@ -17,6 +17,35 @@
 .ql-snow .ql-picker-options { border-radius: 10px; }
 
 /* =========================
+   Align picker hover dropdown
+   ========================= */
+body:not(.tablet-no-hover) .ql-toolbar.ql-snow .ql-picker.ql-align,
+body:not(.tablet-no-hover) .rich-text-editor .ql-toolbar .ql-picker.ql-align {
+  position: relative;
+}
+
+body:not(.tablet-no-hover) .ql-toolbar.ql-snow .ql-picker.ql-align .ql-picker-options,
+body:not(.tablet-no-hover) .rich-text-editor .ql-toolbar .ql-picker.ql-align .ql-picker-options {
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+  min-width: 0;
+  width: max-content;
+  white-space: nowrap;
+  z-index: 15;
+}
+
+body:not(.tablet-no-hover) .ql-toolbar.ql-snow .ql-picker.ql-align:hover .ql-picker-options,
+body:not(.tablet-no-hover) .rich-text-editor .ql-toolbar .ql-picker.ql-align:hover .ql-picker-options {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* =========================
    Font labels & apply
    ========================= */
 .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before,
