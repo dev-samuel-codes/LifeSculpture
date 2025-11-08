@@ -55,6 +55,7 @@ body {
   align-items: flex-start;   /* 기준선을 위쪽으로 */
   justify-content: flex-start;
   flex-wrap: nowrap;         /* 기본은 한 줄 */
+  width: 100%;
 }
 
 /* 카드 기본 스타일 */
@@ -141,10 +142,22 @@ body {
 }
 
 /* ===== 반응형 ===== */
-/* 화면이 좁아지면 줄바꿈 허용 */
-@media (max-width: 1200px) {
+/* 태블릿(16:10)에서도 한 줄 레이아웃 유지하며 카드 폭 자동 축소 */
+@media (max-width: 1400px) {
   .main-section2-content {
-    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(24px, 3vw, 40px);
+  }
+
+  .main-card {
+    width: clamp(220px, 22vw, 320px);
+    flex: 1 1 clamp(220px, 22vw, 320px);
+    min-width: 190px;
+    max-width: 320px;
+  }
+
+  .main-card:nth-child(even) {
+    transform: translateY(clamp(30px, 5vw, 60px));
   }
 }
 
@@ -228,6 +241,12 @@ body {
 .main-card:nth-child(even):hover {
   transform: translateY(80px); /* 원래 90px → 80px로 위로 10px */
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.21);
+}
+
+@media (max-width: 1400px) {
+  .main-card:nth-child(even):hover {
+    transform: translateY(calc(clamp(30px, 5vw, 60px) - 10px)); /* 줄어든 높이에 맞춰 보정 */
+  }
 }
 
 /* 모바일에서는 호버 효과 제거 */
