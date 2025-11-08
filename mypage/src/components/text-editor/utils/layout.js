@@ -9,5 +9,5 @@ export const getResponsiveEditorHeight = (width) => {
 
   if (viewport <= 480) return '300px';
   if (viewport <= 768) return '350px';
-  return '400px';
+  return '1000px';
 };
