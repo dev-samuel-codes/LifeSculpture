@@ -198,6 +198,7 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 
 .rich-text {
   text-align: left;
+  white-space: pre-wrap;
 }
 
 @media (max-width: 640px) {

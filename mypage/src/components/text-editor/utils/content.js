@@ -22,8 +22,11 @@ export const sanitizeHtml = (html) => {
   sanitized = sanitized.replace(/src="javascript:[^"]*"/g, 'src="#"');
 
 
-  // 4. Remove empty paragraphs (existing logic)
-  sanitized = sanitized.trim().replace(/<p><br><\/p>/g, '');
+  // 4. Collapse multiple empty paragraphs into a single one
+  sanitized = sanitized.replace(/(<p><br><\/p>\s*){2,}/g, '<p><br></p>');
+
+  // 5. Trim whitespace at the beginning and end
+  sanitized = sanitized.trim();
 
   return sanitized;
 };
