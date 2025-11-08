@@ -178,13 +178,17 @@ body {
   }
   
   .main-section2-content {
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    gap: 20px;
+    width: 100%;
   }
   
   .main-card {
     width: 100%;
-    max-width: 100%;
-    min-width: 320px;
+    max-width: 420px;
+    min-width: 0;
   }
   
   .main-card:nth-child(even) {
@@ -219,8 +223,8 @@ body {
   
   .main-card {
     width: 100%;
-    max-width: 100%;
-    min-width: 280px;
+    max-width: 360px;
+    min-width: 0;
     height: 300px;
   }
   
