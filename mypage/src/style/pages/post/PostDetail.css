@@ -254,6 +254,9 @@ body[data-theme='dark'] .post-toc__title {
   font-size: 0.95rem;
   display: block;
   padding-left: 0.4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 body:not(.tablet-no-hover) .post-toc__item a:hover {
