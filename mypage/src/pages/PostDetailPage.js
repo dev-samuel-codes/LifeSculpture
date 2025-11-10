@@ -6,6 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import { CommentsSection, LazyImage, LoginRequiredPopup, LikeButton } from '../components';
 import { formatDateOnly } from '../utils/date';
 import { extractImageUrls } from '../components/text-editor/utils/media';
+import { setupResponsiveImageSizing } from '../components/text-editor/utils/imageSizing';
 import { deleteStorageImages } from '../utils/storage';
 import {
   deletePost as removePost,
@@ -291,40 +292,7 @@ function PostDetailPage() {
     const contentElement = document.querySelector('.post-content');
     if (!contentElement) return undefined;
 
-    const PORTRAIT_THRESHOLD = 1.05;
-    const portraitClassName = 'portrait-image';
-    const loadHandlers = new Map();
-
-    const classifyImage = (img) => {
-      const { naturalWidth, naturalHeight } = img;
-      if (!naturalWidth || !naturalHeight) return;
-
-      const aspectRatio = naturalHeight / Math.max(naturalWidth, 1);
-      if (aspectRatio > PORTRAIT_THRESHOLD) {
-        img.classList.add(portraitClassName);
-      } else {
-        img.classList.remove(portraitClassName);
-      }
-    };
-
-    const images = Array.from(contentElement.querySelectorAll('img'));
-
-    images.forEach((img) => {
-      if (img.complete && img.naturalWidth) {
-        classifyImage(img);
-        return;
-      }
-
-      const handleLoad = () => classifyImage(img);
-      loadHandlers.set(img, handleLoad);
-      img.addEventListener('load', handleLoad);
-    });
-
-    return () => {
-      loadHandlers.forEach((handler, img) => {
-        img.removeEventListener('load', handler);
-      });
-    };
+    return setupResponsiveImageSizing({ root: contentElement });
   }, [renderedContent]);
 
   useEffect(() => {

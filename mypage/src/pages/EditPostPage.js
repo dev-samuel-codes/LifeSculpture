@@ -14,6 +14,7 @@ import {
   extractImageUrls,
   isSameStorageImage,
 } from '../components/text-editor/utils/media';
+import { setupResponsiveImageSizing } from '../components/text-editor/utils/imageSizing';
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { deleteStorageImages } from '../utils/storage';
 import { getPost, updatePostFields } from '../services/posts';
@@ -156,6 +157,13 @@ function EditPostPage() {
       block.style.maxWidth = '800px';
       block.style.margin = '1.75rem auto';
     });
+  }, [content]);
+
+  useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor) return undefined;
+
+    return setupResponsiveImageSizing({ root: editor.root });
   }, [content]);
 
   const uploadPendingImages = async () => {

@@ -382,12 +382,35 @@ body:not(.tablet-no-hover) .rich-text-editor .ql-editor a:hover {
   color: #1a1a1a;
 }
 
-.rich-text img,
-.rich-text-editor .ql-editor img {
+.rich-text img {
   max-width: 100%;
   height: auto;
   display: block;
   margin: 1rem 0;
+}
+
+.rich-text-editor .ql-editor img {
+  max-width: 60% !important;
+  height: auto !important;
+  display: block;
+  margin: 1rem 0;
+}
+
+.rich-text-editor .ql-editor img.portrait-image {
+  max-width: min(45%, 420px) !important;
+  max-height: clamp(320px, 60vh, 660px);
+}
+
+@media (max-width: 768px) {
+  .rich-text-editor .ql-editor img {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .rich-text-editor .ql-editor img.portrait-image {
+    max-width: 100% !important;
+    max-height: none;
+  }
 }
 
 .rich-text pre,

@@ -11,6 +11,7 @@ import {
 } from '../../text-editor/utils/content';
 import { convertHeicToJpeg } from '../../text-editor/utils/media';
 import { getResponsiveEditorHeight } from '../../text-editor/utils/layout';
+import { setupResponsiveImageSizing } from '../../text-editor/utils/imageSizing';
 
 const MAX_CONTENT_SIZE = 1000000;
 const AUTO_SAVE_DELAY = 2000;
@@ -215,6 +216,13 @@ const useWritingEditor = () => {
       window.openFormulaEditor = null;
     };
   }, [handleImageInsert]);
+
+  useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor) return undefined;
+
+    return setupResponsiveImageSizing({ root: editor.root });
+  }, [content]);
 
   const uploadPendingImages = useCallback(async () => {
     if (pendingImages.length === 0) return content;
