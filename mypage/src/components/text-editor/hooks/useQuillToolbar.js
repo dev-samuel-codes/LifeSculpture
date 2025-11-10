@@ -10,8 +10,60 @@ import {
   showTableSizeModal,
 } from '../utils/quillSetup';
 
+const ensureClipboardPreservesCodeIndent = (() => {
+  let patched = false;
+
+  const shouldPreserveCodeWhitespace = (node) => {
+    if (typeof window === 'undefined' || !node || !node.parentElement) {
+      return false;
+    }
+    const parentElement = node.parentElement;
+    if (typeof parentElement.closest !== 'function') {
+      return false;
+    }
+    return Boolean(parentElement.closest('.ql-code-block-container') || parentElement.closest('pre'));
+  };
+
+  return () => {
+    if (patched || typeof window === 'undefined') return;
+    const Quill = ReactQuill?.Quill;
+    if (!Quill || typeof Quill.import !== 'function') return;
+    const Clipboard = Quill.import('modules/clipboard');
+    if (!Clipboard) return;
+
+    class PreserveCodeIndentClipboard extends Clipboard {
+      prepareMatching(container, nodeMatches) {
+        const [elementMatchers, textMatchers] = super.prepareMatching(container, nodeMatches);
+        const preserveMatcher = (node, delta) => {
+          if (!shouldPreserveCodeWhitespace(node)) {
+            return delta;
+          }
+
+          const rawText = typeof node.data === 'string' ? node.data : '';
+          if (!rawText) {
+            return delta;
+          }
+
+          node.data = '';
+          const normalized = rawText.replace(/\r\n/g, '\n');
+          return delta.insert(normalized);
+        };
+
+        textMatchers.unshift(preserveMatcher);
+        return [elementMatchers, textMatchers];
+      }
+    }
+
+    Quill.register('modules/clipboard', PreserveCodeIndentClipboard, true);
+    patched = true;
+  };
+})();
+
 // katex를 전역 객체에 할당
 window.katex = katex;
+if (typeof window !== 'undefined') {
+  ensureClipboardPreservesCodeIndent();
+}
 
 export const useImageHandler = () =>
   useCallback(() => {
