@@ -337,6 +337,7 @@ body[data-theme='dark'] .post-toc__item a {
 /* ?대?吏 ?ㅽ???*/
 .post-content img {
   max-width: 60% !important;
+  max-height: clamp(260px, 55vh, 520px);
   height: auto !important;
   display: block;
   margin: 1rem 0;
@@ -347,8 +348,9 @@ body[data-theme='dark'] .post-toc__item a {
 }
 
 .post-content img.portrait-image {
-  max-width: min(45%, 420px) !important;
-  max-height: clamp(320px, 60vh, 660px);
+  width: auto !important;
+  max-width: min(40%, 360px) !important;
+  max-height: clamp(220px, 50vh, 460px);
 }
 
 body:not(.tablet-no-hover) .post-content img:hover {
@@ -874,11 +876,13 @@ body:not(.tablet-no-hover) .ql-code-block-container code span:hover::before {
   .post-content img {
     max-width: 100% !important;
     width: 100% !important;
+    max-height: clamp(220px, 70vh, 440px);
   }
 
   .post-content img.portrait-image {
+    width: auto !important;
     max-width: 100% !important;
-    max-height: none;
+    max-height: clamp(220px, 75vh, 420px);
   }
   
   /* 紐⑤컮?쇱뿉??湲??媛꾧꺽留?議곗젙?섍퀬 ?뺣젹? ?좎? */
@@ -1026,12 +1030,25 @@ input:checked + .slider:before {
   width: 100%;
 }
 
+.post-content .ql-align-justify img.portrait-image {
+  width: auto !important;
+  max-width: min(40%, 360px) !important;
+  max-height: clamp(220px, 50vh, 460px);
+}
+
 /* Quill ?먮뵒?????대?吏 ?뺣젹 */
 .ql-editor img {
   max-width: 100%;
+  max-height: clamp(260px, 55vh, 520px);
   height: auto;
   display: block;
   margin: 1rem 0;
+}
+
+.ql-editor img.portrait-image {
+  width: auto !important;
+  max-width: min(40%, 360px) !important;
+  max-height: clamp(220px, 50vh, 460px);
 }
 
 .ql-editor .ql-align-left img {
@@ -1053,6 +1070,12 @@ input:checked + .slider:before {
   margin-left: 0;
   margin-right: 0;
   width: 100%;
+}
+
+.ql-editor .ql-align-justify img.portrait-image {
+  width: auto !important;
+  max-width: min(40%, 360px) !important;
+  max-height: clamp(220px, 50vh, 460px);
 }
 
 /* ?대?吏 而⑦뀒?대꼫 ?뺣젹 */
