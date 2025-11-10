@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { formatDate } from '../utils/date';
@@ -6,7 +6,8 @@ import { PostFilterPanel, PostListToolbar, PostList, PostPagination } from '../c
 import usePostList from '../hooks/usePostList';
 import '../style/pages/study/Study.css';
 
-function PostCollectionPage({ collectionName, sections }) {
+function PostCollectionPage({ config }) {
+  const { collectionName, sections = [], emptyMessage } = config;
   const { role } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -43,7 +44,9 @@ function PostCollectionPage({ collectionName, sections }) {
     [collectionName, navigate],
   );
 
-  if (loading) return <div className="container mt-4"></div>;
+  const emptyListMessage = useMemo(() => emptyMessage || '게시물을 찾을 수 없습니다.', [emptyMessage]);
+
+  if (loading) return <div className="container mt-4" />;
   if (error) return <div className="container mt-4 text-danger">Error: {error}</div>;
 
   return (
@@ -75,6 +78,7 @@ function PostCollectionPage({ collectionName, sections }) {
             role={role}
             formatDate={formatDate}
             onSelectPost={handleSelectPost}
+            emptyMessage={emptyListMessage}
           />
 
           <PostPagination
@@ -88,6 +92,15 @@ function PostCollectionPage({ collectionName, sections }) {
       </div>
     </div>
   );
+}
+
+export function createPostCollectionPage(config) {
+  function WrappedPostCollectionPage() {
+    return <PostCollectionPage config={config} />;
+  }
+
+  WrappedPostCollectionPage.displayName = `PostCollectionPage(${config?.collectionName || 'unknown'})`;
+  return WrappedPostCollectionPage;
 }
 
 export default PostCollectionPage;
