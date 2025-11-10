@@ -7,10 +7,12 @@ import {
   getDoc,
   getDocs,
   increment,
+  limit as limitQuery,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
+  startAfter,
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -31,6 +33,25 @@ export async function listPosts({ category, order = 'desc' }) {
   const constraints = [orderBy('createdAt', order === 'asc' ? 'asc' : 'desc')];
   const snapshot = await getDocs(query(collectionRef(category), ...constraints));
   return snapshot.docs.map((docSnap) => toPlainPost(docSnap));
+}
+
+export async function listPostsPage({
+  category,
+  order = 'desc',
+  limit = 24,
+  cursor = null,
+}) {
+  const constraints = [orderBy('createdAt', order === 'asc' ? 'asc' : 'desc'), limitQuery(limit)];
+  if (cursor) {
+    constraints.push(startAfter(cursor));
+  }
+
+  const snapshot = await getDocs(query(collectionRef(category), ...constraints));
+  return {
+    posts: snapshot.docs.map((docSnap) => toPlainPost(docSnap)),
+    cursor: snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null,
+    hasMore: snapshot.docs.length === limit,
+  };
 }
 
 export async function getPost({ category, id }) {

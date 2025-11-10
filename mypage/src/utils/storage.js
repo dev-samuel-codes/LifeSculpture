@@ -7,7 +7,9 @@ export async function deleteStorageImages({ urls, storage, uid, role }) {
   const tasks = urls.map(async (url) => {
     const path = extractStoragePath(url);
     if (!path) return false;
-    if (!path.includes(uid) && role !== 'admin') return false;
+    const ownedPrefix = uid ? `post-images/${uid}/` : null;
+    const isOwnerPath = ownedPrefix ? path.startsWith(ownedPrefix) : false;
+    if (role !== 'admin' && !isOwnerPath) return false;
     try {
       await deleteObject(ref(storage, path));
       return true;

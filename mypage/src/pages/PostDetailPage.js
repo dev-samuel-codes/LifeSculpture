@@ -428,21 +428,22 @@ function PostDetailPage() {
       <article className="post-detail-container">
         <header className="post-header">
           <div className="title-actions-container">
-                      <div class="left-section">
-                        <h2 class="post-title">{post.title}</h2>
-                      </div>
-            
-                      {!isAdmin && (
-                        <LikeButton
-                          isLiked={isLiked}
-                          likeCount={likeCount}
-                          onToggle={handleLikeClick}
-                          title={likeButtonTitle}
-                          ariaLabel={likeButtonAria}
-                        />
-                      )}
-            
-                      {isAdmin && (            <div className="admin-actions">
+            <div className="left-section">
+              <h2 className="post-title">{post.title}</h2>
+            </div>
+
+            {!isAdmin && (
+              <LikeButton
+                isLiked={isLiked}
+                likeCount={likeCount}
+                onToggle={handleLikeClick}
+                title={likeButtonTitle}
+                ariaLabel={likeButtonAria}
+              />
+            )}
+
+            {isAdmin && (
+              <div className="admin-actions">
                 <div className="public-switch-container">
                   <label className="switch">
                     <input type="checkbox" checked={isPublic} onChange={handlePublicToggle} />

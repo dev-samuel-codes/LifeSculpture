@@ -114,7 +114,8 @@ export const handleImageUpload = async (file) => {
       console.log(`[COMPRESS] 1MB 미만: ${originalSizeKB.toFixed(1)}KB, 압축 생략`);
     }
 
-    const path = `post-images/${Date.now()}-${file.name}`;
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `post-images/${user.uid}/${Date.now()}-${sanitizedName}`;
     console.log('[STORAGE] 업로드 경로:', path);
     console.log('[STORAGE] Storage 참조 생성 중...');
 

@@ -49,16 +49,20 @@ function SettingsDashboard() {
       try {
         const fetchedAllPosts = [];
 
-        const studyQuery = query(collection(db, "study"), orderBy("createdAt", "asc"));
-        const studySnapshot = await getDocs(studyQuery);
-        studySnapshot.forEach(doc => {
-          fetchedAllPosts.push({ category: 'study', id: doc.id, ...doc.data() });
+        const studyQuery = query(collection(db, 'study'), orderBy('createdAt', 'asc'));
+        const blogQuery = query(collection(db, 'blog'), orderBy('createdAt', 'asc'));
+
+        const [studySnapshot, blogSnapshot] = await Promise.all([
+          getDocs(studyQuery),
+          getDocs(blogQuery),
+        ]);
+
+        studySnapshot.forEach((docSnap) => {
+          fetchedAllPosts.push({ category: 'study', id: docSnap.id, ...docSnap.data() });
         });
 
-        const blogQuery = query(collection(db, "blog"), orderBy("createdAt", "asc"));
-        const blogSnapshot = await getDocs(blogQuery);
-        blogSnapshot.forEach(doc => {
-          fetchedAllPosts.push({ category: 'blog', id: doc.id, ...doc.data() });
+        blogSnapshot.forEach((docSnap) => {
+          fetchedAllPosts.push({ category: 'blog', id: docSnap.id, ...docSnap.data() });
         });
 
         setAllPostsData(fetchedAllPosts);
@@ -112,8 +116,8 @@ function SettingsDashboard() {
     labels: sortedDates,
     datasets: [
       {
-        label: 'Site Visitors',
-        data: sortedDates.map(() => Math.floor(Math.random() * 50) + 10),
+        label: '추정 방문자 수',
+        data: sortedDates.map((date) => Math.max(dailyStats[date].views || 0, 1)),
         borderColor: '#36a2eb',
         backgroundColor: 'rgba(53, 162, 235, 0.2)',
       },

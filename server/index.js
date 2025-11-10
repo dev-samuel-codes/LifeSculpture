@@ -1,5 +1,4 @@
 require('dotenv').config(); // Load environment variables from .env file
-console.log('dotenv config loaded. Process env GOOGLE_CLIENT_ID_BACKEND:', process.env.GOOGLE_CLIENT_ID_BACKEND);
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -44,10 +43,26 @@ app.use('/assets', express.static('assets'));
 
 // Helper function to save/update user in Firestore
 const saveUserToFirestore = async (userData) => {
+  const documentId = userData.userid || userData.uid;
+  if (!documentId) {
+    console.warn('[auth] 사용자 문서를 저장할 수 없습니다. uid가 제공되지 않았습니다.');
+    return;
+  }
+
   try {
-    // Use email as document ID for uniqueness and easy lookup
-    await dbAdmin.collection('users').doc(userData.email).set(userData, { merge: true });
-    console.log(`User ${userData.email} saved/updated in Firestore.`);
+    await dbAdmin
+      .collection('users')
+      .doc(documentId)
+      .set(
+        {
+          email: userData.email ?? null,
+          name: userData.name ?? null,
+          role: userData.role ?? 'user',
+          picture: userData.picture ?? null,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
   } catch (error) {
     console.error('Error saving user to Firestore:', error);
   }
@@ -89,8 +104,6 @@ app.post('/auth/google', async (req, res) => {
   const { id_token } = req.body;
 
   try {
-    console.log('Backend GOOGLE_CLIENT_ID (at runtime):', GOOGLE_CLIENT_ID);
-    console.log('Received ID Token (first 50 chars):', id_token.substring(0, 50) + '...');
     const ticket = await client.verifyIdToken({
       idToken: id_token,
       audience: GOOGLE_CLIENT_ID,

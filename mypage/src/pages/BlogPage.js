@@ -1,10 +1,5 @@
-import React, { useCallback, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { formatDate } from '../utils/date';
-import { PostFilterPanel, PostListToolbar, PostList, PostPagination } from '../components';
-import usePostList from '../hooks/usePostList';
-import '../style/pages/study/Study.css';
+import React from 'react';
+import PostCollectionPage from './PostCollectionPage';
 
 const BLOG_SECTIONS = [
   { title: '에세이 · 일상', tags: ['일상', '생각', '회고', '일기'] },
@@ -16,87 +11,7 @@ const BLOG_SECTIONS = [
 ];
 
 function BlogPage() {
-  const { role } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  const {
-    loading,
-    error,
-    searchText,
-    sortKey,
-    selectedParent,
-    selectedChildren,
-    visibleChildren,
-    currentPage,
-    totalPages,
-    filteredCount,
-    currentPosts,
-    handleSearchChange,
-    handleSortChange,
-    toggleParent,
-    toggleChild,
-    clearAll,
-    goToPage,
-    goToPrevious,
-    goToNext,
-  } = usePostList({
-    collectionName: 'blog',
-    sections: BLOG_SECTIONS,
-    role,
-  });
-
-  const handleSelectPost = useCallback(
-    (postId) => {
-      navigate(`/posts/blog/${postId}`);
-    },
-    [navigate],
-  );
-
-  if (loading) return <div className="container mt-4"></div>;
-  if (error) return <div className="container mt-4 text-danger">Error: {error}</div>;
-
-  return (
-    <div className="container mt-4">
-      <div className="row g-4">
-        <div className="col-md-3">
-          <PostFilterPanel
-            sections={BLOG_SECTIONS}
-            selectedParent={selectedParent}
-            selectedChildren={selectedChildren}
-            visibleChildren={visibleChildren}
-            onToggleParent={toggleParent}
-            onToggleChild={toggleChild}
-            onClearAll={clearAll}
-          />
-        </div>
-
-        <div className="col-md-9">
-          <PostListToolbar
-            searchText={searchText}
-            onSearchChange={handleSearchChange}
-            sortKey={sortKey}
-            onSortChange={handleSortChange}
-            totalCount={filteredCount}
-          />
-
-          <PostList
-            posts={currentPosts}
-            role={role}
-            formatDate={formatDate}
-            onSelectPost={handleSelectPost}
-          />
-
-          <PostPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPrevious={goToPrevious}
-            onNext={goToNext}
-            onSelect={goToPage}
-          />
-        </div>
-      </div>
-    </div>
-  );
+  return <PostCollectionPage collectionName="blog" sections={BLOG_SECTIONS} />;
 }
 
 export default BlogPage;

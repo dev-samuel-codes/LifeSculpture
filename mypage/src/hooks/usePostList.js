@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { listPosts } from '../services/posts';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { listPostsPage } from '../services/posts';
 
 const POSTS_PER_PAGE_DEFAULT = 6;
+const FETCH_BATCH_SIZE = 24;
 
 const norm = (value) =>
   (value || '')
@@ -27,6 +28,10 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   const [searchText, setSearchText] = useState('');
   const [selectedParent, setSelectedParent] = useState(null);
@@ -34,33 +39,93 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
   const [sortKey, setSortKey] = useState('createdAt_desc');
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    let isCancelled = false;
-    const fetchPosts = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const posts = await listPosts({ category: collectionName, order: 'desc' });
-        if (!isCancelled) {
-          setAllPosts(posts);
-        }
-      } catch (err) {
-        if (!isCancelled) {
-          setError('Failed to load posts.');
-          setAllPosts([]);
-        }
-      } finally {
-        if (!isCancelled) {
-          setLoading(false);
+  const initialLoadRef = useRef(0);
+
+  const appendPosts = useCallback((posts, nextCursor, nextHasMore) => {
+    setAllPosts((prev) => [...prev, ...posts]);
+    setCursor(nextCursor);
+    setHasMore(nextHasMore);
+    if (!nextHasMore) {
+      setIsFullyLoaded(true);
+    }
+  }, []);
+
+  const fetchInitialPosts = useCallback(async () => {
+    initialLoadRef.current += 1;
+    const loadId = initialLoadRef.current;
+    setLoading(true);
+    setError(null);
+    setAllPosts([]);
+    setCursor(null);
+    setHasMore(false);
+    setIsFullyLoaded(false);
+
+    try {
+      const { posts, cursor: nextCursor, hasMore: nextHasMore } = await listPostsPage({
+        category: collectionName,
+        limit: FETCH_BATCH_SIZE,
+      });
+      if (initialLoadRef.current === loadId) {
+        setAllPosts(posts);
+        setCursor(nextCursor);
+        setHasMore(nextHasMore);
+        if (!nextHasMore) {
+          setIsFullyLoaded(true);
         }
       }
-    };
-
-    fetchPosts();
-    return () => {
-      isCancelled = true;
-    };
+    } catch (err) {
+      console.error('[usePostList] 초기 게시글 로드 실패:', err);
+      if (initialLoadRef.current === loadId) {
+        setError('게시글을 불러오지 못했습니다.');
+        setAllPosts([]);
+      }
+    } finally {
+      if (initialLoadRef.current === loadId) {
+        setLoading(false);
+      }
+    }
   }, [collectionName]);
+
+  useEffect(() => {
+    fetchInitialPosts();
+  }, [fetchInitialPosts]);
+
+  const fetchMorePosts = useCallback(async () => {
+    if (isFetchingMore || !hasMore || !cursor) {
+      if (!hasMore) {
+        setIsFullyLoaded(true);
+      }
+      return false;
+    }
+
+    setIsFetchingMore(true);
+    try {
+      const { posts, cursor: nextCursor, hasMore: nextHasMore } = await listPostsPage({
+        category: collectionName,
+        limit: FETCH_BATCH_SIZE,
+        cursor,
+      });
+      appendPosts(posts, nextCursor, nextHasMore);
+      return nextHasMore;
+    } catch (err) {
+      console.error('[usePostList] 추가 게시글 로드 실패:', err);
+      return false;
+    } finally {
+      setIsFetchingMore(false);
+    }
+  }, [appendPosts, collectionName, cursor, hasMore, isFetchingMore]);
+
+  const fetchAllRemaining = useCallback(async () => {
+    if (isFullyLoaded) return;
+    let more = true;
+    while (more) {
+      const hasNext = await fetchMorePosts();
+      more = Boolean(hasNext);
+      if (!more) {
+        setIsFullyLoaded(true);
+      }
+    }
+  }, [fetchMorePosts, isFullyLoaded]);
 
   const visibleChildren = useMemo(() => {
     if (!selectedParent) return [];
@@ -79,6 +144,25 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
       return next;
     });
   }, [selectedParent, visibleChildren]);
+
+  useEffect(() => {
+    if (isFullyLoaded) return;
+    const requiresFullData =
+      searchText.trim().length > 0 ||
+      Boolean(selectedParent) ||
+      selectedChildren.size > 0 ||
+      sortKey !== 'createdAt_desc';
+    if (requiresFullData) {
+      fetchAllRemaining();
+    }
+  }, [fetchAllRemaining, isFullyLoaded, searchText, selectedChildren, selectedParent, sortKey]);
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const requiredCount = currentPage * postsPerPage;
+    if (requiredCount <= allPosts.length || isFetchingMore || loading) return;
+    fetchMorePosts();
+  }, [allPosts.length, currentPage, fetchMorePosts, hasMore, isFetchingMore, loading, postsPerPage]);
 
   const filteredPosts = useMemo(() => {
     const text = norm(searchText);
