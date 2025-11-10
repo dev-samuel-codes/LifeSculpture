@@ -284,7 +284,7 @@ const useWritingEditor = () => {
 
         alert('게시글이 성공적으로 등록되었습니다!');
         resetForm();
-        navigate(`/${category}/${docRef.id}`);
+        navigate(`/posts/${category}/${docRef.id}`);
       } catch (error) {
         console.error('[SettingsWriting] 게시글 등록 실패:', error);
         alert('게시글 등록 실패: ' + error.message);
