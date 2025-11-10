@@ -346,6 +346,13 @@ body[data-theme='dark'] .post-toc__item a {
   cursor: default;
 }
 
+.post-content img.portrait-image {
+  max-width: min(45%, 420px) !important;
+  max-height: clamp(320px, 60vh, 660px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
 body:not(.tablet-no-hover) .post-content img:hover {
   transform: none;
   box-shadow: none;
@@ -869,6 +876,11 @@ body:not(.tablet-no-hover) .ql-code-block-container code span:hover::before {
   .post-content img {
     max-width: 100% !important;
     width: 100% !important;
+  }
+
+  .post-content img.portrait-image {
+    max-width: 100% !important;
+    max-height: none;
   }
   
   /* 紐⑤컮?쇱뿉??湲??媛꾧꺽留?議곗젙?섍퀬 ?뺣젹? ?좎? */
