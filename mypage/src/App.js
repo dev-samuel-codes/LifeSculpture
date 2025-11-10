@@ -1,16 +1,17 @@
 import './style/App.css';
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Connect, Header } from './components';
 import { AuthContext } from './context/AuthContext';
-import HomePage from './pages/HomePage';
-import StudyPage from './pages/StudyPage';
-import BlogPage from './pages/BlogPage';
-import SettingsPage from './pages/SettingsPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import EditPostPage from './pages/EditPostPage';
-import PostDetailPage from './pages/PostDetailPage';
 import LoadingScreen from './components/common/LoadingScreen';
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+const StudyPage = lazy(() => import('./pages/StudyPage'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
+const EditPostPage = lazy(() => import('./pages/EditPostPage'));
+const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
 
 const TABLET_MAX_WIDTH = 1200;
 const TABLET_ASPECT_RATIO = 16 / 10;
@@ -76,21 +77,23 @@ function App() {
         </>
       ) : (
         <>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/study" element={<Page><StudyPage /></Page>} />
-            <Route path="/blog" element={<Page><BlogPage /></Page>} />
-            <Route path="/settings/*" element={<Page><SettingsPage /></Page>} />
+          <Suspense fallback={<div className="route-loading">페이지를 불러오는 중...</div>}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/study" element={<Page><StudyPage /></Page>} />
+              <Route path="/blog" element={<Page><BlogPage /></Page>} />
+              <Route path="/settings/*" element={<Page><SettingsPage /></Page>} />
 
-            {role === 'admin' && (
-              <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
-            )}
-            {role === 'admin' && (
-              <Route path="/edit-post/:category/:id" element={<Page><EditPostPage /></Page>} />
-            )}
+              {role === 'admin' && (
+                <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
+              )}
+              {role === 'admin' && (
+                <Route path="/edit-post/:category/:id" element={<Page><EditPostPage /></Page>} />
+              )}
 
-            <Route path="/posts/:category/:id" element={<Page><PostDetailPage /></Page>} />
-          </Routes>
+              <Route path="/posts/:category/:id" element={<Page><PostDetailPage /></Page>} />
+            </Routes>
+          </Suspense>
 
           <Connect />
         </>
