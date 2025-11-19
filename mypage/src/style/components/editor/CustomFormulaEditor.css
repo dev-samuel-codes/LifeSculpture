@@ -77,8 +77,10 @@
   transition: background-color 0.2s;
 }
 
-body:not(.tablet-no-hover) .symbol-palette button:hover {
-  background-color: #e9ecef;
+@media (hover: hover) {
+  .symbol-palette button:hover {
+    background-color: #e9ecef;
+  }
 }
 
 .symbol-palette button .katex {

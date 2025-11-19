@@ -10,9 +10,11 @@
   outline: 2px solid transparent;
   transition: outline-color .25s ease, transform .25s ease;
 }
-body:not(.tablet-no-hover) .profile-pic:hover {
-  outline-color: #e9eef6;
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .profile-pic:hover {
+    outline-color: #e9eef6;
+    transform: translateY(-1px);
+  }
 }
 
 /* 프로필 팝업 */
@@ -95,6 +97,7 @@ body:not(.tablet-no-hover) .profile-pic:hover {
   align-items: flex-end;
   margin-top: 2px;
 }
+
 .profile-popup-btns .btn {
   flex: 1 1 auto;
   height: 44px;
@@ -110,12 +113,6 @@ body:not(.tablet-no-hover) .profile-pic:hover {
   cursor: pointer;
   transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
 }
-body:not(.tablet-no-hover) .profile-popup-btns .btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
-  border-color: #d9e1ec;
-  background: #f7f9fc;
-}
 
 /* 개별 버튼 색상 */
 .profile-popup-btns .btn-info {
@@ -123,18 +120,30 @@ body:not(.tablet-no-hover) .profile-popup-btns .btn:hover {
   border-color: #dae6ff;
   color: #1e3a8a;
 }
-body:not(.tablet-no-hover) .profile-popup-btns .btn-info:hover {
-  background: #eef4ff;
-  border-color: #cfe0ff;
-}
+
 .profile-popup-btns .btn-danger {
   background: #fff7f7;
   border-color: #ffe1e1;
   color: #9f1239;
 }
-body:not(.tablet-no-hover) .profile-popup-btns .btn-danger:hover {
-  background: #ffefef;
-  border-color: #ffd6d6;
+
+@media (hover: hover) {
+  .profile-popup-btns .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
+    border-color: #d9e1ec;
+    background: #f7f9fc;
+  }
+
+  .profile-popup-btns .btn-info:hover {
+    background: #eef4ff;
+    border-color: #cfe0ff;
+  }
+
+  .profile-popup-btns .btn-danger:hover {
+    background: #ffefef;
+    border-color: #ffd6d6;
+  }
 }
 
 .profile-popup-auth-controls {
@@ -174,11 +183,13 @@ body:not(.tablet-no-hover) .profile-popup-btns .btn-danger:hover {
   overflow: hidden;
 }
 
-body:not(.tablet-no-hover) .theme-toggle-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
-  border-color: #d9e1ec;
-  background: linear-gradient(145deg, #f8fbff, #eef3ff);
+@media (hover: hover) {
+  .theme-toggle-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
+    border-color: #d9e1ec;
+    background: linear-gradient(145deg, #f8fbff, #eef3ff);
+  }
 }
 
 .theme-toggle-button:focus-visible {
@@ -239,24 +250,34 @@ body:not(.tablet-no-hover) .theme-toggle-button:hover {
   justify-content: center;
   gap: 10px;
 }
-body:not(.tablet-no-hover) .google-login-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
-  border-color: #d9e1ec;
-  background: #eef2f7;
+
+@media (hover: hover) {
+  .google-login-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056);
+    border-color: #d9e1ec;
+    background: #eef2f7;
+  }
 }
 
 /* 팝업 열림 (호버 또는 .is-open 클래스) */
-body:not(.tablet-no-hover) .my-profile-nav-item:hover .profile-popup,
+@media (hover: hover) {
+  .my-profile-nav-item:hover .profile-popup {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease,
+      visibility 0s;
+  }
+}
+
 .my-profile-nav-item.is-open .profile-popup {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateY(0) scale(1);
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease,
-    visibility 0s;
 }
 
 /* 팝업 닫힘 (클릭 토글 시) */
@@ -360,9 +381,11 @@ body:not(.tablet-no-hover) .my-profile-nav-item:hover .profile-popup,
   text-decoration: none;
   transition: color 0.25s ease, transform 0.2s ease;
 }
-body:not(.tablet-no-hover) .my-nav-link:hover {
-  color: #007bff;
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .my-nav-link:hover {
+    color: #007bff;
+    transform: translateY(-1px);
+  }
 }
 
 /* 공용 표시 제어 */
@@ -433,7 +456,10 @@ body:not(.tablet-no-hover) .my-nav-link:hover {
     border-radius: 12px;
     color: #0f172a;
   }
-  body:not(.tablet-no-hover) .my-navbar-nav .my-nav-link:hover { background: #f7f9fc; color: #0b5ed7; }
+}
+
+@media (max-width: 991px) and (hover: hover) {
+  .my-navbar-nav .my-nav-link:hover { background: #f7f9fc; color: #0b5ed7; }
 
   /* 구분선 */
   .my-navbar-nav > .my-nav-item + .my-nav-item {
@@ -503,10 +529,6 @@ body[data-theme='dark'] .my-nav-link {
   color: #e2e8f0;
 }
 
-body:not(.tablet-no-hover)[data-theme='dark'] .my-nav-link:hover {
-  background: rgba(99, 102, 241, 0.16);
-  color: #a5b4fc;
-}
 
 body[data-theme='dark'] .my-navbar-toggler {
   border-color: rgba(148, 163, 184, 0.48);
@@ -532,10 +554,6 @@ body[data-theme='dark'] .my-navbar-nav .my-nav-link {
   color: #e2e8f0;
 }
 
-body:not(.tablet-no-hover)[data-theme='dark'] .my-navbar-nav .my-nav-link:hover {
-  background: rgba(99, 102, 241, 0.18);
-  color: #a5b4fc;
-}
 
 body[data-theme='dark'] .profile-popup {
   background: linear-gradient(155deg, rgba(21, 33, 58, 0.96), rgba(13, 23, 43, 0.98));
@@ -564,11 +582,6 @@ body[data-theme='dark'] .profile-popup-btns .btn {
   backdrop-filter: blur(6px);
 }
 
-body:not(.tablet-no-hover)[data-theme='dark'] .profile-popup-btns .btn:hover {
-  background: rgba(37, 52, 77, 0.8);
-  border-color: rgba(148, 163, 184, 0.45);
-  box-shadow: 0 16px 28px rgba(8, 13, 24, 0.385);
-}
 
 body[data-theme='dark'] .profile-popup-btns .btn-info {
   background: linear-gradient(140deg, rgba(59, 130, 246, 0.22), rgba(14, 116, 144, 0.22));
@@ -576,10 +589,6 @@ body[data-theme='dark'] .profile-popup-btns .btn-info {
   color: #bfdbfe;
 }
 
-body:not(.tablet-no-hover)[data-theme='dark'] .profile-popup-btns .btn-info:hover {
-  background: linear-gradient(140deg, rgba(59, 130, 246, 0.32), rgba(14, 116, 144, 0.28));
-  border-color: rgba(59, 130, 246, 0.45);
-}
 
 body[data-theme='dark'] .profile-popup-btns .btn-danger {
   background: rgba(248, 113, 113, 0.16);
@@ -587,10 +596,6 @@ body[data-theme='dark'] .profile-popup-btns .btn-danger {
   color: #fecaca;
 }
 
-body:not(.tablet-no-hover)[data-theme='dark'] .profile-popup-btns .btn-danger:hover {
-  background: rgba(248, 113, 113, 0.24);
-  border-color: rgba(248, 113, 113, 0.38);
-}
 
 body[data-theme='dark'] .google-login-button {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
@@ -598,11 +603,6 @@ body[data-theme='dark'] .google-login-button {
   color: #f8fafc;
 }
 
-body:not(.tablet-no-hover)[data-theme='dark'] .google-login-button:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
-  border-color: rgba(37, 99, 235, 0.95);
-  box-shadow: 0 16px 30px rgba(11, 16, 37, 0.406);
-}
 
 body[data-theme='dark'] .theme-toggle-button {
   background: linear-gradient(150deg, rgba(36, 48, 78, 0.82), rgba(25, 37, 63, 0.9));
@@ -610,11 +610,46 @@ body[data-theme='dark'] .theme-toggle-button {
   color: #f8fafc;
 }
 
-body:not(.tablet-no-hover)[data-theme='dark'] .theme-toggle-button:hover {
-  background: linear-gradient(150deg, rgba(48, 67, 104, 0.92), rgba(31, 46, 78, 0.95));
-  border-color: rgba(148, 163, 184, 0.5);
-  box-shadow: 0 16px 28px rgba(8, 13, 24, 0.42);
+@media (hover: hover) {
+  body[data-theme='dark'] .my-nav-link:hover {
+    background: rgba(99, 102, 241, 0.16);
+    color: #a5b4fc;
+  }
+
+  body[data-theme='dark'] .my-navbar-nav .my-nav-link:hover {
+    background: rgba(99, 102, 241, 0.18);
+    color: #a5b4fc;
+  }
+
+  body[data-theme='dark'] .profile-popup-btns .btn:hover {
+    background: rgba(37, 52, 77, 0.8);
+    border-color: rgba(148, 163, 184, 0.45);
+    box-shadow: 0 16px 28px rgba(8, 13, 24, 0.385);
+  }
+
+  body[data-theme='dark'] .profile-popup-btns .btn-info:hover {
+    background: linear-gradient(140deg, rgba(59, 130, 246, 0.32), rgba(14, 116, 144, 0.28));
+    border-color: rgba(59, 130, 246, 0.45);
+  }
+
+  body[data-theme='dark'] .profile-popup-btns .btn-danger:hover {
+    background: rgba(248, 113, 113, 0.24);
+    border-color: rgba(248, 113, 113, 0.38);
+  }
+
+  body[data-theme='dark'] .google-login-button:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+    border-color: rgba(37, 99, 235, 0.95);
+    box-shadow: 0 16px 30px rgba(11, 16, 37, 0.406);
+  }
+
+  body[data-theme='dark'] .theme-toggle-button:hover {
+    background: linear-gradient(150deg, rgba(48, 67, 104, 0.92), rgba(31, 46, 78, 0.95));
+    border-color: rgba(148, 163, 184, 0.5);
+    box-shadow: 0 16px 28px rgba(8, 13, 24, 0.42);
+  }
 }
+
 
 body[data-theme='dark'] .theme-toggle-button::after {
   background: radial-gradient(circle, rgba(129, 140, 248, 0.55) 0%, rgba(129, 140, 248, 0) 70%);
@@ -668,44 +703,46 @@ body[data-theme='dark'] .mobile-profile-email {
     transform: none !important;
   }
   
-  body:not(.tablet-no-hover) .profile-pic:hover {
-    transform: none !important;
-    outline-color: transparent !important;
-  }
-  
   .my-nav-link {
     transition: none !important;
-  }
-  
-  body:not(.tablet-no-hover) .my-nav-link:hover {
-    transform: none !important;
   }
   
   .profile-popup-btns .btn {
     transition: none !important;
   }
   
-  body:not(.tablet-no-hover) .profile-popup-btns .btn:hover {
-    transform: none !important;
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056) !important;
-    border-color: #d9e1ec !important;
-    background: #f7f9fc !important;
-  }
-  
   .google-login-button {
     transition: none !important;
-  }
-  
-  body:not(.tablet-no-hover) .google-login-button:hover {
-    transform: none !important;
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056) !important;
-    border-color: #d9e1ec !important;
-    background: #eef2f7 !important;
   }
   
   /* 네비게이션 메뉴의 필수 transform은 유지 */
   .my-navbar-collapse.show .my-navbar-nav {
     transform: translateY(0) !important;
     opacity: 1 !important;
+  }
+}
+
+@media (max-width: 768px) and (hover: hover) {
+  .profile-pic:hover {
+    transform: none !important;
+    outline-color: transparent !important;
+  }
+
+  .my-nav-link:hover {
+    transform: none !important;
+  }
+
+  .profile-popup-btns .btn:hover {
+    transform: none !important;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056) !important;
+    border-color: #d9e1ec !important;
+    background: #f7f9fc !important;
+  }
+
+  .google-login-button:hover {
+    transform: none !important;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.056) !important;
+    border-color: #d9e1ec !important;
+    background: #eef2f7 !important;
   }
 }

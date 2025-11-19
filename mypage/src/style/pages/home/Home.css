@@ -235,32 +235,34 @@ body {
   }
 }
 
-/* 홀수 카드 호버 시 */
-body:not(.tablet-no-hover) .main-card:nth-child(odd):hover {
-  transform: translateY(-10px); /* 기본보다 10px 위 */
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.21);
+@media (hover: hover) {
+  /* 홀수 카드 호버 시 */
+  .main-card:nth-child(odd):hover {
+    transform: translateY(-10px); /* 기본보다 10px 위 */
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.21);
+  }
+
+  /* 짝수 카드 호버 시 (지그재그 고려) */
+  .main-card:nth-child(even):hover {
+    transform: translateY(80px); /* 원래 90px → 80px로 위로 10px */
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.21);
+  }
 }
 
-/* 짝수 카드 호버 시 (지그재그 고려) */
-body:not(.tablet-no-hover) .main-card:nth-child(even):hover {
-  transform: translateY(80px); /* 원래 90px → 80px로 위로 10px */
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.21);
-}
-
-@media (max-width: 1400px) {
-  body:not(.tablet-no-hover) .main-card:nth-child(even):hover {
+@media (max-width: 1400px) and (hover: hover) {
+  .main-card:nth-child(even):hover {
     transform: translateY(calc(clamp(30px, 5vw, 60px) - 10px)); /* 줄어든 높이에 맞춰 보정 */
   }
 }
 
 /* 모바일에서는 호버 효과 제거 */
-@media (max-width: 600px) {
-  body:not(.tablet-no-hover) .main-card:nth-child(odd):hover {
+@media (max-width: 600px) and (hover: hover) {
+  .main-card:nth-child(odd):hover {
     transform: none !important;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14) !important;
   }
   
-  body:not(.tablet-no-hover) .main-card:nth-child(even):hover {
+  .main-card:nth-child(even):hover {
     transform: none !important;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14) !important;
   }

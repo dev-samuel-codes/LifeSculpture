@@ -37,10 +37,12 @@
   opacity: .9;
 }
 
-body:not(.tablet-no-hover) .settings-menu-item:hover {
-  background: #f3f6ff;
-  color: #2746ff;
-  transform: translateX(2px);
+@media (hover: hover) {
+  .settings-menu-item:hover {
+    background: #f3f6ff;
+    color: #2746ff;
+    transform: translateX(2px);
+  }
 }
 
 .settings-menu-item.active {

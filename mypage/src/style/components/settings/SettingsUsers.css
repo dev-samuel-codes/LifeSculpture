@@ -143,9 +143,11 @@
   transition: all 0.2s ease;
 }
 
-body:not(.tablet-no-hover) .user-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.105);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .user-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.105);
+    transform: translateY(-1px);
+  }
 }
 
 .user-card-header {
@@ -216,28 +218,30 @@ body:not(.tablet-no-hover) .user-card:hover {
   transition: left 0.5s;
 }
 
-body:not(.tablet-no-hover) .role-change-btn:hover::before {
-  left: 100%;
-}
-
-body:not(.tablet-no-hover) .role-change-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-border-neutral) 0%, var(--color-border-strong) 100%);
-  color: var(--color-text-strong);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.105), 0 2px 4px rgba(0, 0, 0, 0.07);
-}
-
 .role-change-btn-active {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(59, 130, 246, 0.28), 0 2px 4px rgba(59, 130, 246, 0.14);
 }
 
-body:not(.tablet-no-hover) .role-change-btn-active:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35), 0 4px 8px rgba(59, 130, 246, 0.21);
-  color: #ffffff;
+@media (hover: hover) {
+  .role-change-btn:hover::before {
+    left: 100%;
+  }
+
+  .role-change-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--color-border-neutral) 0%, var(--color-border-strong) 100%);
+    color: var(--color-text-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.105), 0 2px 4px rgba(0, 0, 0, 0.07);
+  }
+
+  .role-change-btn-active:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35), 0 4px 8px rgba(59, 130, 246, 0.21);
+    color: #ffffff;
+  }
 }
 
 .role-change-btn:active:not(:disabled) {
