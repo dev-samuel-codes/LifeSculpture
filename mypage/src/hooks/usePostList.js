@@ -40,10 +40,12 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
   const [currentPage, setCurrentPage] = useState(1);
 
   const initialLoadRef = useRef(0);
+  const cursorRef = useRef(null);
 
   const appendPosts = useCallback((posts, nextCursor, nextHasMore) => {
     setAllPosts((prev) => [...prev, ...posts]);
     setCursor(nextCursor);
+    cursorRef.current = nextCursor;
     setHasMore(nextHasMore);
     if (!nextHasMore) {
       setIsFullyLoaded(true);
@@ -57,6 +59,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     setError(null);
     setAllPosts([]);
     setCursor(null);
+    cursorRef.current = null;
     setHasMore(false);
     setIsFullyLoaded(false);
 
@@ -68,6 +71,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
       if (initialLoadRef.current === loadId) {
         setAllPosts(posts);
         setCursor(nextCursor);
+        cursorRef.current = nextCursor;
         setHasMore(nextHasMore);
         if (!nextHasMore) {
           setIsFullyLoaded(true);
@@ -91,7 +95,8 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
   }, [fetchInitialPosts]);
 
   const fetchMorePosts = useCallback(async () => {
-    if (isFetchingMore || !hasMore || !cursor) {
+    const currentCursor = cursorRef.current;
+    if (isFetchingMore || !hasMore || !currentCursor) {
       if (!hasMore) {
         setIsFullyLoaded(true);
       }
@@ -103,7 +108,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
       const { posts, cursor: nextCursor, hasMore: nextHasMore } = await listPostsPage({
         category: collectionName,
         limit: FETCH_BATCH_SIZE,
-        cursor,
+        cursor: currentCursor,
       });
       appendPosts(posts, nextCursor, nextHasMore);
       return nextHasMore;
@@ -126,6 +131,14 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
       }
     }
   }, [fetchMorePosts, isFullyLoaded]);
+
+  useEffect(() => {
+    setSearchText('');
+    setSelectedParent(null);
+    setSelectedChildren(new Set());
+    setSortKey('createdAt_desc');
+    setCurrentPage(1);
+  }, [collectionName]);
 
   const visibleChildren = useMemo(() => {
     if (!selectedParent) return [];
@@ -239,6 +252,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
 
   const handleSortChange = useCallback((value) => {
     setSortKey(value);
+    setCurrentPage(1);
   }, []);
 
   const toggleParent = useCallback((title) => {
