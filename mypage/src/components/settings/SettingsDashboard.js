@@ -27,13 +27,75 @@ ChartJS.register(
   Legend
 );
 
-// Study.js와 Blog.js의 상위 필터 정의
-const STUDY_SECTIONS = [
-  '개발 · IT', '과학', '수학', '인문 · 사회'
-];
+const CATEGORY_KEYWORDS = {
+  study: {
+    '개발 · IT': ['개발', 'it', 'react', 'node', 'firebase'],
+    '과학': ['과학', 'physics', 'chemistry', 'biology'],
+    '수학': ['수학', 'math', 'algebra', 'calculus'],
+    '인문 · 사회': ['인문', '사회', 'history', 'philosophy'],
+  },
+  blog: {
+    '에세이 · 일상': ['일상', '생각', '회고', '일기'],
+    '여행': ['여행', 'travel'],
+    '사진 · 영상': ['사진', '포토', '촬영', '영상'],
+    '튜토리얼 · 팁': ['팁', '가이드', '튜토리얼', '노하우'],
+    '리뷰': ['리뷰', '사용기', '언박싱'],
+    '개발 블로그': ['개발', 'react', 'next', 'node'],
+  },
+};
 
-const BLOG_SECTIONS = [
-  '에세이 · 일상', '여행', '사진 · 영상', '튜토리얼 · 팁', '리뷰', '개발 블로그'
+const CATEGORY_NAMES = Array.from(
+  new Set(Object.values(CATEGORY_KEYWORDS).flatMap((sections) => Object.keys(sections))),
+);
+
+const createEmptyCategoryStats = () => {
+  const stats = {};
+  CATEGORY_NAMES.forEach((name) => {
+    stats[name] = { views: 0, posts: 0 };
+  });
+  return stats;
+};
+
+const normalizeText = (value) => (value || '').toLowerCase();
+
+const getCombinedPostText = (post) =>
+  [post.title, post.content, post.body, post.text].map(normalizeText).join(' ');
+
+const findCategoryByKeywords = (category, text) => {
+  const sections = CATEGORY_KEYWORDS[category];
+  if (!sections || !text) return null;
+  return (
+    Object.entries(sections).find(([, keywords]) =>
+      keywords.some((keyword) => text.includes(keyword)),
+    )?.[0] || null
+  );
+};
+
+const chartConfigs = [
+  {
+    key: 'posts',
+    title: '게시물 수',
+    datasetLabel: 'Posts Created',
+    borderColor: '#4bc0c0',
+    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+    accessor: (stats = {}) => stats.posts || 0,
+  },
+  {
+    key: 'views',
+    title: '총 조회수',
+    datasetLabel: 'Total Views',
+    borderColor: '#ff6384',
+    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+    accessor: (stats = {}) => stats.views || 0,
+  },
+  {
+    key: 'visitors',
+    title: '방문자 수',
+    datasetLabel: '추정 방문자 수',
+    borderColor: '#36a2eb',
+    backgroundColor: 'rgba(53, 162, 235, 0.2)',
+    accessor: (stats = {}) => Math.max(stats.views || 0, 1),
+  },
 ];
 
 function SettingsDashboard() {
@@ -88,113 +150,44 @@ function SettingsDashboard() {
   }, []);
 
   const sortedDates = Object.keys(dailyStats).sort();
-  const postsData = {
-    labels: sortedDates,
-    datasets: [
-      {
-        label: 'Posts Created',
-        data: sortedDates.map(date => dailyStats[date].posts),
-        borderColor: '#4bc0c0',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+  const chartCards = chartConfigs.map(
+    ({ key, title, datasetLabel, borderColor, backgroundColor, accessor }) => ({
+      key,
+      title,
+      data: {
+        labels: sortedDates,
+        datasets: [
+          {
+            label: datasetLabel,
+            data: sortedDates.map((date) => accessor(dailyStats[date] || {})),
+            borderColor,
+            backgroundColor,
+          },
+        ],
       },
-    ],
-  };
-
-  const viewsData = {
-    labels: sortedDates,
-    datasets: [
-      {
-        label: 'Total Views',
-        data: sortedDates.map(date => dailyStats[date].views),
-        borderColor: '#ff6384',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-      },
-    ],
-  };
-
-  const siteVisitorsData = {
-    labels: sortedDates,
-    datasets: [
-      {
-        label: '추정 방문자 수',
-        data: sortedDates.map((date) => Math.max(dailyStats[date].views || 0, 1)),
-        borderColor: '#36a2eb',
-        backgroundColor: 'rgba(53, 162, 235, 0.2)',
-      },
-    ],
-  };
+    }),
+  );
 
   const chartOptions = {
     responsive: true,
-    plugins: { legend: {
-      display: false,
-       position: 'top' 
-      } 
+    plugins: {
+      legend: {
+        display: false,
+        position: 'top',
+      },
     },
   };
 
   // 분야별 조회수 통계 계산
   const getCategoryStats = () => {
-    const categoryStats = {};
-    
-    // Study 카테고리 분야별 통계
-    STUDY_SECTIONS.forEach(section => {
-      categoryStats[section] = { views: 0, posts: 0 };
+    const categoryStats = createEmptyCategoryStats();
+    allPostsData.forEach((post) => {
+      const text = getCombinedPostText(post);
+      const matchedCategory = findCategoryByKeywords(post.category, text);
+      if (!matchedCategory) return;
+      categoryStats[matchedCategory].views += post.viewCount || 0;
+      categoryStats[matchedCategory].posts += 1;
     });
-    
-    // Blog 카테고리 분야별 통계
-    BLOG_SECTIONS.forEach(section => {
-      categoryStats[section] = { views: 0, posts: 0 };
-    });
-
-    allPostsData.forEach(post => {
-      // Study 게시물의 경우 제목과 내용을 기반으로 분야 분류
-      if (post.category === 'study') {
-        const title = (post.title || '').toLowerCase();
-        const content = (post.content || post.body || post.text || '').toLowerCase();
-        
-        if (title.includes('개발') || title.includes('it') || title.includes('react') || title.includes('node') || title.includes('firebase') || content.includes('개발') || content.includes('it')) {
-          categoryStats['개발 · IT'].views += post.viewCount || 0;
-          categoryStats['개발 · IT'].posts += 1;
-        } else if (title.includes('과학') || title.includes('physics') || title.includes('chemistry') || title.includes('biology') || content.includes('과학')) {
-          categoryStats['과학'].views += post.viewCount || 0;
-          categoryStats['과학'].posts += 1;
-        } else if (title.includes('수학') || title.includes('math') || title.includes('algebra') || title.includes('calculus') || content.includes('수학')) {
-          categoryStats['수학'].views += post.viewCount || 0;
-          categoryStats['수학'].posts += 1;
-        } else if (title.includes('인문') || title.includes('사회') || title.includes('history') || title.includes('philosophy') || content.includes('인문') || content.includes('사회')) {
-          categoryStats['인문 · 사회'].views += post.viewCount || 0;
-          categoryStats['인문 · 사회'].posts += 1;
-        }
-      }
-      
-      // Blog 게시물의 경우 제목과 내용을 기반으로 분야 분류
-      if (post.category === 'blog') {
-        const title = (post.title || '').toLowerCase();
-        const content = (post.content || post.body || post.text || '').toLowerCase();
-        
-        if (title.includes('일상') || title.includes('생각') || title.includes('회고') || title.includes('일기') || content.includes('일상') || content.includes('생각')) {
-          categoryStats['에세이 · 일상'].views += post.viewCount || 0;
-          categoryStats['에세이 · 일상'].posts += 1;
-        } else if (title.includes('여행') || title.includes('travel') || content.includes('여행')) {
-          categoryStats['여행'].views += post.viewCount || 0;
-          categoryStats['여행'].posts += 1;
-        } else if (title.includes('사진') || title.includes('포토') || title.includes('촬영') || title.includes('영상') || content.includes('사진') || content.includes('포토')) {
-          categoryStats['사진 · 영상'].views += post.viewCount || 0;
-          categoryStats['사진 · 영상'].posts += 1;
-        } else if (title.includes('팁') || title.includes('가이드') || title.includes('튜토리얼') || title.includes('노하우') || content.includes('팁') || content.includes('가이드')) {
-          categoryStats['튜토리얼 · 팁'].views += post.viewCount || 0;
-          categoryStats['튜토리얼 · 팁'].posts += 1;
-        } else if (title.includes('리뷰') || title.includes('사용기') || title.includes('언박싱') || content.includes('리뷰')) {
-          categoryStats['리뷰'].views += post.viewCount || 0;
-          categoryStats['리뷰'].posts += 1;
-        } else if (title.includes('개발') || title.includes('react') || title.includes('next') || title.includes('node') || content.includes('개발')) {
-          categoryStats['개발 블로그'].views += post.viewCount || 0;
-          categoryStats['개발 블로그'].posts += 1;
-        }
-      }
-    });
-
     return categoryStats;
   };
 
@@ -214,18 +207,12 @@ function SettingsDashboard() {
         <p>No data available.</p>
       ) : (
         <div className="dashboard-grid">
-          <div className="settings-surface settings-surface-strong chart-container">
-            <h4>게시물 수</h4>
-            <Line options={chartOptions} data={postsData} />
-          </div>
-          <div className="settings-surface settings-surface-strong chart-container">
-            <h4>총 조회수</h4>
-            <Line options={chartOptions} data={viewsData} />
-          </div>
-          <div className="settings-surface settings-surface-strong chart-container">
-            <h4>방문자 수</h4>
-            <Line options={chartOptions} data={siteVisitorsData} />
-          </div>
+          {chartCards.map(({ key, title, data }) => (
+            <div key={key} className="settings-surface settings-surface-strong chart-container">
+              <h4>{title}</h4>
+              <Line options={chartOptions} data={data} />
+            </div>
+          ))}
           <div className="settings-surface settings-surface-strong top-posts-container">
             <h4>가장 많이 본 분야</h4>
             {topCategories.length === 0 ? (

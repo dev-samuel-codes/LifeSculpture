@@ -31,15 +31,7 @@ const compressImage = (file) =>
       const tryCompress = () => {
         canvas.toBlob(
           (blob) => {
-            const currentSizeKB = blob.size / 1024;
-            console.log(
-              `[COMPRESS] 시도: ${currentSizeKB.toFixed(1)}KB (품질: ${quality.toFixed(1)})`,
-            );
-
             if (blob.size <= targetSizeKB * 1024 || quality <= 0.05) {
-              console.log(
-                `[COMPRESS] 완료: ${currentSizeKB.toFixed(1)}KB (목표: ${targetSizeKB}KB)`,
-              );
               resolve(blob);
             } else {
               quality -= 0.15;
@@ -59,8 +51,6 @@ const compressImage = (file) =>
   });
 
 export const handleImageUpload = async (file) => {
-  console.log('[handleImageUpload] start with file:', file);
-
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -87,63 +77,27 @@ export const handleImageUpload = async (file) => {
   }
 
   try {
-    console.log('[UPLOAD] start:', {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      bucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-      uid: user.uid,
-    });
-
     let processedFile = file;
-    const originalSizeKB = file.size / 1024;
     const originalSizeMB = file.size / (1024 * 1024);
 
     if (originalSizeMB >= 1) {
-      console.log(`[COMPRESS] 1MB 이상 감지: ${originalSizeMB.toFixed(1)}MB, 압축 시작`);
-      console.log('[COMPRESS] compressing image...');
       processedFile = await compressImage(file);
-      const compressedSizeKB = processedFile.size / 1024;
-      console.log(
-        `[COMPRESS] 압축 완료: ${compressedSizeKB.toFixed(1)}KB (압축률: ${(
-          (1 - processedFile.size / file.size) *
-          100
-        ).toFixed(1)}%)`,
-      );
-    } else {
-      console.log(`[COMPRESS] 1MB 미만: ${originalSizeKB.toFixed(1)}KB, 압축 생략`);
     }
 
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `post-images/${user.uid}/${Date.now()}-${sanitizedName}`;
-    console.log('[STORAGE] 업로드 경로:', path);
-    console.log('[STORAGE] Storage 참조 생성 중...');
 
     const imgRef = storageRef(storage, path);
-    console.log('[STORAGE] Storage 참조 생성 완료:', imgRef);
 
     const metadata = { contentType: processedFile.type || 'image/jpeg' };
-    console.log('[STORAGE] 메타데이터:', metadata);
-
-    console.log('[STORAGE] 이미지 업로드 시작...');
     const snap = await uploadBytes(imgRef, processedFile, metadata);
-    console.log('[STORAGE] 업로드 완료:', {
-      fullPath: snap.metadata.fullPath,
-      contentType: snap.metadata.contentType,
-      size: snap.metadata.size,
-      bucket: snap.metadata.bucket,
-    });
-
-    console.log('[STORAGE] 다운로드 URL 생성 중...');
     const url = await getDownloadURL(snap.ref);
-    console.log('[STORAGE] 다운로드 URL 생성 완료:', url);
 
     if (!url) {
       console.error('[STORAGE] 다운로드 URL이 생성되지 않음');
       throw new Error('다운로드 URL 생성 실패');
     }
 
-    console.log('[UPLOAD] 전체 과정 완료. 반환할 URL:', url);
     return url;
   } catch (err) {
     console.error('[UPLOAD] 전체 과정 실패:', {

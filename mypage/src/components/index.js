@@ -26,7 +26,6 @@ export { default as TextEditorFormulaDialog } from './text-editor/TextEditorForm
 export { default as TextEditorImageBlot } from './text-editor/TextEditorCustomBlots';
 export { registerTextEditorImageBlot } from './text-editor/TextEditorCustomBlots';
 export {
-  useImageHandler,
   useQuillModules,
   quillFormats,
   useQuillToolbar,

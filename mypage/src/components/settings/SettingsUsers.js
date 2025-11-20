@@ -6,6 +6,14 @@ import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/fi
 import '../../style/components/settings/SettingsUsers.css';
 import { AuthContext } from '../../context/AuthContext';
 
+const PROTECTED_ADMIN_EMAIL = 'sksksjakskska@gmail.com';
+
+const RoleBadge = ({ role }) => (
+  <span className={`settings-badge role-badge role-${(role || 'user').toLowerCase()}`}>
+    {role === 'admin' ? '관리자' : '일반 사용자'}
+  </span>
+);
+
 function SettingsUsers() {
   const { role, uid, isAuthenticated, loading: authLoading } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
@@ -16,6 +24,7 @@ function SettingsUsers() {
   const [isMobile, setIsMobile] = useState(false);
   const [updatingUsers, setUpdatingUsers] = useState(new Set());
   const [viewMode, setViewMode] = useState('view'); // 'view' 또는 'edit'
+  const canEditRole = (user) => viewMode === 'edit' && (user?.email || '') !== PROTECTED_ADMIN_EMAIL;
 
   useEffect(() => {
     const checkMobile = () => {
@@ -102,9 +111,6 @@ function SettingsUsers() {
         user.id === userId ? { ...user, role: newRole } : user
       ));
       
-      // 성공 메시지 (선택사항)
-      console.log(`User ${userId} role updated to ${newRole}`);
-      
     } catch (err) {
       console.error('Error updating user role:', err);
       setError('사용자 역할 변경에 실패했습니다.');
@@ -119,20 +125,6 @@ function SettingsUsers() {
 
   // 역할 변경 UI 컴포넌트
   const RoleChangeDropdown = ({ user, isUpdating }) => {
-    // 특정 계정은 편집 불가
-    if (user.email === 'sksksjakskska@gmail.com') {
-      return (
-        <span className={`settings-badge role-badge role-${(user.role || 'user').toLowerCase()}`}>
-          {user.role === 'admin' ? '관리자' : '일반 사용자'}
-        </span>
-      );
-    }
-
-    return <EditableRoleDropdown user={user} isUpdating={isUpdating} />;
-  };
-
-  // 편집 가능한 역할 드롭다운 컴포넌트
-  const EditableRoleDropdown = ({ user, isUpdating }) => {
     const [localRole, setLocalRole] = useState(user.role || 'user');
     
     const handleSave = () => {
@@ -170,14 +162,10 @@ function SettingsUsers() {
         <div key={user.id} className="settings-surface user-card">
           <div className="user-card-header">
             <div className="user-card-name">{user.name || 'N/A'}</div>
-            {viewMode === 'edit' ? null : (
-      <span className={`settings-badge role-badge role-${(user.role || 'user').toLowerCase()}`}>
-                {user.role === 'admin' ? '관리자' : '일반 사용자'}
-              </span>
-            )}
+            {viewMode === 'edit' ? null : <RoleBadge role={user.role} />}
           </div>
           <div className="user-card-email">{user.email}</div>
-          {viewMode === 'edit' && user.email !== 'sksksjakskska@gmail.com' && (
+          {canEditRole(user) && (
             <div className="user-card-role-change">
               <RoleChangeDropdown 
                 user={user} 
@@ -208,16 +196,18 @@ function SettingsUsers() {
               <td>{user.email}</td>
               {viewMode === 'edit' ? (
                 <td>
-                  <RoleChangeDropdown 
-                    user={user} 
-                    isUpdating={updatingUsers.has(user.id)} 
-                  />
+                  {canEditRole(user) ? (
+                    <RoleChangeDropdown
+                      user={user}
+                      isUpdating={updatingUsers.has(user.id)}
+                    />
+                  ) : (
+                    <RoleBadge role={user.role} />
+                  )}
                 </td>
               ) : (
                 <td>
-                  <span className={`settings-badge role-badge role-${(user.role || 'user').toLowerCase()}`}>
-                    {user.role === 'admin' ? '관리자' : '일반 사용자'}
-                  </span>
+                  <RoleBadge role={user.role} />
                 </td>
               )}
             </tr>

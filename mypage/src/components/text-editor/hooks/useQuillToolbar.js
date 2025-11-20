@@ -1,5 +1,5 @@
 // useQuillToolbar 훅: Quill 편집기의 모듈과 핸들러를 초기화
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import ReactQuill from 'react-quill-new';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
@@ -59,123 +59,10 @@ const ensureClipboardPreservesCodeIndent = (() => {
   };
 })();
 
-// katex를 전역 객체에 할당
-window.katex = katex;
 if (typeof window !== 'undefined') {
+  window.katex = katex;
   ensureClipboardPreservesCodeIndent();
 }
-
-export const useImageHandler = () =>
-  useCallback(() => {
-    console.log('[imageHandler] called - 이미지 핸들러 시작');
-
-    let editor = null;
-    if (window.quillEditor) {
-      editor = window.quillEditor;
-      console.log('[imageHandler] window.quillEditor에서 에디터 찾음');
-
-      try {
-        if (editor && editor.getModule) {
-          const toolbar = editor.getModule('toolbar');
-          if (toolbar && toolbar.addHandler) {
-            toolbar.addHandler('image', () => {
-              console.log('[toolbar] 이미지 핸들러가 툴바에서 호출됨');
-            });
-          }
-        }
-      } catch (error) {
-        console.warn('툴바 핸들러 등록 중 오류:', error);
-      }
-    } else {
-      const quillElement = document.querySelector('.ql-editor');
-      if (quillElement && quillElement.__quill) {
-        editor = quillElement.__quill;
-        console.log('[imageHandler] DOM에서 에디터 찾음');
-      }
-    }
-
-    if (!editor) {
-      console.error('[imageHandler] editor not found, trying to find...');
-      setTimeout(() => {
-        if (window.quillEditor) {
-          console.log('[imageHandler] editor found after delay');
-        } else {
-          alert('에디터가 준비되지 않았습니다. 페이지를 새로고침 후 다시 시도해주세요.');
-        }
-      }, 500);
-      return;
-    }
-
-    console.log('[imageHandler] 파일 선택 다이얼로그 열기');
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
-
-    input.onchange = async () => {
-      console.log('[imageHandler] onchange - 파일 선택됨');
-      const file = input.files && input.files[0];
-      if (!file) {
-        console.log('[imageHandler] no file selected');
-        return;
-      }
-
-      console.log('[imageHandler] 선택된 파일 정보:', {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      });
-
-      try {
-        console.log('[imageHandler] handleImageUpload 호출 시작');
-        const url = await handleImageUpload(file);
-        console.log('[imageHandler] handleImageUpload 완료, URL:', url);
-
-        if (!url) {
-          console.error('[imageHandler] no URL returned');
-          return;
-        }
-
-        let currentEditor = window.quillEditor;
-        if (!currentEditor) {
-          const quillElement = document.querySelector('.ql-editor');
-          if (quillElement && quillElement.__quill) {
-            currentEditor = quillElement.__quill;
-          }
-        }
-
-        if (currentEditor) {
-          const range = currentEditor.getSelection(true) || {
-            index: currentEditor.getLength(),
-          };
-          console.log('[imageHandler] 이미지 삽입 위치:', range.index);
-
-          const [line] = currentEditor.getLine(range.index);
-          const formats = line ? line.formats() : {};
-          const currentAlign = formats.align || '';
-
-          currentEditor.insertEmbed(range.index, 'image', url, 'user');
-
-          if (currentAlign) {
-            setTimeout(() => {
-              const newRange = { index: range.index, length: 1 };
-              currentEditor.formatLine(newRange.index, newRange.length, 'align', currentAlign);
-              console.log('[imageHandler] 이미지 정렬 적용:', currentAlign);
-            }, 10);
-          }
-
-          currentEditor.setSelection(range.index + 1, 0);
-          console.log('[imageHandler] 이미지 삽입 성공');
-        } else {
-          console.error('[imageHandler] editor still not found after upload');
-          alert('에디터를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
-        }
-      } catch (err) {
-        console.error('[imageHandler] 이미지 업로드 실패:', err);
-        alert('이미지 삽입에 실패했습니다: ' + err.message);
-      }
-    };
-  }, []);
 
 export const useQuillModules = () =>
   useMemo(() => {
@@ -569,13 +456,11 @@ export const useQuillToolbar = () => {
     }
   }, []);
 
-  const imageHandler = useImageHandler();
   const modules = useQuillModules();
 
   return {
     modules,
     formats: quillFormats,
     handleImageUpload,
-    imageHandler,
   };
 };
