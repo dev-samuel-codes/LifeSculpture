@@ -118,7 +118,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     } finally {
       setIsFetchingMore(false);
     }
-  }, [appendPosts, collectionName, cursor, hasMore, isFetchingMore]);
+  }, [appendPosts, collectionName, hasMore, isFetchingMore]);
 
   const fetchAllRemaining = useCallback(async () => {
     if (isFullyLoaded) return;
