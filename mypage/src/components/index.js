@@ -21,13 +21,3 @@ export { default as SettingsMenu } from './settings/SettingsMenu';
 export { default as SettingsDashboard } from './settings/SettingsDashboard';
 export { default as SettingsUsers } from './settings/SettingsUsers';
 export { default as SettingsWriting } from './settings/SettingsWriting';
-
-export { default as TextEditorFormulaDialog } from './text-editor/TextEditorFormulaDialog';
-export { default as TextEditorImageBlot } from './text-editor/TextEditorCustomBlots';
-export { registerTextEditorImageBlot } from './text-editor/TextEditorCustomBlots';
-export {
-  useQuillModules,
-  quillFormats,
-  useQuillToolbar,
-} from './text-editor/hooks/useQuillToolbar';
-export { handleImageUpload } from './text-editor/utils/imageUpload';

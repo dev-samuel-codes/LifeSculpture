@@ -2,7 +2,10 @@ import React, { useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { formatDate } from '../utils/date';
-import { PostFilterPanel, PostListToolbar, PostList, PostPagination } from '../components';
+import PostFilterPanel from '../components/posts/PostFilterPanel';
+import PostListToolbar from '../components/posts/PostListToolbar';
+import PostList from '../components/posts/PostList';
+import PostPagination from '../components/posts/PostPagination';
 import usePostList from '../hooks/usePostList';
 import '../style/pages/study/Study.css';
 

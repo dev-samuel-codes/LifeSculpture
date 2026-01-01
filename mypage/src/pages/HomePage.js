@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { HomeContentCards } from '../components';
+import HomeContentCards from '../components/home/HomeContentCards';
 import useStorageImage from '../hooks/useStorageImage';
 import '../style/pages/home/Home.css';
 

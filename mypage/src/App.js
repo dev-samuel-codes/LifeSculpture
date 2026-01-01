@@ -1,9 +1,9 @@
 import './style/App.css';
-import React, { lazy, Suspense, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Connect, Header } from './components';
+import Header from './components/layout/Header';
+import Connect from './components/layout/Connect';
 import { AuthContext } from './context/AuthContext';
-import LoadingScreen from './components/common/LoadingScreen';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const StudyPage = lazy(() => import('./pages/StudyPage'));
@@ -13,6 +13,10 @@ const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
 const EditPostPage = lazy(() => import('./pages/EditPostPage'));
 const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
 
+const preloadStudyPage = () => import('./pages/StudyPage');
+const preloadBlogPage = () => import('./pages/BlogPage');
+const preloadPostDetailPage = () => import('./pages/PostDetailPage');
+
 // 페이지 공통 래퍼 (홈 제외)
 function Page({ children }) {
   return <div className="container mt-4 min-vh-100">{children}</div>;
@@ -20,14 +24,22 @@ function Page({ children }) {
 
 function App() {
   const { role, loading: authLoading } = React.useContext(AuthContext);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 초기 로딩 시뮬레이션
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000); // 2초 후에 로딩 화면 제거
+    if (typeof window === 'undefined') return undefined;
 
+    const prefetch = () => {
+      preloadStudyPage();
+      preloadBlogPage();
+      preloadPostDetailPage();
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(prefetch, { timeout: 1200 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+
+    const timer = setTimeout(prefetch, 600);
     return () => clearTimeout(timer);
   }, []);
 
@@ -64,7 +76,6 @@ function App() {
         </>
       )}
 
-      {isLoading && <LoadingScreen />}
     </div>
   );
 }

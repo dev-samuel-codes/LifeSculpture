@@ -6,26 +6,68 @@ import {
   deleteCommentTree,
   fetchCommentsPage,
   fetchLikeCount,
-  fetchReplyCount,
   hasUserLiked,
   likeComment,
+  syncCommentLikeCount,
   unlikeComment,
 } from '../../../services/comments';
 import { AuthContext } from '../../../context/AuthContext';
 import { ANONYMOUS_NAME } from '../utils';
 
-const buildViewerMeta = async (category, postId, commentId, uid) => {
-  const [likeCount, viewerHasLiked, replyCount] = await Promise.all([
-    fetchLikeCount({ category, postId, commentId }).catch(() => 0),
-    uid ? hasUserLiked({ category, postId, commentId, uid }).catch(() => false) : false,
-    fetchReplyCount({ category, postId, commentId }).catch(() => 0),
+const commentLikeCountCache = new Map();
+const commentLikedByCache = new Map();
+
+const getCommentCacheKey = (category, postId, commentId) =>
+  `${category || 'unknown'}/${postId || 'unknown'}/${commentId}`;
+const getUserLikeCacheKey = (category, postId, commentId, uid) =>
+  `${getCommentCacheKey(category, postId, commentId)}:${uid || 'anonymous'}`;
+
+const resolveLikeCount = async (raw, category, postId) => {
+  const cacheKey = getCommentCacheKey(category, postId, raw.id);
+
+  if (typeof raw.likeCount === 'number') {
+    commentLikeCountCache.set(cacheKey, raw.likeCount);
+    return raw.likeCount;
+  }
+
+  if (commentLikeCountCache.has(cacheKey)) {
+    return commentLikeCountCache.get(cacheKey);
+  }
+
+  const count = await fetchLikeCount({ category, postId, commentId: raw.id }).catch(() => 0);
+  commentLikeCountCache.set(cacheKey, count);
+  if (typeof raw.likeCount !== 'number') {
+    void syncCommentLikeCount({ category, postId, commentId: raw.id, likeCount: count }).catch(() => {});
+  }
+  return count;
+};
+
+const resolveViewerHasLiked = async (category, postId, commentId, uid) => {
+  if (!uid) return false;
+  const cacheKey = getUserLikeCacheKey(category, postId, commentId, uid);
+  if (commentLikedByCache.has(cacheKey)) {
+    return commentLikedByCache.get(cacheKey);
+  }
+  const liked = await hasUserLiked({ category, postId, commentId, uid }).catch(() => false);
+  commentLikedByCache.set(cacheKey, liked);
+  return liked;
+};
+
+const buildViewerMeta = async (raw, category, postId, uid) => {
+  const [likeCount, viewerHasLiked] = await Promise.all([
+    resolveLikeCount(raw, category, postId),
+    resolveViewerHasLiked(category, postId, raw.id, uid),
   ]);
-  return { likeCount, viewerHasLiked, replyCount };
+  return {
+    likeCount,
+    viewerHasLiked,
+    replyCount: typeof raw.replyCount === 'number' ? raw.replyCount : 0,
+  };
 };
 
 const hydrateComment = async (raw, category, postId, uid) => {
   if (!raw) return null;
-  const meta = await buildViewerMeta(category, postId, raw.id, uid);
+  const meta = await buildViewerMeta(raw, category, postId, uid);
   return {
     ...raw,
     ...meta,
@@ -195,13 +237,25 @@ const useComments = ({ category, postId }) => {
 
       const isReply = !!target.parentId;
       const parentId = target.parentId;
+      const updateLikeCaches = (commentId, nextLikeCount, liked) => {
+        const commentKey = getCommentCacheKey(category, postId, commentId);
+        commentLikeCountCache.set(commentKey, nextLikeCount);
+        if (currentUser.uid) {
+          commentLikedByCache.set(
+            getUserLikeCacheKey(category, postId, commentId, currentUser.uid),
+            liked,
+          );
+        }
+      };
       const adjust = (delta, liked) => {
         setRootComments((prev) =>
           prev.map((item) => {
             if (!isReply && item.id === target.id) {
+              const nextLikeCount = Math.max(item.likeCount + delta, 0);
+              updateLikeCaches(item.id, nextLikeCount, liked);
               return {
                 ...item,
-                likeCount: Math.max(item.likeCount + delta, 0),
+                likeCount: nextLikeCount,
                 viewerHasLiked: liked,
               };
             }
@@ -210,7 +264,11 @@ const useComments = ({ category, postId }) => {
                 ...item,
                 replies: item.replies.map((reply) =>
                   reply.id === target.id
-                    ? { ...reply, likeCount: Math.max(reply.likeCount + delta, 0), viewerHasLiked: liked }
+                    ? (() => {
+                        const nextLikeCount = Math.max(reply.likeCount + delta, 0);
+                        updateLikeCaches(reply.id, nextLikeCount, liked);
+                        return { ...reply, likeCount: nextLikeCount, viewerHasLiked: liked };
+                      })()
                     : reply,
                 ),
               };

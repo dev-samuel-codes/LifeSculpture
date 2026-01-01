@@ -7,7 +7,9 @@ import { AuthContext } from '../context/AuthContext';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
-import { TextEditorFormulaDialog, registerTextEditorImageBlot, useQuillToolbar } from '../components';
+import TextEditorFormulaDialog from '../components/text-editor/TextEditorFormulaDialog';
+import { registerTextEditorImageBlot } from '../components/text-editor/TextEditorCustomBlots';
+import { useQuillToolbar } from '../components/text-editor/hooks/useQuillToolbar';
 import { calculateContentSize, sanitizeHtml } from '../components/text-editor/utils/content';
 import {
   convertHeicToJpeg,

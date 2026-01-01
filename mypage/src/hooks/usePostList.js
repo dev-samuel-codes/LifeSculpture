@@ -3,6 +3,11 @@ import { listPostsPage } from '../services/posts';
 
 const POSTS_PER_PAGE_DEFAULT = 6;
 const FETCH_BATCH_SIZE = 24;
+const POST_LIST_CACHE_TTL = 60 * 1000;
+
+const postListCache = new Map();
+const getCacheKey = (collectionName) => collectionName || 'default';
+const readCache = (collectionName) => postListCache.get(getCacheKey(collectionName));
 
 const norm = (value) =>
   (value || '')
@@ -25,11 +30,12 @@ const extractHashtags = (raw) => {
 const ensureArray = (value) => (Array.isArray(value) ? value : []);
 
 function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS_PER_PAGE_DEFAULT }) {
-  const [allPosts, setAllPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const initialCache = readCache(collectionName);
+  const [allPosts, setAllPosts] = useState(() => initialCache?.posts ?? []);
+  const [loading, setLoading] = useState(() => !initialCache);
   const [error, setError] = useState(null);
-  const [hasMore, setHasMore] = useState(false);
-  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
+  const [hasMore, setHasMore] = useState(() => initialCache?.hasMore ?? false);
+  const [isFullyLoaded, setIsFullyLoaded] = useState(() => initialCache?.isFullyLoaded ?? false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   const [searchText, setSearchText] = useState('');
@@ -39,26 +45,50 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
   const [currentPage, setCurrentPage] = useState(1);
 
   const initialLoadRef = useRef(0);
-  const cursorRef = useRef(null);
+  const cursorRef = useRef(initialCache?.cursor ?? null);
 
-  const appendPosts = useCallback((posts, nextCursor, nextHasMore) => {
-    setAllPosts((prev) => [...prev, ...posts]);
-    cursorRef.current = nextCursor;
-    setHasMore(nextHasMore);
-    if (!nextHasMore) {
-      setIsFullyLoaded(true);
-    }
-  }, []);
+  const updateCache = useCallback(
+    (posts, nextCursor, nextHasMore, fullyLoaded) => {
+      postListCache.set(getCacheKey(collectionName), {
+        posts,
+        cursor: nextCursor,
+        hasMore: nextHasMore,
+        isFullyLoaded: fullyLoaded,
+        timestamp: Date.now(),
+      });
+    },
+    [collectionName],
+  );
 
-  const fetchInitialPosts = useCallback(async () => {
+  const appendPosts = useCallback(
+    (posts, nextCursor, nextHasMore) => {
+      setAllPosts((prev) => {
+        const merged = [...prev, ...posts];
+        updateCache(merged, nextCursor, nextHasMore, !nextHasMore);
+        return merged;
+      });
+      cursorRef.current = nextCursor;
+      setHasMore(nextHasMore);
+      if (!nextHasMore) {
+        setIsFullyLoaded(true);
+      }
+    },
+    [updateCache],
+  );
+
+  const fetchInitialPosts = useCallback(async ({ silent = false } = {}) => {
     initialLoadRef.current += 1;
     const loadId = initialLoadRef.current;
-    setLoading(true);
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
-    setAllPosts([]);
-    cursorRef.current = null;
-    setHasMore(false);
-    setIsFullyLoaded(false);
+    if (!silent) {
+      setAllPosts([]);
+      cursorRef.current = null;
+      setHasMore(false);
+      setIsFullyLoaded(false);
+    }
 
     try {
       const { posts, cursor: nextCursor, hasMore: nextHasMore } = await listPostsPage({
@@ -69,26 +99,50 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
         setAllPosts(posts);
         cursorRef.current = nextCursor;
         setHasMore(nextHasMore);
-        if (!nextHasMore) {
-          setIsFullyLoaded(true);
-        }
+        const fullyLoaded = !nextHasMore;
+        setIsFullyLoaded(fullyLoaded);
+        updateCache(posts, nextCursor, nextHasMore, fullyLoaded);
       }
     } catch (err) {
       console.error('[usePostList] 초기 게시글 로드 실패:', err);
-      if (initialLoadRef.current === loadId) {
+      if (initialLoadRef.current === loadId && !silent) {
         setError('게시글을 불러오지 못했습니다.');
         setAllPosts([]);
       }
     } finally {
-      if (initialLoadRef.current === loadId) {
+      if (initialLoadRef.current === loadId && !silent) {
         setLoading(false);
       }
     }
+  }, [collectionName, updateCache]);
+
+  useEffect(() => {
+    const cached = readCache(collectionName);
+    if (cached) {
+      setAllPosts(cached.posts);
+      cursorRef.current = cached.cursor ?? null;
+      setHasMore(cached.hasMore ?? false);
+      setIsFullyLoaded(cached.isFullyLoaded ?? false);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    setAllPosts([]);
+    cursorRef.current = null;
+    setHasMore(false);
+    setIsFullyLoaded(false);
+    setLoading(true);
+    setError(null);
   }, [collectionName]);
 
   useEffect(() => {
-    fetchInitialPosts();
-  }, [fetchInitialPosts]);
+    const cached = readCache(collectionName);
+    const isStale = !cached || Date.now() - cached.timestamp > POST_LIST_CACHE_TTL;
+    if (isStale) {
+      fetchInitialPosts({ silent: Boolean(cached) });
+    }
+  }, [collectionName, fetchInitialPosts]);
 
   const fetchMorePosts = useCallback(async () => {
     const currentCursor = cursorRef.current;
