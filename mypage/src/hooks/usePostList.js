@@ -28,7 +28,6 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [isFullyLoaded, setIsFullyLoaded] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -44,7 +43,6 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
 
   const appendPosts = useCallback((posts, nextCursor, nextHasMore) => {
     setAllPosts((prev) => [...prev, ...posts]);
-    setCursor(nextCursor);
     cursorRef.current = nextCursor;
     setHasMore(nextHasMore);
     if (!nextHasMore) {
@@ -58,7 +56,6 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     setLoading(true);
     setError(null);
     setAllPosts([]);
-    setCursor(null);
     cursorRef.current = null;
     setHasMore(false);
     setIsFullyLoaded(false);
@@ -70,7 +67,6 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
       });
       if (initialLoadRef.current === loadId) {
         setAllPosts(posts);
-        setCursor(nextCursor);
         cursorRef.current = nextCursor;
         setHasMore(nextHasMore);
         if (!nextHasMore) {
