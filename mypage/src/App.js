@@ -8,7 +8,7 @@ import { AuthContext } from './context/AuthContext';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const StudyPage = lazy(() => import('./pages/StudyPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const WritePostPage = lazy(() => import('./components/settings/SettingsWriting'));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
 const EditPostPage = lazy(() => import('./pages/EditPostPage'));
 const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
@@ -59,10 +59,12 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/study" element={<Page><StudyPage /></Page>} />
               <Route path="/blog" element={<Page><BlogPage /></Page>} />
-              <Route path="/settings/*" element={<Page><SettingsPage /></Page>} />
 
               {role === 'admin' && (
                 <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
+              )}
+              {role === 'admin' && (
+                <Route path="/write" element={<Page><WritePostPage /></Page>} />
               )}
               {role === 'admin' && (
                 <Route path="/edit-post/:category/:id" element={<Page><EditPostPage /></Page>} />

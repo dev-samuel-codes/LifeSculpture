@@ -125,14 +125,14 @@ const Header = () => {
                       <div className="profile-popup-btns">
                         {role === 'admin' && (
                           <Link
-                            to="/settings"
+                            to="/write"
                             className="btn btn-info btn-sm mt-2"
                             onClick={() => {
                               setIsProfilePopupOpen(false);
                               closeNav();
                             }}
                           >
-                            Settings
+                            글쓰기
                           </Link>
                         )}
                         <button className="btn btn-danger btn-sm mt-2" onClick={handleLogout}>
@@ -175,11 +175,11 @@ const Header = () => {
                     <div className="profile-popup-btns">
                       {role === 'admin' && (
                         <Link
-                          to="/settings"
+                          to="/write"
                           className="btn btn-info"
                           onClick={closeNav}
                         >
-                          Settings
+                          글쓰기
                         </Link>
                       )}
                       <button className="btn btn-danger" onClick={handleLogout}>

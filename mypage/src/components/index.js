@@ -16,8 +16,3 @@ export { default as PostPagination } from './posts/PostPagination';
 export { default as LikeButton } from './posts/LikeButton';
 
 export { default as CommentsSection } from './comments/CommentsSection';
-
-export { default as SettingsMenu } from './settings/SettingsMenu';
-export { default as SettingsDashboard } from './settings/SettingsDashboard';
-export { default as SettingsUsers } from './settings/SettingsUsers';
-export { default as SettingsWriting } from './settings/SettingsWriting';
