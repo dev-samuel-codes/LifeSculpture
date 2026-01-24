@@ -15,14 +15,5 @@
   "devDependencies": {
     "concurrently": "^9.2.0"
   },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "heic2any": "^0.0.4",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-scripts": "^5.0.1",
-    "react-server-dom-parcel": "^19.1.4",
-    "react-server-dom-turbopack": "^19.1.4",
-    "react-server-dom-webpack": "^19.1.4"
-  }
+  "dependencies": {}
 }

@@ -30,7 +30,7 @@ body {
 .main-section2 {
   /* 높이를 고정하지 말고 내용에 맞춰 늘어나게 */
   min-height: 100vh;
-  padding: 30px 50px;
+  padding: 30px clamp(24px, 3vw, 40px);
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -51,9 +51,9 @@ body {
 /* 카드 컨테이너 */
 .main-section2-content {
   display: flex;
-  gap: 50px;
+  gap: clamp(90px, 8vw, 160px);
   align-items: flex-start;   /* 기준선을 위쪽으로 */
-  justify-content: flex-start;
+  justify-content: center;
   flex-wrap: nowrap;         /* 기본은 한 줄 */
   width: 100%;
 }
@@ -146,7 +146,7 @@ body {
 @media (max-width: 1400px) {
   .main-section2-content {
     justify-content: center;
-    gap: clamp(24px, 3vw, 40px);
+    gap: clamp(72px, 7vw, 128px);
   }
 
   .main-card {
