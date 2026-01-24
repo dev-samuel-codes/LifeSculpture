@@ -17,8 +17,8 @@ export const POST_COLLECTION_CONFIGS = {
     collectionName: 'blog',
     emptyMessage: '블로그 게시물이 아직 없습니다.',
     sections: [
-      { title: '에세이 · 일상', tags: ['일상', '생각', '회고', '일기'] },
-      { title: '여행', tags: ['여행', '국내여행', '해외여행', '일정', '후기'] },
+      { title: '에세이 · 일상', tags: ['일상', 'StandGround', '회고', '일기'] },
+      { title: '여행', tags: ['StandGround', '국내여행', '해외여행', '일정', '후기'] },
       { title: '사진', tags: ['사진', '포토', '촬영', '카메라'] },
       { title: '튜토리얼 · 팁', tags: ['팁', '가이드', '튜토리얼', '노하우', '설정'] },
       { title: '리뷰', tags: ['리뷰', '사용기', '언박싱'] },
