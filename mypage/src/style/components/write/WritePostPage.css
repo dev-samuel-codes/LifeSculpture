@@ -1,5 +1,5 @@
-/* style/components/settings/SettingsWriting.css */
-@import url('./shared.css');
+/* style/components/write/WritePostPage.css */
+@import url('../settings/shared.css');
 @import url('../editor/QuillToolbar.css');
 
 /* ===== Card Shell ===== */

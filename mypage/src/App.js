@@ -8,7 +8,7 @@ import { AuthContext } from './context/AuthContext';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const StudyPage = lazy(() => import('./pages/StudyPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
-const WritePostPage = lazy(() => import('./components/settings/SettingsWriting'));
+const WritePostPage = lazy(() => import('./components/write/WritePostPage'));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
 const EditPostPage = lazy(() => import('./pages/EditPostPage'));
 const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));

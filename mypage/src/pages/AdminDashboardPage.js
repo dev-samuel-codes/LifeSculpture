@@ -1,6 +1,6 @@
 // AdminDashboard.js
 import React from 'react';
-import '../style/components/settings/SettingsDashboard.css';
+import '../style/components/layout/AdminDashboard.css';
 import { FaUserShield, FaTools, FaChartLine } from 'react-icons/fa';
 
 function AdminDashboardPage() {

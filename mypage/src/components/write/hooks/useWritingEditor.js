@@ -56,7 +56,7 @@ const useWritingEditor = () => {
       window.localStorage.removeItem(DRAFT_STORAGE_KEY);
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('[SettingsWriting] 임시 저장본 삭제 실패:', error);
+        console.warn('[WritePostPage] 임시 저장본 삭제 실패:', error);
       }
     }
     setDraftStatus('idle');
@@ -134,7 +134,7 @@ const useWritingEditor = () => {
       skipNextAutoSaveRef.current = true;
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('[SettingsWriting] 임시 저장본 불러오기 실패:', error);
+        console.warn('[WritePostPage] 임시 저장본 불러오기 실패:', error);
       }
     }
   }, [setCategory, setContent, setIsPublic, setTitle]);
@@ -178,7 +178,7 @@ const useWritingEditor = () => {
       } catch (error) {
         setDraftStatus('error');
         if (process.env.NODE_ENV !== 'production') {
-          console.warn('[SettingsWriting] 임시 저장 실패:', error);
+          console.warn('[WritePostPage] 임시 저장 실패:', error);
         }
       }
     }, AUTO_SAVE_DELAY);
@@ -286,7 +286,7 @@ const useWritingEditor = () => {
         resetForm();
         navigate(`/posts/${category}/${docRef.id}`);
       } catch (error) {
-        console.error('[SettingsWriting] 게시글 등록 실패:', error);
+        console.error('[WritePostPage] 게시글 등록 실패:', error);
         alert('게시글 등록 실패: ' + error.message);
       } finally {
         setIsUploading(false);

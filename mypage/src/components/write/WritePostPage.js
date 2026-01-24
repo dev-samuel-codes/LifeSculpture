@@ -1,18 +1,18 @@
-// SettingsWriting 컴포넌트: 글 작성 페이지의 UI 레이아웃을 구성
+// WritePostPage 컴포넌트: 글 작성 페이지의 UI 레이아웃을 구성
 import React from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { registerTextEditorImageBlot } from '../text-editor/TextEditorCustomBlots';
 import TextEditorFormulaDialog from '../text-editor/TextEditorFormulaDialog';
 import useWritingEditor from './hooks/useWritingEditor';
-import '../../style/components/settings/SettingsWriting.css';
+import '../../style/components/write/WritePostPage.css';
 import '../../style/components/editor/QuillToolbar.css';
 import '../../style/components/editor/CustomFormulaEditor.css';
 import '../../style/components/editor/RichText.css';
 
 registerTextEditorImageBlot();
 
-function SettingsWriting() {
+function WritePostPage() {
   const {
     quillRef,
     state: {
@@ -134,4 +134,4 @@ function SettingsWriting() {
   );
 }
 
-export default SettingsWriting;
+export default WritePostPage;

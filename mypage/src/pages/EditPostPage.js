@@ -20,7 +20,7 @@ import { setupResponsiveImageSizing } from '../components/text-editor/utils/imag
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { deleteStorageImages } from '../utils/storage';
 import { getPost, updatePostFields } from '../services/posts';
-import '../style/components/settings/SettingsWriting.css';
+import '../style/components/write/WritePostPage.css';
 import '../style/components/editor/QuillToolbar.css';
 import '../style/components/editor/CustomFormulaEditor.css';
 import '../style/components/editor/RichText.css';
