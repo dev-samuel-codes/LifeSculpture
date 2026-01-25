@@ -172,7 +172,10 @@ function EditPostPage() {
     if (pendingImages.length === 0) return content;
     let updatedContent = content;
     for (const { file, tempUrl } of pendingImages) {
-      const url = await handleImageUpload(file);
+      const url = await handleImageUpload(file, {
+        category: categoryParam,
+        postId: id,
+      });
       if (!url) {
         throw new Error('이미지 업로드에 실패했습니다.');
       }

@@ -38,6 +38,13 @@ const isImageCandidate = (file) =>
   file?.type?.startsWith('image/') || hasImageExtension(file?.name) || isHeicFile(file);
 
 const sanitizeFileName = (name) => (name || 'image').replace(/[^a-zA-Z0-9._-]/g, '_');
+const sanitizePathSegment = (value, fallback) => {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  const sanitized = raw
+    .replace(/[\\/]/g, '_')
+    .replace(/[^a-zA-Z0-9._-]/g, '_');
+  return sanitized || fallback;
+};
 const replaceFileExtension = (name, extension) => {
   const sanitized = sanitizeFileName(name);
   const base = sanitized.replace(/\.[^/.]+$/, '');
@@ -49,6 +56,11 @@ const getExtensionForType = (type) => {
   if (type === 'image/gif') return 'gif';
   if (type === 'image/svg+xml') return 'svg';
   return 'jpg';
+};
+const buildStoragePath = ({ category, postId, fileName }) => {
+  const safeCategory = sanitizePathSegment(category, 'uncategorized');
+  const safePostId = sanitizePathSegment(postId, 'draft');
+  return `post-images/${safeCategory}/${safePostId}/${Date.now()}-${fileName}`;
 };
 
 const loadImageElement = (file) =>
@@ -186,7 +198,7 @@ const compressImageToTarget = async ({ file, targetBytes, outputType }) => {
   return lastBlob;
 };
 
-export const handleImageUpload = async (file) => {
+export const handleImageUpload = async (file, { category, postId } = {}) => {
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -228,7 +240,7 @@ export const handleImageUpload = async (file) => {
 
       const extension = getExtensionForType(normalizedFile.type);
       const finalName = replaceFileExtension(normalizedFile.name, extension);
-      const path = `post-images/${user.uid}/${Date.now()}-${finalName}`;
+      const path = buildStoragePath({ category, postId, fileName: finalName });
       const imgRef = storageRef(storage, path);
 
       const metadata = { contentType: normalizedFile.type || 'image/gif' };
@@ -263,7 +275,7 @@ export const handleImageUpload = async (file) => {
     const finalType = processedBlob.type || outputType;
     const extension = getExtensionForType(finalType);
     const finalName = replaceFileExtension(normalizedFile.name, extension);
-    const path = `post-images/${user.uid}/${Date.now()}-${finalName}`;
+    const path = buildStoragePath({ category, postId, fileName: finalName });
 
     const imgRef = storageRef(storage, path);
     const metadata = { contentType: finalType };

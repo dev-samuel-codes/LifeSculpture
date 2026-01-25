@@ -1,7 +1,7 @@
 // useWritingEditor 훅: 글 작성 폼 상태와 편집기 동작을 관리
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { db } from '../../../firebase/firebase';
 import { useQuillToolbar } from '../../text-editor/hooks/useQuillToolbar';
@@ -224,19 +224,20 @@ const useWritingEditor = () => {
     return setupResponsiveImageSizing({ root: editor.root });
   }, [content]);
 
-  const uploadPendingImages = useCallback(async () => {
+  const uploadPendingImages = useCallback(async ({ category: uploadCategory, postId } = {}) => {
     if (pendingImages.length === 0) return content;
     let updated = content;
+    const resolvedCategory = uploadCategory || category;
 
     for (const { file, tempUrl } of pendingImages) {
-      const url = await handleImageUpload(file);
+      const url = await handleImageUpload(file, { category: resolvedCategory, postId });
       if (!url) {
         throw new Error('이미지 업로드에 실패했습니다.');
       }
       updated = updated.replace(tempUrl, url);
     }
     return updated;
-  }, [content, handleImageUpload, pendingImages]);
+  }, [category, content, handleImageUpload, pendingImages]);
 
   const resetForm = useCallback(() => {
     setTitle('');
@@ -274,8 +275,12 @@ const useWritingEditor = () => {
 
       setIsUploading(true);
       try {
-        const finalContent = await uploadPendingImages();
-        const docRef = await addDoc(collection(db, category), {
+        const docRef = doc(collection(db, category));
+        const finalContent = await uploadPendingImages({
+          category,
+          postId: docRef.id,
+        });
+        await setDoc(docRef, {
           title: title.trim(),
           content: finalContent,
           createdAt: serverTimestamp(),
