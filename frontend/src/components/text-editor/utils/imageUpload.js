@@ -2,53 +2,137 @@
 import { getAuth } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../firebase/firebase';
+import { convertHeicToJpeg } from './media';
 
-// 이미지 압축 함수 - KB 단위로 압축
-const compressImage = (file) =>
-  new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+const MAX_UPLOAD_MB = 15;
+const TARGET_SIZE_KB = 100;
+const MAX_WIDTH = 2560;
+const MAX_HEIGHT = 2560;
+const WEBP_QUALITY_START = 0.82;
+const WEBP_QUALITY_MIN = 0.5;
+const WEBP_QUALITY_STEP = 0.07;
+const SCALE_STEP = 0.85;
+const MIN_DIMENSION = 320;
+const MAX_ENCODE_ATTEMPTS = 12;
+
+const isGifFile = (file) =>
+  file?.type === 'image/gif' || /\.gif$/i.test(file?.name || '');
+const isSvgFile = (file) =>
+  file?.type === 'image/svg+xml' || /\.svg$/i.test(file?.name || '');
+const isHeicFile = (file) =>
+  /image\/(heic|heif)/i.test(file?.type || '') || /\.(heic|heif)$/i.test(file?.name || '');
+const isJpegFile = (file) =>
+  /image\/jpe?g/i.test(file?.type || '') || /\.(jpe?g)$/i.test(file?.name || '');
+const isPngFile = (file) =>
+  /image\/png/i.test(file?.type || '') || /\.png$/i.test(file?.name || '');
+const isWebpFile = (file) =>
+  /image\/webp/i.test(file?.type || '') || /\.webp$/i.test(file?.name || '');
+
+const sanitizeFileName = (name) => (name || 'image').replace(/[^a-zA-Z0-9._-]/g, '_');
+const replaceFileExtension = (name, extension) => {
+  const sanitized = sanitizeFileName(name);
+  const base = sanitized.replace(/\.[^/.]+$/, '');
+  return `${base}.${extension}`;
+};
+
+const loadImageElement = (file) =>
+  new Promise((resolve, reject) => {
     const img = new Image();
-
+    const url = URL.createObjectURL(file);
     img.onload = () => {
-      let { width, height } = img;
-
-      const MAX_WIDTH = 2560;
-      const MAX_HEIGHT = 2560;
-      const targetSizeKB = 350;
-
-      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      let quality = 0.8;
-      const tryCompress = () => {
-        canvas.toBlob(
-          (blob) => {
-            if (blob.size <= targetSizeKB * 1024 || quality <= 0.05) {
-              resolve(blob);
-            } else {
-              quality -= 0.15;
-              if (quality < 0.05) quality = 0.05;
-              tryCompress();
-            }
-          },
-          'image/jpeg',
-          quality,
-        );
-      };
-
-      tryCompress();
+      URL.revokeObjectURL(url);
+      resolve(img);
     };
-
-    img.src = URL.createObjectURL(file);
+    img.onerror = (error) => {
+      URL.revokeObjectURL(url);
+      reject(error);
+    };
+    img.src = url;
   });
+
+const dataUrlToBlob = (dataUrl) => {
+  const [header, data] = dataUrl.split(',');
+  const match = header.match(/data:(.*?);base64/);
+  const mime = match ? match[1] : 'application/octet-stream';
+  const binary = atob(data);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mime });
+};
+
+const canvasToBlob = (canvas, type, quality) =>
+  new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+      const dataUrl = canvas.toDataURL(type, quality);
+      resolve(dataUrlToBlob(dataUrl));
+    }, type, quality);
+  });
+
+const encodeImage = async ({ image, width, height, type, quality }) => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(image, 0, 0, width, height);
+
+  return canvasToBlob(canvas, type, quality);
+};
+
+const compressImageToTarget = async ({ file, targetBytes, outputType }) => {
+  const image = await loadImageElement(file);
+  let { naturalWidth: width, naturalHeight: height } = image;
+
+  const ratio = Math.min(1, MAX_WIDTH / width, MAX_HEIGHT / height);
+  width = Math.max(1, Math.round(width * ratio));
+  height = Math.max(1, Math.round(height * ratio));
+
+  let quality = WEBP_QUALITY_START;
+  let scale = 1;
+  let lastBlob = null;
+
+  for (let attempt = 0; attempt < MAX_ENCODE_ATTEMPTS; attempt += 1) {
+    const targetWidth = Math.max(1, Math.round(width * scale));
+    const targetHeight = Math.max(1, Math.round(height * scale));
+    const blob = await encodeImage({
+      image,
+      width: targetWidth,
+      height: targetHeight,
+      type: outputType,
+      quality,
+    });
+
+    if (!blob) {
+      break;
+    }
+
+    lastBlob = blob;
+    if (blob.size <= targetBytes) {
+      return blob;
+    }
+
+    if (quality > WEBP_QUALITY_MIN) {
+      quality = Math.max(WEBP_QUALITY_MIN, quality - WEBP_QUALITY_STEP);
+      continue;
+    }
+
+    const nextWidth = Math.round(targetWidth * SCALE_STEP);
+    const nextHeight = Math.round(targetHeight * SCALE_STEP);
+    if (nextWidth < MIN_DIMENSION || nextHeight < MIN_DIMENSION) {
+      break;
+    }
+    scale *= SCALE_STEP;
+    quality = WEBP_QUALITY_START;
+  }
+
+  return lastBlob;
+};
 
 export const handleImageUpload = async (file) => {
   const auth = getAuth();
@@ -64,33 +148,68 @@ export const handleImageUpload = async (file) => {
     return null;
   }
 
-  const MAX_MB = 15;
-  if (!file.type?.startsWith('image/')) {
+  if (!file.type?.startsWith('image/') && !isHeicFile(file)) {
     console.error('[handleImageUpload] invalid file type:', file.type);
     alert('이미지 파일만 업로드할 수 있어요.');
     return null;
   }
-  if (file.size > MAX_MB * 1024 * 1024) {
+  if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
     console.error('[handleImageUpload] file too large:', file.size);
-    alert(`이미지 용량이 큽니다. 최대 ${MAX_MB}MB까지 업로드할 수 있어요.`);
+    alert(`이미지 용량이 큽니다. 최대 ${MAX_UPLOAD_MB}MB까지 업로드할 수 있어요.`);
     return null;
   }
 
   try {
-    let processedFile = file;
-    const originalSizeMB = file.size / (1024 * 1024);
+    const targetBytes = TARGET_SIZE_KB * 1024;
+    let normalizedFile = file;
 
-    if (originalSizeMB >= 1) {
-      processedFile = await compressImage(file);
+    if (isHeicFile(file)) {
+      normalizedFile = await convertHeicToJpeg(file);
     }
 
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const path = `post-images/${user.uid}/${Date.now()}-${sanitizedName}`;
+    const isConvertible = !isGifFile(normalizedFile) && !isSvgFile(normalizedFile);
+    const shouldConvertToWebp =
+      isJpegFile(normalizedFile) ||
+      isHeicFile(normalizedFile) ||
+      isWebpFile(normalizedFile) ||
+      (isPngFile(normalizedFile) && normalizedFile.size > targetBytes);
+
+    let processedBlob = null;
+    let outputType = normalizedFile.type || 'image/jpeg';
+
+    if (isConvertible && (normalizedFile.size > targetBytes || shouldConvertToWebp)) {
+      outputType = shouldConvertToWebp ? 'image/webp' : outputType;
+      processedBlob = await compressImageToTarget({
+        file: normalizedFile,
+        targetBytes,
+        outputType,
+      });
+    }
+
+    const finalBlob = processedBlob || normalizedFile;
+    const finalType = finalBlob.type || outputType || normalizedFile.type || 'image/jpeg';
+
+    if (finalBlob.size > targetBytes && isConvertible) {
+      alert('이미지를 100KB 이하로 압축하지 못했습니다. 더 작은 이미지를 사용해주세요.');
+      return null;
+    }
+
+    const extension = finalType === 'image/webp'
+      ? 'webp'
+      : finalType === 'image/png'
+        ? 'png'
+        : finalType === 'image/gif'
+          ? 'gif'
+          : finalType === 'image/svg+xml'
+            ? 'svg'
+            : 'jpg';
+    const finalName = replaceFileExtension(normalizedFile.name, extension);
+    const path = `post-images/${user.uid}/${Date.now()}-${finalName}`;
 
     const imgRef = storageRef(storage, path);
 
-    const metadata = { contentType: processedFile.type || 'image/jpeg' };
-    const snap = await uploadBytes(imgRef, processedFile, metadata);
+    const metadata = { contentType: finalType };
+    const snap = await uploadBytes(imgRef, finalBlob, metadata);
     const url = await getDownloadURL(snap.ref);
 
     if (!url) {
