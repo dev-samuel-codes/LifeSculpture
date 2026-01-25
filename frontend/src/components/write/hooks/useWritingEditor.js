@@ -229,10 +229,11 @@ const useWritingEditor = () => {
     let updated = content;
 
     for (const { file, tempUrl } of pendingImages) {
-      const url = await handleImageUpload(file).catch(() => null);
-      if (url) {
-        updated = updated.replace(tempUrl, url);
+      const url = await handleImageUpload(file);
+      if (!url) {
+        throw new Error('이미지 업로드에 실패했습니다.');
       }
+      updated = updated.replace(tempUrl, url);
     }
     return updated;
   }, [content, handleImageUpload, pendingImages]);

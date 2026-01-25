@@ -172,10 +172,11 @@ function EditPostPage() {
     if (pendingImages.length === 0) return content;
     let updatedContent = content;
     for (const { file, tempUrl } of pendingImages) {
-      const url = await handleImageUpload(file).catch(() => null);
-      if (url) {
-        updatedContent = updatedContent.replace(tempUrl, url);
+      const url = await handleImageUpload(file);
+      if (!url) {
+        throw new Error('이미지 업로드에 실패했습니다.');
       }
+      updatedContent = updatedContent.replace(tempUrl, url);
     }
     return updatedContent;
   };

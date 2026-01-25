@@ -9,8 +9,12 @@ export const convertHeicToJpeg = async (file) => {
       toType: 'image/jpeg',
       quality: 0.8,
     });
+    const normalizedBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+    const blob = normalizedBlob instanceof Blob
+      ? normalizedBlob
+      : new Blob([normalizedBlob], { type: 'image/jpeg' });
     return new File(
-      [convertedBlob],
+      [blob],
       file.name.replace(/\.(heic|heif)$/i, '.jpg'),
       { type: 'image/jpeg' },
     );
