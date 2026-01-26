@@ -20,6 +20,7 @@ import { setupResponsiveImageSizing } from '../components/text-editor/utils/imag
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { deleteStorageImages } from '../utils/storage';
 import { getPost, updatePostFields } from '../services/posts';
+import { extractHashtagsFromContent } from '../utils/tags';
 import '../style/components/write/WritePostPage.css';
 import '../style/components/editor/QuillToolbar.css';
 import '../style/components/editor/CustomFormulaEditor.css';
@@ -211,13 +212,16 @@ function EditPostPage() {
         }
       }
 
+      const sanitizedContent = sanitizeHtml(finalContent);
+      const tags = extractHashtagsFromContent(sanitizedContent);
       await updatePostFields({
         category: categoryParam,
         id,
         data: {
           title: title.trim(),
-          content: sanitizeHtml(finalContent),
+          content: sanitizedContent,
           category: category.trim(),
+          tags,
         },
       });
       alert('게시글이 성공적으로 수정되었습니다.');

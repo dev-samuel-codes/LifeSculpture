@@ -1,7 +1,7 @@
 // useWritingEditor 훅: 글 작성 폼 상태와 편집기 동작을 관리
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { db } from '../../../firebase/firebase';
 import { useQuillToolbar } from '../../text-editor/hooks/useQuillToolbar';
@@ -12,6 +12,7 @@ import {
 import { convertHeicToJpeg } from '../../text-editor/utils/media';
 import { getResponsiveEditorHeight } from '../../text-editor/utils/layout';
 import { setupResponsiveImageSizing } from '../../text-editor/utils/imageSizing';
+import { extractHashtagsFromContent } from '../../../utils/tags';
 
 const MAX_CONTENT_SIZE = 1000000;
 const AUTO_SAVE_DELAY = 2000;
@@ -280,13 +281,27 @@ const useWritingEditor = () => {
           category,
           postId: docRef.id,
         });
-        await setDoc(docRef, {
+        const tags = extractHashtagsFromContent(finalContent);
+        const indexRef = doc(db, 'post_index', category, 'posts', docRef.id);
+        const batch = writeBatch(db);
+        batch.set(docRef, {
           title: title.trim(),
           content: finalContent,
           createdAt: serverTimestamp(),
           viewCount: 0,
+          likeCount: 0,
           isPublic,
+          tags,
         });
+        batch.set(indexRef, {
+          title: title.trim(),
+          createdAt: serverTimestamp(),
+          viewCount: 0,
+          likeCount: 0,
+          isPublic,
+          tags,
+        });
+        await batch.commit();
 
         alert('게시글이 성공적으로 등록되었습니다!');
         resetForm();

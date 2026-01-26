@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { listPostsPage } from '../services/posts';
+import { extractHashtagsFromContent } from '../utils/tags';
 
 const POSTS_PER_PAGE_DEFAULT = 6;
 const FETCH_BATCH_SIZE = 24;
@@ -15,17 +16,6 @@ const norm = (value) =>
     .toLowerCase()
     .replace(/[^\p{L}\p{N}_]+/gu, ' ')
     .trim();
-
-const extractHashtags = (raw) => {
-  const text = String(raw || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-  const re = /(^|[^#\p{L}\p{N}_])#([\p{L}\p{N}_]+)/gu;
-  const set = new Set();
-  let match;
-  while ((match = re.exec(text)) !== null) {
-    set.add(norm(match[2]));
-  }
-  return set;
-};
 
 const ensureArray = (value) => (Array.isArray(value) ? value : []);
 
@@ -239,20 +229,27 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
 
     const matchesHierarchy = (post) => {
       const titleNorm = norm(post.title);
-      const body = post.content ?? post.body ?? post.text ?? '';
-      const hashSet = extractHashtags(body);
+      const tagSet = (() => {
+        const tags = Array.isArray(post.tags) ? post.tags : [];
+        if (tags.length > 0) {
+          return new Set(tags.map((tag) => norm(tag)));
+        }
+        const body = post.content ?? post.body ?? post.text ?? '';
+        if (!body) return new Set();
+        return new Set(extractHashtagsFromContent(body).map((tag) => norm(tag)));
+      })();
 
       if (hasChild) {
         return [...selectedChildren].some((keyword) => {
           const normalized = norm(keyword);
-          return titleNorm.includes(normalized) || hashSet.has(normalized);
+          return titleNorm.includes(normalized) || tagSet.has(normalized);
         });
       }
 
       if (hasParent) {
         return visibleChildren.some((keyword) => {
           const normalized = norm(keyword);
-          return titleNorm.includes(normalized) || hashSet.has(normalized);
+          return titleNorm.includes(normalized) || tagSet.has(normalized);
         });
       }
 
