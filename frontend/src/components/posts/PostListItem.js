@@ -42,13 +42,7 @@ function PostListItem({ post, role, formatDate, onSelectPost }) {
                   </span>
                 )}
               </h5>
-              <div className="card-tags">
-                {(Array.isArray(post.tags) ? post.tags : []).slice(0, 4).map((tag) => (
-                  <span key={tag} className="badge bg-light text-dark border">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <div className="card-tags"></div>
             </div>
           </div>
           <div className="card-right">
