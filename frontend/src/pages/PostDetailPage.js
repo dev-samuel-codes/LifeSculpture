@@ -4,7 +4,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { storage } from '../firebase/firebase';
 import { AuthContext } from '../context/AuthContext';
 import CommentsSection from '../components/comments/CommentsSection';
-import LazyImage from '../components/media/LazyImage';
 import LoginRequiredPopup from '../components/auth/LoginRequiredPopup';
 import LikeButton from '../components/posts/LikeButton';
 import { formatDateOnly } from '../utils/date';
@@ -162,7 +161,6 @@ function PostDetailPage() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
   const [isPublic, setIsPublic] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -279,36 +277,10 @@ function PostDetailPage() {
 
   useEffect(() => {
     const contentElement = document.querySelector('.post-content');
-    if (!contentElement) return;
-
-    const handleContentClick = (event) => {
-      if (event.target.tagName === 'IMG') {
-        setSelectedImage(event.target.src);
-      }
-    };
-
-    contentElement.addEventListener('click', handleContentClick);
-    return () => contentElement.removeEventListener('click', handleContentClick);
-  }, [renderedContent]);
-
-  useEffect(() => {
-    const contentElement = document.querySelector('.post-content');
     if (!contentElement) return undefined;
 
     return setupResponsiveImageSizing({ root: contentElement });
   }, [renderedContent]);
-
-  useEffect(() => {
-    if (!selectedImage) return undefined;
-    const handleEscKey = (event) => {
-      if (event.key === 'Escape') {
-        setSelectedImage(null);
-      }
-    };
-
-    document.addEventListener('keydown', handleEscKey);
-    return () => document.removeEventListener('keydown', handleEscKey);
-  }, [selectedImage]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -489,25 +461,6 @@ function PostDetailPage() {
           className="post-content rich-text"
           dangerouslySetInnerHTML={{ __html: renderedContent || post.content }}
         />
-
-        {selectedImage && (
-          <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
-            <div className="image-modal-content" onClick={(event) => event.stopPropagation()}>
-              <LazyImage
-                src={selectedImage}
-                alt="Enlarged"
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-              />
-              <button
-                className="btn btn-light position-absolute top-0 end-0 m-2"
-                onClick={() => setSelectedImage(null)}
-                style={{ zIndex: 1001 }}
-              >
-                닫기
-              </button>
-            </div>
-          </div>
-        )}
 
         <CommentsSection category={category} postId={id} />
         <LoginRequiredPopup
