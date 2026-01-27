@@ -143,6 +143,11 @@ service cloud.firestore {
       allow update: if isViewCountUpdate() || isLegacyLikeUpdate();
     }
 
+    match /post_filters/{category} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /{cat}/{postId} {
       allow read: if true;
 

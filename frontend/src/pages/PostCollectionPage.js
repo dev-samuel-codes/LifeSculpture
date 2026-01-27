@@ -7,12 +7,24 @@ import PostListToolbar from '../components/posts/PostListToolbar';
 import PostList from '../components/posts/PostList';
 import PostPagination from '../components/posts/PostPagination';
 import usePostList from '../hooks/usePostList';
+import usePostFilters from '../hooks/usePostFilters';
 import '../style/pages/study/Study.css';
 
 function PostCollectionPage({ config }) {
   const { collectionName, sections = [], emptyMessage } = config;
   const { role } = useContext(AuthContext);
   const navigate = useNavigate();
+  const isAdmin = role === 'admin';
+
+  const {
+    sections: filterSections,
+    loading: filterLoading,
+    error: filterError,
+    updateSections,
+  } = usePostFilters({
+    collectionName,
+    defaultSections: sections,
+  });
 
   const {
     loading,
@@ -36,7 +48,7 @@ function PostCollectionPage({ config }) {
     goToNext,
   } = usePostList({
     collectionName,
-    sections,
+    sections: filterSections,
     role,
   });
 
@@ -45,6 +57,11 @@ function PostCollectionPage({ config }) {
       navigate(`/posts/${collectionName}/${postId}`);
     },
     [collectionName, navigate],
+  );
+
+  const handleUpdateSections = useCallback(
+    async (nextSections) => updateSections(nextSections),
+    [updateSections],
   );
 
   const emptyListMessage = useMemo(() => emptyMessage || '게시물을 찾을 수 없습니다.', [emptyMessage]);
@@ -57,13 +74,17 @@ function PostCollectionPage({ config }) {
       <div className="row g-4">
         <div className="col-md-3">
           <PostFilterPanel
-            sections={sections}
+            sections={filterSections}
             selectedParent={selectedParent}
             selectedChildren={selectedChildren}
             visibleChildren={visibleChildren}
             onToggleParent={toggleParent}
             onToggleChild={toggleChild}
             onClearAll={clearAll}
+            isAdmin={isAdmin}
+            isFilterLoading={filterLoading}
+            filterError={filterError}
+            onUpdateSections={handleUpdateSections}
           />
         </div>
 

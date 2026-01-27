@@ -187,6 +187,15 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
   }, [selectedParent, sections]);
 
   useEffect(() => {
+    if (!selectedParent) return;
+    const isValid = sections.some((section) => section.title === selectedParent);
+    if (!isValid) {
+      setSelectedParent(null);
+      setSelectedChildren(new Set());
+    }
+  }, [sections, selectedParent]);
+
+  useEffect(() => {
     setSelectedChildren((prev) => {
       if (!selectedParent) return new Set();
       const allowed = new Set(visibleChildren);
