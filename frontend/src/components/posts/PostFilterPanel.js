@@ -36,7 +36,7 @@ function PostFilterPanel({
   const [newParentTags, setNewParentTags] = useState('');
   const [adminMessage, setAdminMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(true);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   useEffect(() => {
     if (sectionTitles.length === 0) {
