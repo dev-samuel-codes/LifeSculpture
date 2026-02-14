@@ -1,0 +1,1 @@
+export const MAX_EDITOR_CONTENT_SIZE = 1000000;

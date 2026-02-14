@@ -10,8 +10,6 @@ import {
   limit as limitQuery,
   orderBy,
   query,
-  serverTimestamp,
-  setDoc,
   startAfter,
   updateDoc,
 } from 'firebase/firestore';
@@ -53,12 +51,6 @@ const toPlainPost = (snap) => {
   };
 };
 
-export async function listPosts({ category, order = 'desc' }) {
-  const constraints = [orderBy('createdAt', order === 'asc' ? 'asc' : 'desc')];
-  const snapshot = await getDocs(query(indexCollectionRef(category), ...constraints));
-  return snapshot.docs.map((docSnap) => toPlainPost(docSnap));
-}
-
 export async function listPostsPage({
   category,
   order = 'desc',
@@ -81,48 +73,6 @@ export async function listPostsPage({
 export async function getPost({ category, id }) {
   const snapshot = await getDoc(docRef(category, id));
   return toPlainPost(snapshot);
-}
-
-export async function createPost({ category, id, data }) {
-  const indexPayload = buildIndexPayload({
-    ...data,
-    createdAt: data.createdAt ?? serverTimestamp(),
-    viewCount: data.viewCount ?? 0,
-    likeCount: data.likeCount ?? 0,
-  });
-  if (id) {
-    await setDoc(docRef(category, id), {
-      ...data,
-      createdAt: data.createdAt ?? serverTimestamp(),
-      updatedAt: data.updatedAt ?? serverTimestamp(),
-    });
-    if (Object.keys(indexPayload).length > 0) {
-      await setDoc(indexDocRef(category, id), indexPayload);
-    }
-    const snapshot = await getDoc(docRef(category, id));
-    return toPlainPost(snapshot);
-  }
-
-  const newDocRef = doc(collectionRef(category));
-  await setDoc(newDocRef, {
-    ...data,
-    createdAt: data.createdAt ?? serverTimestamp(),
-    updatedAt: data.updatedAt ?? serverTimestamp(),
-  });
-  if (Object.keys(indexPayload).length > 0) {
-    await setDoc(indexDocRef(category, newDocRef.id), indexPayload);
-  }
-  const snapshot = await getDoc(newDocRef);
-  return toPlainPost(snapshot);
-}
-
-export async function updatePost({ category, id, data }) {
-  await updateDoc(docRef(category, id), {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
-  const indexPayload = buildIndexPayload(data);
-  await safeUpdateIndex(category, id, indexPayload);
 }
 
 export async function updatePostFields({ category, id, data }) {

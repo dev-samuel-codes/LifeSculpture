@@ -27,5 +27,3 @@ export const extractHashtagsFromContent = (content) => {
 
   return tags;
 };
-
-export const normalizeTagForFilter = normalizeTag;

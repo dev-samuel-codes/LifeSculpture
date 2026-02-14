@@ -5,16 +5,16 @@ import { collection, doc, serverTimestamp, writeBatch } from 'firebase/firestore
 import { getAuth } from 'firebase/auth';
 import { db } from '../../../firebase/firebase';
 import { useQuillToolbar } from '../../text-editor/hooks/useQuillToolbar';
+import useQuillEditorBridge from '../../text-editor/hooks/useQuillEditorBridge';
+import { MAX_EDITOR_CONTENT_SIZE } from '../../text-editor/constants';
+import { replacePendingImages } from '../../text-editor/utils/pendingImages';
 import {
   calculateContentSize,
   sanitizeContent,
 } from '../../text-editor/utils/content';
-import { convertHeicToJpeg } from '../../text-editor/utils/media';
 import { getResponsiveEditorHeight } from '../../text-editor/utils/layout';
-import { setupResponsiveImageSizing } from '../../text-editor/utils/imageSizing';
 import { extractHashtagsFromContent } from '../../../utils/tags';
 
-const MAX_CONTENT_SIZE = 1000000;
 const AUTO_SAVE_DELAY = 2000;
 const DRAFT_STORAGE_KEY = 'settings-writing-draft';
 const DRAFT_TTL = 1000 * 60 * 60 * 24 * 30; // 30일
@@ -64,36 +64,14 @@ const useWritingEditor = () => {
     setDraftUpdatedAt(null);
   }, []);
 
-  const handleImageInsert = useCallback(() => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*,.heic,.heif';
-    input.click();
+  const handlePendingImage = useCallback(({ file, tempUrl }) => {
+    setPendingImages((prev) => [...prev, { id: Date.now(), file, tempUrl }]);
+  }, []);
 
-    input.onchange = async () => {
-      const file = input.files && input.files[0];
-      if (!file) return;
-
-      try {
-        const processedFile = await convertHeicToJpeg(file);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const tempUrl = e.target?.result;
-          if (!tempUrl) return;
-
-          setPendingImages((prev) => [...prev, { id: Date.now(), file: processedFile, tempUrl }]);
-          const editor = quillRef.current?.getEditor();
-          if (editor) {
-            const range = editor.getSelection(true) || { index: editor.getLength() };
-            editor.insertEmbed(range.index, 'image', tempUrl, 'user');
-            editor.setSelection(range.index + 1, 0);
-          }
-        };
-        reader.readAsDataURL(processedFile);
-      } catch (error) {
-        alert('이미지 처리 실패: ' + error.message);
-      }
-    };
+  const handleOpenFormulaEditor = useCallback((initialValue, onSaveCallback) => {
+    setFormulaInitialValue(initialValue);
+    formulaSaveRef.current = onSaveCallback;
+    setIsFormulaEditorOpen(true);
   }, []);
 
   useEffect(() => {
@@ -189,55 +167,23 @@ const useWritingEditor = () => {
     };
   }, [category, clearDraftStorage, content, isPublic, title]);
 
-  useEffect(() => {
-    const setupEditor = () => {
-      const editor = quillRef.current?.getEditor();
-      if (!editor) return false;
-
-      window.quillEditor = editor;
-      window.openFormulaEditor = (initialValue, onSaveCallback) => {
-        setFormulaInitialValue(initialValue);
-        formulaSaveRef.current = onSaveCallback;
-        setIsFormulaEditorOpen(true);
-      };
-      editor.getModule('toolbar')?.addHandler('image', handleImageInsert);
-      return true;
-    };
-
-    const timer = setTimeout(() => {
-      if (!setupEditor()) {
-        const retryTimer = setTimeout(setupEditor, 300);
-        return () => clearTimeout(retryTimer);
-      }
-      return undefined;
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      window.openFormulaEditor = null;
-    };
-  }, [handleImageInsert]);
-
-  useEffect(() => {
-    const editor = quillRef.current?.getEditor();
-    if (!editor) return undefined;
-
-    return setupResponsiveImageSizing({ root: editor.root });
-  }, [content]);
+  useQuillEditorBridge({
+    quillRef,
+    enabled: true,
+    content,
+    onPendingImage: handlePendingImage,
+    onOpenFormulaEditor: handleOpenFormulaEditor,
+  });
 
   const uploadPendingImages = useCallback(async ({ category: uploadCategory, postId } = {}) => {
-    if (pendingImages.length === 0) return content;
-    let updated = content;
     const resolvedCategory = uploadCategory || category;
-
-    for (const { file, tempUrl } of pendingImages) {
-      const url = await handleImageUpload(file, { category: resolvedCategory, postId });
-      if (!url) {
-        throw new Error('이미지 업로드에 실패했습니다.');
-      }
-      updated = updated.replace(tempUrl, url);
-    }
-    return updated;
+    return replacePendingImages({
+      content,
+      pendingImages,
+      category: resolvedCategory,
+      postId,
+      uploadImage: handleImageUpload,
+    });
   }, [category, content, handleImageUpload, pendingImages]);
 
   const resetForm = useCallback(() => {
@@ -269,8 +215,8 @@ const useWritingEditor = () => {
         return;
       }
 
-      if (contentSize > MAX_CONTENT_SIZE) {
-        alert(`콘텐츠가 너무 깁니다. 최대: ${MAX_CONTENT_SIZE / 1024}KB`);
+      if (contentSize > MAX_EDITOR_CONTENT_SIZE) {
+        alert(`콘텐츠가 너무 깁니다. 최대: ${MAX_EDITOR_CONTENT_SIZE / 1024}KB`);
         return;
       }
 

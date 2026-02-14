@@ -72,11 +72,6 @@ export async function fetchCommentsPage({
   };
 }
 
-export async function fetchCommentById(category, postId, commentId) {
-  const snap = await getDoc(commentDoc(category, postId, commentId));
-  return toPlainComment(snap);
-}
-
 export async function createComment({
   category,
   postId,
@@ -105,18 +100,6 @@ export async function createComment({
   return toPlainComment(snap);
 }
 
-export async function updateCommentContent({
-  category,
-  postId,
-  commentId,
-  content,
-}) {
-  await updateDoc(commentDoc(category, postId, commentId), {
-    content,
-    updatedAt: serverTimestamp(),
-  });
-}
-
 export async function fetchLikeCount({ category, postId, commentId }) {
   const agg = await getCountFromServer(
     likesCollection(category, postId, commentId),
@@ -133,20 +116,6 @@ export async function syncCommentLikeCount({
   await updateDoc(commentDoc(category, postId, commentId), {
     likeCount,
   });
-}
-
-export async function fetchReplyCount({ category, postId, commentId }) {
-  const ref = commentsCollection(category, postId);
-  const q = query(ref, where('parentId', '==', commentId));
-  const agg = await getCountFromServer(q);
-  return agg.data().count ?? 0;
-}
-
-export async function fetchCommentCount({ category, postId, parentId = null }) {
-  const ref = commentsCollection(category, postId);
-  const q = query(ref, where('parentId', '==', parentId));
-  const agg = await getCountFromServer(q);
-  return agg.data().count ?? 0;
 }
 
 export async function hasUserLiked({

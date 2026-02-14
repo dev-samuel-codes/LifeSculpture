@@ -10,13 +10,14 @@ import 'katex/dist/katex.min.css';
 import TextEditorFormulaDialog from '../components/text-editor/TextEditorFormulaDialog';
 import { registerTextEditorImageBlot } from '../components/text-editor/TextEditorCustomBlots';
 import { useQuillToolbar } from '../components/text-editor/hooks/useQuillToolbar';
+import useQuillEditorBridge from '../components/text-editor/hooks/useQuillEditorBridge';
+import { MAX_EDITOR_CONTENT_SIZE } from '../components/text-editor/constants';
 import { calculateContentSize, sanitizeHtml } from '../components/text-editor/utils/content';
 import {
-  convertHeicToJpeg,
   extractImageUrls,
   isSameStorageImage,
 } from '../components/text-editor/utils/media';
-import { setupResponsiveImageSizing } from '../components/text-editor/utils/imageSizing';
+import { replacePendingImages } from '../components/text-editor/utils/pendingImages';
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { deleteStorageImages } from '../utils/storage';
 import { getPost, updatePostFields } from '../services/posts';
@@ -27,8 +28,6 @@ import '../style/components/editor/CustomFormulaEditor.css';
 import '../style/components/editor/RichText.css';
 
 registerTextEditorImageBlot();
-
-const MAX_CONTENT_SIZE = 1000000;
 
 function EditPostPage() {
   const { category: categoryParam, id } = useParams();
@@ -70,32 +69,14 @@ function EditPostPage() {
     setContentSize(calculateContentSize(newContent));
   };
 
-  const handleImageInsert = useCallback(() => {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*,.heic,.heif');
-    input.click();
-    input.onchange = async () => {
-      const file = input.files && input.files[0];
-      if (!file) return;
-      try {
-        const processedFile = await convertHeicToJpeg(file);
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const tempUrl = event.target.result;
-          setPendingImages((prev) => [...prev, { id: Date.now(), file: processedFile, tempUrl }]);
-          const editor = quillRef.current?.getEditor();
-          if (editor) {
-            const range = editor.getSelection(true) || { index: editor.getLength() };
-            editor.insertEmbed(range.index, 'image', tempUrl, 'user');
-            editor.setSelection(range.index + 1, 0);
-          }
-        };
-        reader.readAsDataURL(processedFile);
-      } catch (err) {
-        alert('이미지 처리 실패: ' + err.message);
-      }
-    };
+  const handlePendingImage = useCallback(({ file, tempUrl }) => {
+    setPendingImages((prev) => [...prev, { id: Date.now(), file, tempUrl }]);
+  }, []);
+
+  const handleOpenFormulaEditor = useCallback((initialValue, onSaveCallback) => {
+    setFormulaInitialValue(initialValue);
+    setOnFormulaSave(() => onSaveCallback);
+    setIsFormulaEditorOpen(true);
   }, []);
 
   useEffect(() => {
@@ -122,33 +103,13 @@ function EditPostPage() {
     fetchPost();
   }, [categoryParam, getTrackedImageUrls, id]);
 
-  useEffect(() => {
-    const setupEditor = () => {
-      const editor = quillRef.current?.getEditor();
-      if (!editor) return false;
-      window.quillEditor = editor;
-      window.openFormulaEditor = (initialValue, onSaveCallback) => {
-        setFormulaInitialValue(initialValue);
-        setOnFormulaSave(() => onSaveCallback);
-        setIsFormulaEditorOpen(true);
-      };
-      editor.getModule('toolbar').addHandler('image', handleImageInsert);
-      return true;
-    };
-
-    const timer = setTimeout(() => {
-      if (!setupEditor()) {
-        const retryTimer = setTimeout(setupEditor, 300);
-        return () => clearTimeout(retryTimer);
-      }
-      return undefined;
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      window.openFormulaEditor = null;
-    };
-  }, [loading, handleImageInsert]);
+  useQuillEditorBridge({
+    quillRef,
+    enabled: !loading,
+    content,
+    onPendingImage: handlePendingImage,
+    onOpenFormulaEditor: handleOpenFormulaEditor,
+  });
 
   useEffect(() => {
     if (!quillRef.current) return;
@@ -162,28 +123,17 @@ function EditPostPage() {
     });
   }, [content]);
 
-  useEffect(() => {
-    const editor = quillRef.current?.getEditor();
-    if (!editor) return undefined;
-
-    return setupResponsiveImageSizing({ root: editor.root });
-  }, [content]);
-
-  const uploadPendingImages = async () => {
-    if (pendingImages.length === 0) return content;
-    let updatedContent = content;
-    for (const { file, tempUrl } of pendingImages) {
-      const url = await handleImageUpload(file, {
+  const uploadPendingImages = useCallback(
+    async () =>
+      replacePendingImages({
+        content,
+        pendingImages,
         category: categoryParam,
         postId: id,
-      });
-      if (!url) {
-        throw new Error('이미지 업로드에 실패했습니다.');
-      }
-      updatedContent = updatedContent.replace(tempUrl, url);
-    }
-    return updatedContent;
-  };
+        uploadImage: handleImageUpload,
+      }),
+    [categoryParam, content, handleImageUpload, id, pendingImages],
+  );
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -191,8 +141,8 @@ function EditPostPage() {
       alert('제목과 내용을 입력해주세요.');
       return;
     }
-    if (contentSize > MAX_CONTENT_SIZE) {
-      alert(`콘텐츠가 너무 깁니다. 최대: ${MAX_CONTENT_SIZE / 1024}KB`);
+    if (contentSize > MAX_EDITOR_CONTENT_SIZE) {
+      alert(`콘텐츠가 너무 깁니다. 최대: ${MAX_EDITOR_CONTENT_SIZE / 1024}KB`);
       return;
     }
 
