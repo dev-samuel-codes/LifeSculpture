@@ -50,7 +50,6 @@ export const registerTextEditorImageBlot = () => {
     try {
       ReactQuill.Quill.register(TextEditorImageBlot);
       isRegistered = true;
-      console.log('TextEditorImageBlot 등록 완료');
     } catch (error) {
       console.warn('TextEditorImageBlot 등록 중 오류:', error);
     }

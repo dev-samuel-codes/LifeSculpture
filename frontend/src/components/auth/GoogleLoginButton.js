@@ -14,8 +14,7 @@ function GoogleLoginButton({ redirectTo = '/', className = '' }) {
 
   const handleLogin = async () => {
     try {
-      const user = await login();
-      console.log('[GoogleLoginButton] login:', user.uid, user.email);
+      await login();
       navigate(redirectTo);
     } catch (err) {
       console.error('[GoogleLoginButton] error:', err);

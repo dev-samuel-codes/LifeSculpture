@@ -23,8 +23,6 @@ const Header = () => {
   const togglerRef = useRef(null);
 
   const handleNavCollapse = () => setIsNavCollapsed(!isNavCollapsed);
-  // eslint-disable-next-line no-unused-vars
-  const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
 
   const handleLogout = () => {
     logout();
@@ -35,16 +33,20 @@ const Header = () => {
   const closeNav = () => setIsNavCollapsed(true);
 
   useEffect(() => {
+    if (!isProfilePopupOpen) {
+      return undefined;
+    }
+
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfilePopupOpen(false);
       }
     };
 
-    if (isProfilePopupOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    } else {
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };

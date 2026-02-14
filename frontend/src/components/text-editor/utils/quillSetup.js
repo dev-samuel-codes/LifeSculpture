@@ -72,7 +72,6 @@ export const initializeQuillHandlers = () => {
           },
         };
         Quill.register('modules/handlers', HandlersModule, true);
-        console.log('Quill handlers 모듈 등록 완료');
       }
     } else {
       console.warn('Quill 인스턴스를 찾을 수 없거나 register 메서드가 없습니다.');
