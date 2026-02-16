@@ -60,8 +60,200 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+const POST_CATEGORIES = new Set(['blog', 'study']);
+const BATCH_WRITE_LIMIT = 450;
+const INDEX_FIELDS = ['title', 'tags', 'createdAt', 'viewCount', 'likeCount', 'isPublic'];
+
+const sanitizePostUpdates = (input) => {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return {};
+  }
+
+  const allowedKeys = new Set(['title', 'content', 'tags', 'isPublic']);
+  const updates = {};
+
+  for (const [key, value] of Object.entries(input)) {
+    if (!allowedKeys.has(key) || value === undefined) {
+      continue;
+    }
+    updates[key] = value;
+  }
+
+  return updates;
+};
+
+const isValidPostCategory = (category) =>
+  typeof category === 'string' && POST_CATEGORIES.has(category.trim());
+
+const createBatchWriter = (firestore) => {
+  let batch = firestore.batch();
+  let operationCount = 0;
+
+  const queueSet = (ref, data, options) => {
+    if (options) {
+      batch.set(ref, data, options);
+    } else {
+      batch.set(ref, data);
+    }
+    operationCount += 1;
+  };
+
+  const queueDelete = (ref) => {
+    batch.delete(ref);
+    operationCount += 1;
+  };
+
+  const flush = async () => {
+    if (operationCount === 0) {
+      return;
+    }
+    await batch.commit();
+    batch = firestore.batch();
+    operationCount = 0;
+  };
+
+  const queueSetWithAutoFlush = async (ref, data, options) => {
+    queueSet(ref, data, options);
+    if (operationCount >= BATCH_WRITE_LIMIT) {
+      await flush();
+    }
+  };
+
+  const queueDeleteWithAutoFlush = async (ref) => {
+    queueDelete(ref);
+    if (operationCount >= BATCH_WRITE_LIMIT) {
+      await flush();
+    }
+  };
+
+  return {
+    set: queueSetWithAutoFlush,
+    delete: queueDeleteWithAutoFlush,
+    flush,
+  };
+};
+
+const buildIndexPayload = (postData, sourceIndexData = {}) => {
+  const payload = {};
+
+  INDEX_FIELDS.forEach((field) => {
+    if (postData[field] !== undefined) {
+      payload[field] = postData[field];
+      return;
+    }
+    if (sourceIndexData[field] !== undefined) {
+      payload[field] = sourceIndexData[field];
+    }
+  });
+
+  if (payload.viewCount === undefined) payload.viewCount = 0;
+  if (payload.likeCount === undefined) payload.likeCount = 0;
+  if (payload.tags === undefined) payload.tags = [];
+  if (payload.isPublic === undefined) payload.isPublic = true;
+
+  return payload;
+};
+
+const extractBearerToken = (authorizationHeader) => {
+  if (!authorizationHeader || typeof authorizationHeader !== 'string') {
+    return null;
+  }
+  const [scheme, token] = authorizationHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) {
+    return null;
+  }
+  return token;
+};
+
+const resolveUserRole = async ({ uid, email }) => {
+  if (email === ADMIN_EMAIL) {
+    return 'admin';
+  }
+
+  try {
+    const snap = await dbAdmin.collection('users').doc(uid).get();
+    if (!snap.exists) {
+      return null;
+    }
+    return snap.data()?.role ?? null;
+  } catch (error) {
+    console.error('[auth] 사용자 역할 조회 실패:', error);
+    return null;
+  }
+};
+
+const requireAdmin = async (req, res, next) => {
+  try {
+    const token = extractBearerToken(req.headers.authorization);
+    if (!token) {
+      res.status(401).json({ message: 'Authorization header is required' });
+      return;
+    }
+
+    const decoded = await admin.auth().verifyIdToken(token);
+    const role = await resolveUserRole({ uid: decoded.uid, email: decoded.email });
+
+    if (role !== 'admin') {
+      res.status(403).json({ message: 'Admin role required' });
+      return;
+    }
+
+    req.auth = decoded;
+    next();
+  } catch (error) {
+    console.error('[auth] 관리자 인증 실패:', error);
+    res.status(401).json({ message: 'Authentication failed' });
+  }
+};
+
+const moveCommentsAndLikes = async ({ fromCategory, toCategory, postId }) => {
+  const sourceCommentsRef = dbAdmin.collection(fromCategory).doc(postId).collection('comments');
+  const targetCommentsRef = dbAdmin.collection(toCategory).doc(postId).collection('comments');
+
+  const commentsSnapshot = await sourceCommentsRef.get();
+  if (commentsSnapshot.empty) {
+    return { commentCount: 0, likeCount: 0 };
+  }
+
+  const copiedLikes = [];
+  const copyWriter = createBatchWriter(dbAdmin);
+  let likeCount = 0;
+
+  for (const commentDoc of commentsSnapshot.docs) {
+    const targetCommentRef = targetCommentsRef.doc(commentDoc.id);
+    await copyWriter.set(targetCommentRef, commentDoc.data());
+
+    const likesSnapshot = await commentDoc.ref.collection('likes').get();
+    for (const likeDoc of likesSnapshot.docs) {
+      await copyWriter.set(targetCommentRef.collection('likes').doc(likeDoc.id), likeDoc.data());
+      copiedLikes.push({
+        commentId: commentDoc.id,
+        likeId: likeDoc.id,
+      });
+      likeCount += 1;
+    }
+  }
+  await copyWriter.flush();
+
+  const deleteWriter = createBatchWriter(dbAdmin);
+  for (const { commentId, likeId } of copiedLikes) {
+    await deleteWriter.delete(
+      sourceCommentsRef.doc(commentId).collection('likes').doc(likeId),
+    );
+  }
+  for (const commentDoc of commentsSnapshot.docs) {
+    await deleteWriter.delete(commentDoc.ref);
+  }
+  await deleteWriter.flush();
+
+  return {
+    commentCount: commentsSnapshot.size,
+    likeCount,
+  };
+};
 
 const saveUserToFirestore = async (userData) => {
   const documentId = userData.userid || userData.uid;
@@ -150,6 +342,93 @@ app.post('/auth/google', async (req, res) => {
   } catch (error) {
     console.error('Google ID token verification failed:', error);
     res.status(401).json({ message: 'Google login failed' });
+  }
+});
+
+app.post('/posts/move-category', requireAdmin, async (req, res) => {
+  const { postId, fromCategory, toCategory, data } = req.body || {};
+  const normalizedPostId = typeof postId === 'string' ? postId.trim() : '';
+  const sourceCategory = typeof fromCategory === 'string' ? fromCategory.trim() : '';
+  const targetCategory = typeof toCategory === 'string' ? toCategory.trim() : '';
+
+  if (!normalizedPostId) {
+    res.status(400).json({ message: 'postId is required' });
+    return;
+  }
+  if (!isValidPostCategory(sourceCategory) || !isValidPostCategory(targetCategory)) {
+    res.status(400).json({ message: 'Invalid category' });
+    return;
+  }
+  if (sourceCategory === targetCategory) {
+    res.status(400).json({ message: 'fromCategory and toCategory must be different' });
+    return;
+  }
+
+  const sourcePostRef = dbAdmin.collection(sourceCategory).doc(normalizedPostId);
+  const sourceIndexRef = dbAdmin
+    .collection('post_index')
+    .doc(sourceCategory)
+    .collection('posts')
+    .doc(normalizedPostId);
+  const targetPostRef = dbAdmin.collection(targetCategory).doc(normalizedPostId);
+  const targetIndexRef = dbAdmin
+    .collection('post_index')
+    .doc(targetCategory)
+    .collection('posts')
+    .doc(normalizedPostId);
+
+  try {
+    const [sourcePostSnap, sourceIndexSnap, targetPostSnap] = await Promise.all([
+      sourcePostRef.get(),
+      sourceIndexRef.get(),
+      targetPostRef.get(),
+    ]);
+
+    if (!sourcePostSnap.exists) {
+      res.status(404).json({ message: 'Post not found in source category' });
+      return;
+    }
+    if (targetPostSnap.exists) {
+      res.status(409).json({ message: 'Target category already has a post with the same id' });
+      return;
+    }
+
+    const sourcePostData = sourcePostSnap.data() || {};
+    const sourceIndexData = sourceIndexSnap.exists ? sourceIndexSnap.data() || {} : {};
+    const updates = sanitizePostUpdates(data);
+
+    const targetPostData = {
+      ...sourcePostData,
+      ...updates,
+      category: targetCategory,
+    };
+
+    await Promise.all([
+      targetPostRef.set(targetPostData),
+      targetIndexRef.set(buildIndexPayload(targetPostData, sourceIndexData)),
+    ]);
+
+    const migrationStats = await moveCommentsAndLikes({
+      fromCategory: sourceCategory,
+      toCategory: targetCategory,
+      postId: normalizedPostId,
+    });
+
+    await Promise.all([
+      sourcePostRef.delete(),
+      sourceIndexRef.delete().catch(() => null),
+    ]);
+
+    res.json({
+      message: 'Post category moved successfully',
+      postId: normalizedPostId,
+      fromCategory: sourceCategory,
+      toCategory: targetCategory,
+      ...migrationStats,
+    });
+  } catch (error) {
+    console.error('[posts] 카테고리 이동 실패:', error);
+    res.status(500).json({ message: 'Failed to move post category' });
   }
 });
 

@@ -13,12 +13,13 @@ import {
   startAfter,
   updateDoc,
 } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+import { auth, db } from '../firebase/firebase';
 
 const collectionRef = (category) => collection(db, category);
 const docRef = (category, id) => doc(collectionRef(category), id);
 const indexCollectionRef = (category) => collection(db, 'post_index', category, 'posts');
 const indexDocRef = (category, id) => doc(indexCollectionRef(category), id);
+const backendBaseUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
 
 const buildIndexPayload = (data = {}) => {
   const payload = {};
@@ -79,6 +80,51 @@ export async function updatePostFields({ category, id, data }) {
   await updateDoc(docRef(category, id), data);
   const indexPayload = buildIndexPayload(data);
   await safeUpdateIndex(category, id, indexPayload);
+}
+
+export async function movePostCategory({
+  fromCategory,
+  toCategory,
+  id,
+  data = {},
+}) {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('로그인이 필요합니다.');
+  }
+
+  const idToken = await user.getIdToken();
+  let response;
+  try {
+    response = await fetch(`${backendBaseUrl}/posts/move-category`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({
+        postId: id,
+        fromCategory,
+        toCategory,
+        data,
+      }),
+    });
+  } catch (error) {
+    throw new Error('카테고리 이동 API에 연결하지 못했습니다.');
+  }
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(payload?.message || '카테고리 이동에 실패했습니다.');
+  }
+
+  return payload;
 }
 
 export async function incrementPostView({ category, id }) {

@@ -20,7 +20,7 @@ import {
 import { replacePendingImages } from '../components/text-editor/utils/pendingImages';
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { deleteStorageImages } from '../utils/storage';
-import { getPost, updatePostFields } from '../services/posts';
+import { getPost, movePostCategory, updatePostFields } from '../services/posts';
 import { extractHashtagsFromContent } from '../utils/tags';
 import '../style/components/write/WritePostPage.css';
 import '../style/components/editor/QuillToolbar.css';
@@ -124,15 +124,17 @@ function EditPostPage() {
   }, [content]);
 
   const uploadPendingImages = useCallback(
-    async () =>
-      replacePendingImages({
+    async () => {
+      const resolvedCategory = category.trim() || categoryParam;
+      return replacePendingImages({
         content,
         pendingImages,
-        category: categoryParam,
+        category: resolvedCategory,
         postId: id,
         uploadImage: handleImageUpload,
-      }),
-    [categoryParam, content, handleImageUpload, id, pendingImages],
+      });
+    },
+    [category, categoryParam, content, handleImageUpload, id, pendingImages],
   );
 
   const handleSubmit = async (event) => {
@@ -164,22 +166,44 @@ function EditPostPage() {
 
       const sanitizedContent = sanitizeHtml(finalContent);
       const tags = extractHashtagsFromContent(sanitizedContent);
-      await updatePostFields({
-        category: categoryParam,
-        id,
-        data: {
-          title: title.trim(),
-          content: sanitizedContent,
-          category: category.trim(),
-          tags,
-        },
-      });
+      const nextCategory = category.trim();
+
+      if (!nextCategory) {
+        alert('카테고리를 선택해주세요.');
+        return;
+      }
+
+      if (nextCategory === categoryParam) {
+        await updatePostFields({
+          category: categoryParam,
+          id,
+          data: {
+            title: title.trim(),
+            content: sanitizedContent,
+            category: nextCategory,
+            tags,
+          },
+        });
+      } else {
+        await movePostCategory({
+          fromCategory: categoryParam,
+          toCategory: nextCategory,
+          id,
+          data: {
+            title: title.trim(),
+            content: sanitizedContent,
+            tags,
+          },
+        });
+      }
+
       alert('게시글이 성공적으로 수정되었습니다.');
+      const targetPath = `/posts/${nextCategory}/${id}`;
       if (window.opener) {
-        window.opener.location.reload();
+        window.opener.location.href = targetPath;
         window.close();
       } else {
-        navigate(`/posts/${category}/${id}`, { replace: true });
+        navigate(targetPath, { replace: true });
       }
     } catch (err) {
       alert(`수정 실패: ${err.message}`);
