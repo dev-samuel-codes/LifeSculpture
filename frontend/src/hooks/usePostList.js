@@ -10,6 +10,17 @@ const postListCache = new Map();
 const getCacheKey = (collectionName) => collectionName || 'default';
 const readCache = (collectionName) => postListCache.get(getCacheKey(collectionName));
 
+export const invalidatePostListCache = (collectionNames = []) => {
+  if (!Array.isArray(collectionNames) || collectionNames.length === 0) {
+    postListCache.clear();
+    return;
+  }
+
+  collectionNames.forEach((collectionName) => {
+    postListCache.delete(getCacheKey(collectionName));
+  });
+};
+
 const norm = (value) =>
   (value || '')
     .toString()

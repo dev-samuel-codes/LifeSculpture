@@ -19,6 +19,7 @@ import {
 } from '../components/text-editor/utils/media';
 import { replacePendingImages } from '../components/text-editor/utils/pendingImages';
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
+import { invalidatePostListCache } from '../hooks/usePostList';
 import { deleteStorageImages } from '../utils/storage';
 import { getPost, movePostCategory, updatePostFields } from '../services/posts';
 import { extractHashtagsFromContent } from '../utils/tags';
@@ -196,6 +197,8 @@ function EditPostPage() {
           },
         });
       }
+
+      invalidatePostListCache([categoryParam, nextCategory]);
 
       alert('게시글이 성공적으로 수정되었습니다.');
       const targetPath = `/posts/${nextCategory}/${id}`;
