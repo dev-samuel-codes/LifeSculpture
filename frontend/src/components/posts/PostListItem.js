@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
 
 function PostListItem({ post, role, formatDate, onSelectPost }) {
+  const isPrivate = post.isPublic === false;
+
   const handleClick = useCallback(() => {
     onSelectPost(post.id);
   }, [onSelectPost, post.id]);
@@ -33,12 +35,10 @@ function PostListItem({ post, role, formatDate, onSelectPost }) {
                 {post.title}
                 {role === 'admin' && (
                   <span
-                    className="emoji-lock"
-                    style={{ fontSize: '0.8rem', marginLeft: '8px' }}
-                    role="img"
-                    aria-label={post.isPublic === false ? '비공개' : '공개'}
+                    className={`post-visibility-label ${isPrivate ? 'is-private' : 'is-public'}`}
+                    aria-label={`게시물 ${isPrivate ? '비공개' : '공개'} 상태`}
                   >
-                    {post.isPublic === false ? '🔒️' : '🔓️'}
+                    {isPrivate ? '(비공개)' : '(공개)'}
                   </span>
                 )}
               </h5>

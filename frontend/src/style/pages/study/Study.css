@@ -304,12 +304,22 @@
   white-space: nowrap;
 }
 
-/* Ensure emojis render across mobile platforms */
-.emoji-lock {
-  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
-  line-height: 1;
+.post-visibility-label {
   display: inline-block;
-  vertical-align: text-bottom;
+  margin-left: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+.post-visibility-label.is-public {
+  color: var(--color-status-positive);
+}
+
+.post-visibility-label.is-private {
+  color: var(--color-status-negative);
 }
 
 /* 모바일 대응 */

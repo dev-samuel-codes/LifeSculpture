@@ -4,25 +4,7 @@
 @import './base/theme.css';
 @import './base/effects.css';
 
-/* Mobile: show 공개/비공개 as text with colors */
 @media (max-width: 576px) {
-  /* Replace emoji lock with text from aria-label */
-  .emoji-lock {
-    font-size: 0 !important;
-  }
-  .emoji-lock::after {
-    content: attr(aria-label);
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-left: 0;
-  }
-  .emoji-lock[aria-label="공개"]::after {
-    color: var(--color-status-positive); /* green */
-  }
-  .emoji-lock[aria-label="비공개"]::after {
-    color: var(--color-status-negative); /* red */
-  }
-
   /* Color the existing status text next to the toggle */
   .public-switch-container > label.switch + .public-status,
   .public-switch-container > label.switch + span {
