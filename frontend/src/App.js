@@ -66,10 +66,10 @@ function App() {
               {role === 'admin' && (
                 <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
               )}
-              {(role === 'admin' || process.env.NODE_ENV === 'development') && (
+              {role === 'admin' && (
                 <Route path="/write" element={<Page className="editor-route-page"><WritePostPage /></Page>} />
               )}
-              {(role === 'admin' || process.env.NODE_ENV === 'development') && (
+              {role === 'admin' && (
                 <Route path="/edit-post/:category/:id" element={<Page className="editor-route-page"><EditPostPage /></Page>} />
               )}
 

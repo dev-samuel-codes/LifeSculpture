@@ -1447,13 +1447,15 @@ body.writing-page-lock-scroll .App {
 .writing-tag-input {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   gap: 8px;
   min-height: 42px;
-  max-height: 86px;
   padding: 7px 9px;
   border: 1px solid var(--color-border-muted);
   border-radius: 6px;
   background: var(--color-surface-default);
+  overflow-x: hidden;
+  overflow-y: visible;
   transition: box-shadow 0.15s ease, border-color 0.15s ease;
   cursor: text;
 }
@@ -1473,6 +1475,7 @@ body.writing-page-lock-scroll .App {
   align-items: center;
   gap: 6px;
   max-width: 100%;
+  overflow: hidden;
   min-height: 28px;
   padding: 4px 8px;
   border-radius: 999px;
@@ -1484,6 +1487,7 @@ body.writing-page-lock-scroll .App {
 
 .writing-tag-remove {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   width: 18px;
@@ -2340,7 +2344,6 @@ body[data-theme='dark'] .style-editor-close {
 
   .writing-tag-input {
     min-height: 36px;
-    max-height: 72px;
     gap: 5px;
     padding: 5px 7px;
   }
