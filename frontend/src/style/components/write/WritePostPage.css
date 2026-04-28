@@ -775,7 +775,7 @@ body.writing-page-lock-scroll .App {
 
 .writing-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 410px);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 410px);
   gap: clamp(0.75rem, 1.5vw, 1.25rem);
   align-items: stretch;
   width: 100%;
@@ -811,9 +811,11 @@ body.writing-page-lock-scroll .App {
 .writing-workspace .writing-editor .ql-toolbar.ql-snow {
   display: flex;
   flex: 0 0 auto;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 8px 0;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
   min-height: 58px;
   padding: 10px 14px;
   border: none;
@@ -829,6 +831,7 @@ body.writing-page-lock-scroll .App {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
+  max-width: 100%;
   margin-right: 10px;
   padding-right: 10px;
   border-right: 1px solid var(--color-border-subtle);
@@ -1314,6 +1317,7 @@ body.writing-page-lock-scroll .App {
   flex-direction: column;
   gap: clamp(0.55rem, 1.2vh, 1rem);
   height: 100%;
+  min-width: 0;
   min-height: 0;
   position: static;
 }
@@ -2060,15 +2064,22 @@ body[data-theme='dark'] .style-editor-close {
   }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1180px) {
   .editor-route-page.container {
     height: calc(100dvh - 96px);
     padding: 8px 12px;
   }
 
   .writing-workspace {
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 34vw);
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
     gap: 0.75rem;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow {
+    gap: 6px 0;
+    min-height: 50px;
+    padding: 8px 10px;
   }
 
   .style-editor-controls-grid {
@@ -2083,11 +2094,38 @@ body[data-theme='dark'] .style-editor-close {
   }
 
   .writing-sidebar {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.05fr) minmax(300px, 1fr);
     gap: 0.6rem;
+    height: auto;
   }
 
   .writing-side-panel {
     padding: 0.75rem;
+  }
+
+  .writing-settings-panel {
+    grid-row: span 2;
+  }
+
+  .writing-submit-button,
+  .writing-submit-status {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 992px) {
+  .writing-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .writing-settings-panel {
+    grid-row: auto;
+  }
+
+  .writing-submit-button,
+  .writing-submit-status {
+    grid-column: 1 / -1;
   }
 }
 
