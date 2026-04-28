@@ -2,6 +2,7 @@
 import ReactQuill from 'react-quill-new';
 
 const BlockEmbed = ReactQuill.Quill.import('blots/block/embed');
+const Embed = ReactQuill.Quill.import('blots/embed');
 
 class TextEditorImageBlot extends BlockEmbed {
   static create(value) {
@@ -43,12 +44,26 @@ class TextEditorImageBlot extends BlockEmbed {
 TextEditorImageBlot.blotName = 'custom-image-blot';
 TextEditorImageBlot.tagName = 'img';
 
+class TextEditorLineBreakBlot extends Embed {
+  static create() {
+    return document.createElement('br');
+  }
+
+  static value() {
+    return true;
+  }
+}
+
+TextEditorLineBreakBlot.blotName = 'line-break';
+TextEditorLineBreakBlot.tagName = 'br';
+
 let isRegistered = false;
 
 export const registerTextEditorImageBlot = () => {
   if (!isRegistered) {
     try {
       ReactQuill.Quill.register(TextEditorImageBlot);
+      ReactQuill.Quill.register(TextEditorLineBreakBlot);
       isRegistered = true;
     } catch (error) {
       console.warn('TextEditorImageBlot 등록 중 오류:', error);

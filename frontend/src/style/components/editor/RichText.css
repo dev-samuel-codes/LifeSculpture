@@ -79,7 +79,7 @@ body[data-theme='dark'] .rich-text-editor .ql-container {
 
 body[data-theme='dark'] .rich-text,
 body[data-theme='dark'] .rich-text-editor .ql-editor {
-  color: #dbeafe;
+  color: var(--rich-text-normal-color, #dbeafe);
 }
 
 body[data-theme='dark'] .rich-text h1,
@@ -94,7 +94,37 @@ body[data-theme='dark'] .rich-text-editor .ql-editor h3,
 body[data-theme='dark'] .rich-text-editor .ql-editor h4,
 body[data-theme='dark'] .rich-text-editor .ql-editor h5,
 body[data-theme='dark'] .rich-text-editor .ql-editor h6 {
-  color: #f8fafc;
+  color: var(--rich-text-heading-color, #f8fafc);
+}
+
+body[data-theme='dark'] .rich-text h1,
+body[data-theme='dark'] .rich-text-editor .ql-editor h1 {
+  color: var(--rich-text-h1-color, #f8fafc);
+}
+
+body[data-theme='dark'] .rich-text h2,
+body[data-theme='dark'] .rich-text-editor .ql-editor h2 {
+  color: var(--rich-text-h2-color, #f8fafc);
+}
+
+body[data-theme='dark'] .rich-text h3,
+body[data-theme='dark'] .rich-text-editor .ql-editor h3 {
+  color: var(--rich-text-h3-color, #f8fafc);
+}
+
+body[data-theme='dark'] .rich-text h4,
+body[data-theme='dark'] .rich-text-editor .ql-editor h4 {
+  color: var(--rich-text-h4-color, #f8fafc);
+}
+
+body[data-theme='dark'] .rich-text h5,
+body[data-theme='dark'] .rich-text-editor .ql-editor h5 {
+  color: var(--rich-text-h5-color, #f8fafc);
+}
+
+body[data-theme='dark'] .rich-text h6,
+body[data-theme='dark'] .rich-text-editor .ql-editor h6 {
+  color: var(--rich-text-h6-color, #f8fafc);
 }
 
 body[data-theme='dark'] .rich-text strong,
@@ -141,29 +171,29 @@ body[data-theme='dark'] .rich-text-editor .ql-editor blockquote + blockquote {
 
 body[data-theme='dark'] .rich-text table,
 body[data-theme='dark'] .rich-text-editor .ql-editor table {
-  background: linear-gradient(145deg, rgba(25, 37, 63, 0.94), rgba(17, 29, 53, 0.94));
-  border-color: rgba(76, 90, 124, 0.55);
-  box-shadow: 0 24px 44px rgba(6, 11, 21, 0.455);
+  background: transparent;
+  border-color: rgba(226, 232, 240, 0.82);
+  box-shadow: none;
 }
 
 body[data-theme='dark'] .rich-text table th,
 body[data-theme='dark'] .rich-text table td,
 body[data-theme='dark'] .rich-text-editor .ql-editor table th,
 body[data-theme='dark'] .rich-text-editor .ql-editor table td {
-  border-color: rgba(76, 90, 124, 0.55);
+  border-color: rgba(226, 232, 240, 0.82);
 }
 
 body[data-theme='dark'] .rich-text table th,
 body[data-theme='dark'] .rich-text-editor .ql-editor table th {
-  background: rgba(45, 59, 95, 0.85);
+  background: transparent;
   color: #ecf2ff;
-  border-bottom-color: rgba(96, 113, 157, 0.65);
+  border-bottom-color: rgba(226, 232, 240, 0.82);
 }
 
 @media (hover: hover) {
   body[data-theme='dark'] .rich-text table tr:hover,
   body[data-theme='dark'] .rich-text-editor .ql-editor table tr:hover {
-    background: rgba(45, 59, 95, 0.45);
+    background: transparent;
   }
 }
 
@@ -190,9 +220,12 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 
 .rich-text,
 .rich-text-editor .ql-editor {
-  font-size: 1.05rem;
-  line-height: 1.75;
-  color: var(--rich-text-color);
+  font-family: var(--rich-text-normal-font-family, inherit);
+  font-size: var(--rich-text-normal-font-size, 1.05rem);
+  font-weight: var(--rich-text-normal-font-weight, 400);
+  line-height: var(--rich-text-normal-line-height, 1.5);
+  color: var(--rich-text-normal-color, var(--rich-text-color));
+  text-align: var(--rich-text-normal-align, justify);
   word-break: keep-all;
   overflow-wrap: break-word;
   word-spacing: normal;
@@ -201,7 +234,6 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 }
 
 .rich-text {
-  text-align: left;
   white-space: pre-wrap;
 }
 
@@ -234,26 +266,75 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 }
 
 .rich-text h1,
-.rich-text-editor .ql-editor h1 { font-size: 2rem; }
+.rich-text-editor .ql-editor h1 {
+  font-family: var(--rich-text-h1-font-family, inherit);
+  font-size: var(--rich-text-h1-font-size, 2rem);
+  font-weight: var(--rich-text-h1-font-weight, 700);
+  line-height: var(--rich-text-h1-line-height, 1.4);
+  color: var(--rich-text-h1-color, var(--rich-text-heading));
+  margin: var(--rich-text-h1-margin-top, 2rem) 0 var(--rich-text-h1-margin-bottom, 1rem);
+  text-align: var(--rich-text-h1-align, inherit);
+}
 
 .rich-text h2,
-.rich-text-editor .ql-editor h2 { font-size: 1.75rem; }
+.rich-text-editor .ql-editor h2 {
+  font-family: var(--rich-text-h2-font-family, inherit);
+  font-size: var(--rich-text-h2-font-size, 1.75rem);
+  font-weight: var(--rich-text-h2-font-weight, 700);
+  line-height: var(--rich-text-h2-line-height, 1.4);
+  color: var(--rich-text-h2-color, var(--rich-text-heading));
+  margin: var(--rich-text-h2-margin-top, 2rem) 0 var(--rich-text-h2-margin-bottom, 1rem);
+  text-align: var(--rich-text-h2-align, inherit);
+}
 
 .rich-text h3,
-.rich-text-editor .ql-editor h3 { font-size: 1.5rem; }
+.rich-text-editor .ql-editor h3 {
+  font-family: var(--rich-text-h3-font-family, inherit);
+  font-size: var(--rich-text-h3-font-size, 1.5rem);
+  font-weight: var(--rich-text-h3-font-weight, 700);
+  line-height: var(--rich-text-h3-line-height, 1.4);
+  color: var(--rich-text-h3-color, var(--rich-text-heading));
+  margin: var(--rich-text-h3-margin-top, 2rem) 0 var(--rich-text-h3-margin-bottom, 1rem);
+  text-align: var(--rich-text-h3-align, inherit);
+}
 
 .rich-text h4,
-.rich-text-editor .ql-editor h4 { font-size: 1.25rem; }
+.rich-text-editor .ql-editor h4 {
+  font-family: var(--rich-text-h4-font-family, inherit);
+  font-size: var(--rich-text-h4-font-size, 1.25rem);
+  font-weight: var(--rich-text-h4-font-weight, 700);
+  line-height: var(--rich-text-h4-line-height, 1.4);
+  color: var(--rich-text-h4-color, var(--rich-text-heading));
+  margin: var(--rich-text-h4-margin-top, 2rem) 0 var(--rich-text-h4-margin-bottom, 1rem);
+  text-align: var(--rich-text-h4-align, inherit);
+}
 
 .rich-text h5,
-.rich-text-editor .ql-editor h5 { font-size: 1.1rem; }
+.rich-text-editor .ql-editor h5 {
+  font-family: var(--rich-text-h5-font-family, inherit);
+  font-size: var(--rich-text-h5-font-size, 1.1rem);
+  font-weight: var(--rich-text-h5-font-weight, 700);
+  line-height: var(--rich-text-h5-line-height, 1.4);
+  color: var(--rich-text-h5-color, var(--rich-text-heading));
+  margin: var(--rich-text-h5-margin-top, 2rem) 0 var(--rich-text-h5-margin-bottom, 1rem);
+  text-align: var(--rich-text-h5-align, inherit);
+}
 
 .rich-text h6,
-.rich-text-editor .ql-editor h6 { font-size: 1rem; }
+.rich-text-editor .ql-editor h6 {
+  font-family: var(--rich-text-h6-font-family, inherit);
+  font-size: var(--rich-text-h6-font-size, 1rem);
+  font-weight: var(--rich-text-h6-font-weight, 700);
+  line-height: var(--rich-text-h6-line-height, 1.4);
+  color: var(--rich-text-h6-color, var(--rich-text-heading));
+  margin: var(--rich-text-h6-margin-top, 2rem) 0 var(--rich-text-h6-margin-bottom, 1rem);
+  text-align: var(--rich-text-h6-align, inherit);
+}
 
 .rich-text p,
 .rich-text-editor .ql-editor p {
-  margin: 1rem 0;
+  margin: var(--rich-text-normal-margin-top, 0.5rem) 0 var(--rich-text-normal-margin-bottom, 0.5rem);
+  text-align: var(--rich-text-normal-align, inherit);
 }
 
 .rich-text strong,
@@ -329,41 +410,52 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 .rich-text-editor .ql-editor table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1.5rem 0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-  border: 1px solid var(--rich-text-border);
+  table-layout: fixed;
+  margin: 1.1rem 0;
+  border: 1px solid #111827;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
 }
 
 .rich-text table th,
 .rich-text table td,
 .rich-text-editor .ql-editor table th,
 .rich-text-editor .ql-editor table td {
-  padding: 12px 16px;
+  min-width: 72px;
+  height: 28px;
+  padding: 2px 8px;
   text-align: left;
-  border-bottom: 1px solid var(--rich-text-border);
-  border-right: 1px solid var(--rich-text-border);
+  vertical-align: top;
+  white-space: pre-wrap;
+  border: 1px solid #111827;
 }
 
 .rich-text table th,
 .rich-text-editor .ql-editor table th {
-  background: #f7fafc;
+  background: transparent;
   font-weight: 600;
   color: var(--rich-text-heading);
-  border-bottom: 2px solid #cbd5e0;
+}
+
+.rich-text table::selection,
+.rich-text table *::selection,
+.rich-text-editor .ql-editor table::selection,
+.rich-text-editor .ql-editor table *::selection {
+  background: transparent;
+  color: inherit;
 }
 
 .rich-text table tr:last-child td,
 .rich-text-editor .ql-editor table tr:last-child td {
-  border-bottom: none;
+  border-bottom: 1px solid #111827;
 }
 
 .rich-text table td:last-child,
 .rich-text table th:last-child,
 .rich-text-editor .ql-editor table td:last-child,
 .rich-text-editor .ql-editor table th:last-child {
-  border-right: none;
+  border-right: 1px solid #111827;
 }
 
 .rich-text a,
@@ -378,7 +470,7 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 @media (hover: hover) {
   .rich-text table tr:hover,
   .rich-text-editor .ql-editor table tr:hover {
-    background: #f8f9fa;
+    background: transparent;
   }
 
   .rich-text a:hover,
@@ -474,28 +566,28 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 .rich-text-editor .ql-editor .ql-align-justify { text-align: justify !important; }
 
 .rich-text .ql-indent-1,
-.rich-text-editor .ql-editor .ql-indent-1 { padding-left: 2rem; }
+.rich-text-editor .ql-editor .ql-indent-1 { padding-left: 1.25rem; }
 
 .rich-text .ql-indent-2,
-.rich-text-editor .ql-editor .ql-indent-2 { padding-left: 4rem; }
+.rich-text-editor .ql-editor .ql-indent-2 { padding-left: 2.5rem; }
 
 .rich-text .ql-indent-3,
-.rich-text-editor .ql-editor .ql-indent-3 { padding-left: 6rem; }
+.rich-text-editor .ql-editor .ql-indent-3 { padding-left: 3.75rem; }
 
 .rich-text .ql-indent-4,
-.rich-text-editor .ql-editor .ql-indent-4 { padding-left: 8rem; }
+.rich-text-editor .ql-editor .ql-indent-4 { padding-left: 5rem; }
 
 .rich-text .ql-indent-5,
-.rich-text-editor .ql-editor .ql-indent-5 { padding-left: 10rem; }
+.rich-text-editor .ql-editor .ql-indent-5 { padding-left: 6.25rem; }
 
 .rich-text .ql-indent-6,
-.rich-text-editor .ql-editor .ql-indent-6 { padding-left: 12rem; }
+.rich-text-editor .ql-editor .ql-indent-6 { padding-left: 7.5rem; }
 
 .rich-text .ql-indent-7,
-.rich-text-editor .ql-editor .ql-indent-7 { padding-left: 14rem; }
+.rich-text-editor .ql-editor .ql-indent-7 { padding-left: 8.75rem; }
 
 .rich-text .ql-indent-8,
-.rich-text-editor .ql-editor .ql-indent-8 { padding-left: 16rem; }
+.rich-text-editor .ql-editor .ql-indent-8 { padding-left: 10rem; }
 
 .rich-text .ql-code-block-container,
 .rich-text-editor .ql-editor .ql-code-block-container {
@@ -580,15 +672,15 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 .rich-text ol,
 .rich-text-editor .ql-editor ul,
 .rich-text-editor .ql-editor ol {
-  margin: 1rem 0;
+  margin: 0.6rem 0;
   padding-left: 2rem;
   counter-reset: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
 }
 
 .rich-text li,
 .rich-text-editor .ql-editor li {
-  margin: 0.5rem 0;
-  line-height: 1.6;
+  margin: 0.25rem 0;
+  line-height: 1.5;
 }
 
 .rich-text ul ul,
@@ -740,92 +832,92 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 
 .rich-text .ql-indent-1:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-1:not(.ql-direction-rtl) {
-  padding-left: 3em;
+  padding-left: 1.5em;
 }
 
 .rich-text li.ql-indent-1:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-1:not(.ql-direction-rtl) {
-  padding-left: 4.5em;
+  padding-left: 2.25em;
 }
 
 .rich-text .ql-indent-2:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-2:not(.ql-direction-rtl) {
-  padding-left: 6em;
+  padding-left: 3em;
 }
 
 .rich-text li.ql-indent-2:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-2:not(.ql-direction-rtl) {
-  padding-left: 7.5em;
+  padding-left: 3.75em;
 }
 
 .rich-text .ql-indent-3:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-3:not(.ql-direction-rtl) {
-  padding-left: 9em;
+  padding-left: 4.5em;
 }
 
 .rich-text li.ql-indent-3:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-3:not(.ql-direction-rtl) {
-  padding-left: 10.5em;
+  padding-left: 5.25em;
 }
 
 .rich-text .ql-indent-4:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-4:not(.ql-direction-rtl) {
-  padding-left: 12em;
+  padding-left: 6em;
 }
 
 .rich-text li.ql-indent-4:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-4:not(.ql-direction-rtl) {
-  padding-left: 13.5em;
+  padding-left: 6.75em;
 }
 
 .rich-text .ql-indent-5:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-5:not(.ql-direction-rtl) {
-  padding-left: 15em;
+  padding-left: 7.5em;
 }
 
 .rich-text li.ql-indent-5:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-5:not(.ql-direction-rtl) {
-  padding-left: 16.5em;
+  padding-left: 8.25em;
 }
 
 .rich-text .ql-indent-6:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-6:not(.ql-direction-rtl) {
-  padding-left: 18em;
+  padding-left: 9em;
 }
 
 .rich-text li.ql-indent-6:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-6:not(.ql-direction-rtl) {
-  padding-left: 19.5em;
+  padding-left: 9.75em;
 }
 
 .rich-text .ql-indent-7:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-7:not(.ql-direction-rtl) {
-  padding-left: 21em;
+  padding-left: 10.5em;
 }
 
 .rich-text li.ql-indent-7:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-7:not(.ql-direction-rtl) {
-  padding-left: 22.5em;
+  padding-left: 11.25em;
 }
 
 .rich-text .ql-indent-8:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-8:not(.ql-direction-rtl) {
-  padding-left: 24em;
+  padding-left: 12em;
 }
 
 .rich-text li.ql-indent-8:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-8:not(.ql-direction-rtl) {
-  padding-left: 25.5em;
+  padding-left: 12.75em;
 }
 
 .rich-text .ql-indent-9:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor .ql-indent-9:not(.ql-direction-rtl) {
-  padding-left: 27em;
+  padding-left: 13.5em;
 }
 
 .rich-text li.ql-indent-9:not(.ql-direction-rtl),
 .rich-text-editor .ql-editor li.ql-indent-9:not(.ql-direction-rtl) {
-  padding-left: 28.5em;
+  padding-left: 14.25em;
 }
 
 .rich-text li.ql-direction-rtl,
@@ -879,6 +971,25 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 .rich-text-editor .ql-editor li[data-list].ql-indent-8 {
   counter-reset: list-9;
 }
+.rich-text .ql-font-arial,
+.rich-text-editor .ql-editor .ql-font-arial { font-family: Arial, sans-serif; }
+.rich-text .ql-font-times,
+.rich-text-editor .ql-editor .ql-font-times { font-family: 'Times New Roman', serif; }
+.rich-text .ql-font-courier,
+.rich-text-editor .ql-editor .ql-font-courier { font-family: 'Courier New', monospace; }
+.rich-text .ql-font-georgia,
+.rich-text-editor .ql-editor .ql-font-georgia { font-family: Georgia, serif; }
+.rich-text .ql-font-verdana,
+.rich-text-editor .ql-editor .ql-font-verdana { font-family: Verdana, sans-serif; }
+.rich-text .ql-font-malgun,
+.rich-text-editor .ql-editor .ql-font-malgun { font-family: 'Malgun Gothic','맑은 고딕', sans-serif; }
+.rich-text .ql-font-nanum,
+.rich-text-editor .ql-editor .ql-font-nanum { font-family: 'Nanum Gothic','나눔고딕', sans-serif; }
+.rich-text .ql-font-nanumbarun,
+.rich-text-editor .ql-editor .ql-font-nanumbarun { font-family: 'NanumBarunGothic','나눔바른고딕', sans-serif; }
+.rich-text .ql-font-dongle,
+.rich-text-editor .ql-editor .ql-font-dongle { font-family: 'Dongle', sans-serif; }
+
 .rich-text .ql-font-Arial,
 .rich-text-editor .ql-editor .ql-font-Arial { font-family: Arial, sans-serif; }
 .rich-text .ql-font-Times\ New\ Roman,

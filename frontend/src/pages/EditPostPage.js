@@ -3,12 +3,7 @@ import React, { useState, useEffect, useRef, useContext, useCallback } from 'rea
 import { useParams, useNavigate } from 'react-router-dom';
 import { storage } from '../firebase/firebase';
 import { AuthContext } from '../context/AuthContext';
-
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
-import 'katex/dist/katex.min.css';
-import TextEditorFormulaDialog from '../components/text-editor/TextEditorFormulaDialog';
-import { registerTextEditorImageBlot } from '../components/text-editor/TextEditorCustomBlots';
+import PostEditorForm from '../components/write/PostEditorForm';
 import { useQuillToolbar } from '../components/text-editor/hooks/useQuillToolbar';
 import useQuillEditorBridge from '../components/text-editor/hooks/useQuillEditorBridge';
 import { MAX_EDITOR_CONTENT_SIZE } from '../components/text-editor/constants';
@@ -18,17 +13,19 @@ import {
   isSameStorageImage,
 } from '../components/text-editor/utils/media';
 import { replacePendingImages } from '../components/text-editor/utils/pendingImages';
+import {
+  hasContentStyleSettings,
+  normalizeContentStyleSettings,
+} from '../components/text-editor/utils/contentStyleSettings';
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { invalidatePostListCache } from '../hooks/usePostList';
 import { deleteStorageImages } from '../utils/storage';
 import { getPost, movePostCategory, updatePostFields } from '../services/posts';
-import { extractHashtagsFromContent } from '../utils/tags';
+import { extractHashtagsFromContent, mergePostTags } from '../utils/tags';
 import '../style/components/write/WritePostPage.css';
 import '../style/components/editor/QuillToolbar.css';
 import '../style/components/editor/CustomFormulaEditor.css';
 import '../style/components/editor/RichText.css';
-
-registerTextEditorImageBlot();
 
 function EditPostPage() {
   const { category: categoryParam, id } = useParams();
@@ -38,6 +35,9 @@ function EditPostPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
+  const [tags, setTags] = useState([]);
+  const [contentStyleSettings, setContentStyleSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [contentSize, setContentSize] = useState(0);
@@ -65,10 +65,10 @@ function EditPostPage() {
     [shouldTrackImage],
   );
 
-  const handleContentChange = (newContent) => {
+  const handleContentChange = useCallback((newContent) => {
     setContent(newContent);
     setContentSize(calculateContentSize(newContent));
-  };
+  }, []);
 
   const handlePendingImage = useCallback(({ file, tempUrl }) => {
     setPendingImages((prev) => [...prev, { id: Date.now(), file, tempUrl }]);
@@ -89,6 +89,13 @@ function EditPostPage() {
           setTitle(postData.title || '');
           setContent(initialContent);
           setCategory(postData.category || categoryParam);
+          setIsPublic(typeof postData.isPublic === 'boolean' ? postData.isPublic : true);
+          setTags(Array.isArray(postData.tags) ? postData.tags : []);
+          setContentStyleSettings(
+            hasContentStyleSettings(postData.contentStyleSettings)
+              ? normalizeContentStyleSettings(postData.contentStyleSettings)
+              : null,
+          );
           setOriginalImageUrls(getTrackedImageUrls(initialContent));
           setContentSize(calculateContentSize(initialContent));
         } else {
@@ -110,6 +117,7 @@ function EditPostPage() {
     content,
     onPendingImage: handlePendingImage,
     onOpenFormulaEditor: handleOpenFormulaEditor,
+    onContentChange: handleContentChange,
   });
 
   useEffect(() => {
@@ -166,8 +174,11 @@ function EditPostPage() {
       }
 
       const sanitizedContent = sanitizeHtml(finalContent);
-      const tags = extractHashtagsFromContent(sanitizedContent);
+      const nextTags = mergePostTags(tags, extractHashtagsFromContent(sanitizedContent));
       const nextCategory = category.trim();
+      const normalizedStyleSettings = hasContentStyleSettings(contentStyleSettings)
+        ? normalizeContentStyleSettings(contentStyleSettings)
+        : null;
 
       if (!nextCategory) {
         alert('카테고리를 선택해주세요.');
@@ -182,7 +193,9 @@ function EditPostPage() {
             title: title.trim(),
             content: sanitizedContent,
             category: nextCategory,
-            tags,
+            isPublic,
+            tags: nextTags,
+            ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
           },
         });
       } else {
@@ -193,7 +206,9 @@ function EditPostPage() {
           data: {
             title: title.trim(),
             content: sanitizedContent,
-            tags,
+            isPublic,
+            tags: nextTags,
+            ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
           },
         });
       }
@@ -219,72 +234,37 @@ function EditPostPage() {
   if (error) return <div className="container mt-4 text-danger">Error: {error}</div>;
 
   return (
-    <>
-      <div className="container mt-4 h-100">
-        <div className="settings-writing-container">
-          <form onSubmit={handleSubmit} className="writing-form">
-            <div className="writing-fields-group">
-              <div className="row mb-3 writing-row">
-                <div className="col-md-9">
-                  <label htmlFor="titleInput" className="form-label writing-label">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="titleInput"
-                    value={title}
-                    onChange={(event) => setTitle(event.target.value)}
-                    required
-                  />
-                </div>
-                <div className="col-md-3">
-                  <label htmlFor="categorySelect" className="form-label writing-label">
-                    Category
-                  </label>
-                  <select
-                    className="form-select"
-                    id="categorySelect"
-                    value={category}
-                    onChange={(event) => setCategory(event.target.value)}
-                  >
-                    <option value="study">Study</option>
-                    <option value="blog">Blog</option>
-                  </select>
-                </div>
-              </div>
-              <div className="mb-3">
-                <div className="writing-editor-container" style={{ '--rich-text-editor-height': editorHeight }}>
-                  <ReactQuill
-                    ref={quillRef}
-                    className="writing-editor rich-text-editor"
-                    theme="snow"
-                    value={content}
-                    onChange={handleContentChange}
-                    modules={modules}
-                    formats={formats}
-                    style={{ height: 'auto', '--rich-text-editor-height': editorHeight }}
-                  />
-                </div>
-              </div>
-              <div className="writing-actions d-flex justify-content-end">
-                <button type="submit" className="btn btn-primary btn-primary-solid" disabled={isUploading}>
-                  {isUploading ? '업로드 중...' : '수정하기'}
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-      <TextEditorFormulaDialog
-        isOpen={isFormulaEditorOpen}
-        onClose={() => setIsFormulaEditorOpen(false)}
-        onSave={(latex) => {
+    <PostEditorForm
+      mode="edit"
+      title={title}
+      content={content}
+      category={category}
+      isPublic={isPublic}
+      tags={tags}
+      contentStyleSettings={contentStyleSettings}
+      editorHeight={editorHeight}
+      isSubmitting={isUploading}
+      statusMessage=""
+      quillRef={quillRef}
+      modules={modules}
+      formats={formats}
+      onTitleChange={setTitle}
+      onContentChange={handleContentChange}
+      onCategoryChange={setCategory}
+      onPublicChange={setIsPublic}
+      onTagsChange={setTags}
+      onContentStyleSettingsChange={setContentStyleSettings}
+      onSubmit={handleSubmit}
+      formulaDialog={{
+        isOpen: isFormulaEditorOpen,
+        onClose: () => setIsFormulaEditorOpen(false),
+        onSave: (latex) => {
           if (typeof onFormulaSave === 'function') onFormulaSave(latex);
-        }}
-        initialValue={formulaInitialValue}
-      />
-    </>
+          setIsFormulaEditorOpen(false);
+        },
+        initialValue: formulaInitialValue,
+      }}
+    />
   );
 }
 

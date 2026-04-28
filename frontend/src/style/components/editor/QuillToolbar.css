@@ -10,11 +10,152 @@
   border: 1px solid #e5e7eb;
   border-top: 0;
   border-radius: 0 0 12px 12px;
+  position: relative;
 }
 .ql-toolbar.ql-snow .ql-formats { margin-right: 12px; }
 .ql-snow .ql-picker { height: 34px; }
 .ql-snow .ql-picker-label { display: flex; align-items: center; padding: 0 10px; }
 .ql-snow .ql-picker-options { border-radius: 10px; }
+
+.ql-toolbar.ql-snow button.ql-table {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ql-toolbar.ql-snow button.ql-table svg {
+  display: none;
+}
+
+.ql-toolbar.ql-snow button.ql-table::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  background:
+    linear-gradient(currentColor, currentColor) 0 5px / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 0 11px / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 5px 0 / 2px 100% no-repeat,
+    linear-gradient(currentColor, currentColor) 11px 0 / 2px 100% no-repeat;
+  color: #444444;
+}
+
+.ql-toolbar.ql-snow button.ql-table:hover::before,
+.ql-toolbar.ql-snow button.ql-table:focus-visible::before {
+  color: #2f5bd3;
+}
+
+body[data-theme='dark'] .ql-toolbar.ql-snow button.ql-table::before {
+  color: #e5e7eb;
+}
+
+body[data-theme='dark'] .ql-toolbar.ql-snow button.ql-table:hover::before,
+body[data-theme='dark'] .ql-toolbar.ql-snow button.ql-table:focus-visible::before {
+  color: #8bb6ff;
+}
+
+.ql-preserved-selection-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ql-preserved-selection-rect {
+  position: absolute;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+}
+
+body[data-theme='dark'] .ql-preserved-selection-rect {
+  background: transparent;
+  box-shadow: none;
+}
+
+.ql-table-resize-handle {
+  position: absolute;
+  z-index: 20;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #3b82f6;
+  border-radius: 3px;
+  background:
+    linear-gradient(135deg, transparent 0 47%, #3b82f6 48% 54%, transparent 55%),
+    #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.16);
+  cursor: ew-resize;
+}
+
+.ql-table-resize-handle:hover,
+.ql-table-resize-handle:focus-visible {
+  background:
+    linear-gradient(135deg, transparent 0 47%, #ffffff 48% 54%, transparent 55%),
+    #2f5bd3;
+  outline: none;
+}
+
+body[data-theme='dark'] .ql-table-resize-handle {
+  border-color: #8bb6ff;
+  background:
+    linear-gradient(135deg, transparent 0 47%, #8bb6ff 48% 54%, transparent 55%),
+    #111827;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.38);
+}
+
+.ql-table-action-menu {
+  position: absolute;
+  z-index: 22;
+  min-width: 128px;
+  padding: 6px;
+  border: 1px solid var(--color-border-neutral, #d7dbe7);
+  border-radius: 8px;
+  background: var(--color-surface-default, #ffffff);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+}
+
+.ql-table-action-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--color-text-strong, #2f3640);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 750;
+  letter-spacing: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ql-table-action-menu button:hover,
+.ql-table-action-menu button:focus-visible {
+  background: rgba(47, 91, 211, 0.1);
+  color: #2f5bd3;
+  outline: none;
+}
+
+.ql-table-action-menu button[data-danger="true"] {
+  color: #dc2626;
+}
+
+.ql-table-action-menu button[data-danger="true"]:hover,
+.ql-table-action-menu button[data-danger="true"]:focus-visible {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+body[data-theme='dark'] .ql-table-action-menu {
+  border-color: rgba(203, 213, 225, 0.26);
+  background: #111827;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.42);
+}
 
 /* =========================
    Align picker hover dropdown
@@ -27,7 +168,8 @@
 
   .ql-toolbar.ql-snow .ql-picker.ql-align .ql-picker-options,
   .rich-text-editor .ql-toolbar .ql-picker.ql-align .ql-picker-options {
-    display: block;
+    display: flex;
+    flex-direction: column;
     opacity: 0;
     pointer-events: none;
     transform: translateY(6px);
@@ -40,11 +182,32 @@
   }
 
   .ql-toolbar.ql-snow .ql-picker.ql-align:hover .ql-picker-options,
+  .ql-toolbar.ql-snow .ql-picker.ql-align.ql-expanded .ql-picker-options,
   .rich-text-editor .ql-toolbar .ql-picker.ql-align:hover .ql-picker-options {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
   }
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-align .ql-picker-item:not([data-value]),
+.rich-text-editor .ql-toolbar .ql-picker.ql-align .ql-picker-item:not([data-value]) {
+  order: 1;
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-align .ql-picker-item[data-value='center'],
+.rich-text-editor .ql-toolbar .ql-picker.ql-align .ql-picker-item[data-value='center'] {
+  order: 2;
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-align .ql-picker-item[data-value='right'],
+.rich-text-editor .ql-toolbar .ql-picker.ql-align .ql-picker-item[data-value='right'] {
+  order: 3;
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-align .ql-picker-item[data-value='justify'],
+.rich-text-editor .ql-toolbar .ql-picker.ql-align .ql-picker-item[data-value='justify'] {
+  order: 4;
 }
 
 /* =========================
@@ -83,6 +246,61 @@
 .ql-editor .ql-font-맑은\ 고딕 { font-family: "Malgun Gothic","맑은 고딕", sans-serif; }
 .ql-editor .ql-font-나눔고딕 { font-family: "Nanum Gothic","나눔고딕", sans-serif; }
 .ql-editor .ql-font-나눔바른고딕 { font-family: "NanumBarunGothic","나눔바른고딕", sans-serif; }
+
+/* Safe font keys used by Quill class attributor. */
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="arial"]::before { content: "Arial"; font-family: Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="times"]::before { content: "Times New Roman"; font-family: "Times New Roman", serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="courier"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="courier"]::before { content: "Courier New"; font-family: "Courier New", monospace; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="georgia"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="georgia"]::before { content: "Georgia"; font-family: Georgia, serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="verdana"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="verdana"]::before { content: "Verdana"; font-family: Verdana, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="malgun"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="malgun"]::before { content: "맑은 고딕"; font-family: "Malgun Gothic","맑은 고딕", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nanum"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nanum"]::before { content: "나눔고딕"; font-family: "Nanum Gothic","나눔고딕", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nanumbarun"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nanumbarun"]::before { content: "나눔바른고딕"; font-family: "NanumBarunGothic","나눔바른고딕", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="dongle"]::before {
+  content: "\B3D9\AE00";
+  font-family: "Dongle", sans-serif;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="dongle"] {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="dongle"]::before {
+  content: "\B3D9\AE00";
+  font-family: "Dongle", sans-serif;
+  font-size: 38px;
+  line-height: 1;
+}
+
+.ql-editor .ql-font-arial { font-family: Arial, sans-serif; }
+.ql-editor .ql-font-times { font-family: "Times New Roman", serif; }
+.ql-editor .ql-font-courier { font-family: "Courier New", monospace; }
+.ql-editor .ql-font-georgia { font-family: Georgia, serif; }
+.ql-editor .ql-font-verdana { font-family: Verdana, sans-serif; }
+.ql-editor .ql-font-malgun { font-family: "Malgun Gothic","맑은 고딕", sans-serif; }
+.ql-editor .ql-font-nanum { font-family: "Nanum Gothic","나눔고딕", sans-serif; }
+.ql-editor .ql-font-nanumbarun { font-family: "NanumBarunGothic","나눔바른고딕", sans-serif; }
+.ql-editor .ql-font-dongle { font-family: "Dongle", sans-serif; }
 
 /* =========================
    Size labels & apply

@@ -64,6 +64,14 @@ node_modules/
 
 # dotenv environment variables file
 .env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# OS generated files
+.DS_Store
+desktop.ini
 
 # dataconnect generated files
 .dataconnect

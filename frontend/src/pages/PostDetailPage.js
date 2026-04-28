@@ -1,5 +1,5 @@
 // PostDetailPage.js
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { storage } from '../firebase/firebase';
 import { AuthContext } from '../context/AuthContext';
@@ -9,6 +9,7 @@ import LikeButton from '../components/posts/LikeButton';
 import { formatDateOnly } from '../utils/date';
 import { extractImageUrls } from '../components/text-editor/utils/media';
 import { setupResponsiveImageSizing } from '../components/text-editor/utils/imageSizing';
+import { getContentStyleCssVariables } from '../components/text-editor/utils/contentStyleSettings';
 import { deleteStorageImages } from '../utils/storage';
 import {
   deletePost as removePost,
@@ -170,6 +171,10 @@ function PostDetailPage() {
   const viewCountIncremented = useRef(false);
 
   const isAdmin = role === 'admin';
+  const contentStyleVariables = useMemo(
+    () => getContentStyleCssVariables(post?.contentStyleSettings),
+    [post?.contentStyleSettings],
+  );
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -459,6 +464,7 @@ function PostDetailPage() {
 
         <section
           className="post-content rich-text"
+          style={contentStyleVariables}
           dangerouslySetInnerHTML={{ __html: renderedContent || post.content }}
         />
 

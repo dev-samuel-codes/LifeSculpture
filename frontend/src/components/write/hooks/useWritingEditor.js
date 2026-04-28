@@ -13,7 +13,11 @@ import {
   sanitizeContent,
 } from '../../text-editor/utils/content';
 import { getResponsiveEditorHeight } from '../../text-editor/utils/layout';
-import { extractHashtagsFromContent } from '../../../utils/tags';
+import {
+  hasContentStyleSettings,
+  normalizeContentStyleSettings,
+} from '../../text-editor/utils/contentStyleSettings';
+import { extractHashtagsFromContent, mergePostTags } from '../../../utils/tags';
 
 const AUTO_SAVE_DELAY = 2000;
 const DRAFT_STORAGE_KEY = 'settings-writing-draft';
@@ -26,6 +30,8 @@ const useWritingEditor = () => {
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('study');
   const [isPublic, setIsPublic] = useState(true);
+  const [tags, setTags] = useState([]);
+  const [contentStyleSettings, setContentStyleSettings] = useState(null);
   const [editorHeight, setEditorHeight] = useState('400px');
   const [contentSize, setContentSize] = useState(0);
   const [pendingImages, setPendingImages] = useState([]);
@@ -108,6 +114,12 @@ const useWritingEditor = () => {
       setIsPublic(
         typeof parsedDraft.isPublic === 'boolean' ? parsedDraft.isPublic : true,
       );
+      setTags(Array.isArray(parsedDraft.tags) ? parsedDraft.tags : []);
+      setContentStyleSettings(
+        hasContentStyleSettings(parsedDraft.contentStyleSettings)
+          ? normalizeContentStyleSettings(parsedDraft.contentStyleSettings)
+          : null,
+      );
       setDraftUpdatedAt(parsedDraft.updatedAt ?? Date.now());
       setDraftStatus('loaded');
       skipNextAutoSaveRef.current = true;
@@ -130,7 +142,9 @@ const useWritingEditor = () => {
       title.trim().length > 0 ||
       Boolean(sanitized) ||
       category !== 'study' ||
-      isPublic !== true;
+      isPublic !== true ||
+      tags.length > 0 ||
+      hasContentStyleSettings(contentStyleSettings);
 
     if (!shouldPersistDraft) {
       clearDraftStorage();
@@ -146,6 +160,10 @@ const useWritingEditor = () => {
           content,
           category,
           isPublic,
+          tags,
+          ...(hasContentStyleSettings(contentStyleSettings)
+            ? { contentStyleSettings: normalizeContentStyleSettings(contentStyleSettings) }
+            : {}),
           updatedAt: Date.now(),
         };
         window.localStorage.setItem(
@@ -165,7 +183,7 @@ const useWritingEditor = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [category, clearDraftStorage, content, isPublic, title]);
+  }, [category, clearDraftStorage, content, contentStyleSettings, isPublic, tags, title]);
 
   useQuillEditorBridge({
     quillRef,
@@ -173,6 +191,7 @@ const useWritingEditor = () => {
     content,
     onPendingImage: handlePendingImage,
     onOpenFormulaEditor: handleOpenFormulaEditor,
+    onContentChange: handleContentChange,
   });
 
   const uploadPendingImages = useCallback(async ({ category: uploadCategory, postId } = {}) => {
@@ -191,6 +210,8 @@ const useWritingEditor = () => {
     setContent('');
     setCategory('study');
     setIsPublic(true);
+    setTags([]);
+    setContentStyleSettings(null);
     setPendingImages([]);
     setContentSize(0);
     clearDraftStorage();
@@ -227,7 +248,10 @@ const useWritingEditor = () => {
           category,
           postId: docRef.id,
         });
-        const tags = extractHashtagsFromContent(finalContent);
+        const nextTags = mergePostTags(tags, extractHashtagsFromContent(finalContent));
+        const normalizedStyleSettings = hasContentStyleSettings(contentStyleSettings)
+          ? normalizeContentStyleSettings(contentStyleSettings)
+          : null;
         const indexRef = doc(db, 'post_index', category, 'posts', docRef.id);
         const batch = writeBatch(db);
         batch.set(docRef, {
@@ -237,7 +261,8 @@ const useWritingEditor = () => {
           viewCount: 0,
           likeCount: 0,
           isPublic,
-          tags,
+          tags: nextTags,
+          ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
         });
         batch.set(indexRef, {
           title: title.trim(),
@@ -245,7 +270,7 @@ const useWritingEditor = () => {
           viewCount: 0,
           likeCount: 0,
           isPublic,
-          tags,
+          tags: nextTags,
         });
         await batch.commit();
 
@@ -259,7 +284,18 @@ const useWritingEditor = () => {
         setIsUploading(false);
       }
     },
-    [category, content, contentSize, isPublic, navigate, resetForm, title, uploadPendingImages],
+    [
+      category,
+      content,
+      contentSize,
+      contentStyleSettings,
+      isPublic,
+      navigate,
+      resetForm,
+      tags,
+      title,
+      uploadPendingImages,
+    ],
   );
 
   const closeFormulaEditor = useCallback(() => {
@@ -286,6 +322,8 @@ const useWritingEditor = () => {
         content,
         category,
         isPublic,
+        tags,
+        contentStyleSettings,
         editorHeight,
         isUploading,
         isFormulaEditorOpen,
@@ -297,6 +335,8 @@ const useWritingEditor = () => {
         setTitle,
         setCategory,
         setIsPublic,
+        setTags,
+        setContentStyleSettings,
         handleContentChange,
         handleSubmit,
         handleFormulaSave,
@@ -311,6 +351,7 @@ const useWritingEditor = () => {
       category,
       closeFormulaEditor,
       content,
+      contentStyleSettings,
       draftStatus,
       draftUpdatedAt,
       editorHeight,
@@ -323,6 +364,7 @@ const useWritingEditor = () => {
       isUploading,
       modules,
       formats,
+      tags,
       title,
     ],
   );

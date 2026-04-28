@@ -69,7 +69,7 @@
   background: linear-gradient(135deg, var(--color-surface-soft) 0%, var(--color-surface-muted) 100%);
   border: 1px solid var(--color-border-neutral);
   border-bottom: 2px solid rgba(0,0,0,0.1);
-  border-radius: 12px 12px 0 0;
+  border-radius: 0;
   padding: 16px 20px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.056);
   backdrop-filter: blur(10px);
@@ -78,7 +78,7 @@
 
 .writing-editor-container {
   border: 1px solid var(--color-border-neutral) !important;
-  border-radius: 12px;       /* 모서리 둥글게 유지 */
+  border-radius: 0;
   background: var(--color-surface-default);
   min-height: calc(var(--rich-text-editor-height, 400px) + 72px);
   height: auto;
@@ -130,7 +130,7 @@ body[data-theme='dark'] .writing-editor {
 .writing-editor .ql-container {
   border: 1px solid var(--color-border-neutral) !important;
   border-top: none !important;
-  border-radius: 0 0 12px 12px !important;
+  border-radius: 0 !important;
   height: var(--rich-text-editor-height, 400px) !important;
   max-height: var(--rich-text-editor-height, 400px) !important;
   font-size: 1rem;
@@ -274,19 +274,34 @@ body[data-theme='dark'] .writing-editor {
 .writing-editor .ql-editor table {
   border-collapse: collapse;
   width: 100%;
-  margin: 16px 0;
+  table-layout: fixed;
+  margin: 18px 0;
+  border: 1px solid #111827;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 
 .writing-editor .ql-editor table td,
 .writing-editor .ql-editor table th {
-  border: 1px solid var(--color-border-neutral);
-  padding: 8px 12px;
+  min-width: 72px;
+  height: 28px;
+  border: 1px solid #111827;
+  padding: 2px 8px;
   text-align: left;
+  vertical-align: top;
+  white-space: pre-wrap;
 }
 
 .writing-editor .ql-editor table th {
-  background-color: var(--color-surface-soft);
+  background-color: transparent;
   font-weight: 600;
+}
+
+.writing-editor .ql-editor table::selection,
+.writing-editor .ql-editor table *::selection {
+  background: transparent;
+  color: inherit;
 }
 
 /* ===== Actions ===== */
@@ -476,8 +491,8 @@ input:checked + .slider:before {
 }
 
 .writing-editor .ql-editor.ql-blank::before {
-  height: var(--rich-text-editor-height, 400px) !important;
-  max-height: var(--rich-text-editor-height, 400px) !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -537,8 +552,7 @@ input:checked + .slider:before {
   }
 
   .writing-editor .ql-container,
-  .writing-editor .ql-editor,
-  .writing-editor .ql-editor.ql-blank::before {
+  .writing-editor .ql-editor {
     height: var(--rich-text-editor-height, 350px) !important;
     max-height: var(--rich-text-editor-height, 350px) !important;
   }
@@ -591,8 +605,7 @@ input:checked + .slider:before {
   }
 
   .writing-editor .ql-container,
-  .writing-editor .ql-editor,
-  .writing-editor .ql-editor.ql-blank::before {
+  .writing-editor .ql-editor {
     height: var(--rich-text-editor-height, 300px) !important;
     max-height: var(--rich-text-editor-height, 300px) !important;
   }
@@ -719,5 +732,1576 @@ input:checked + .slider:before {
   .image-processing-status {
     font-size: 13px;
     padding: 6px;
+  }
+}
+
+/* ===== Workspace layout refresh ===== */
+html.writing-page-lock-scroll,
+body.writing-page-lock-scroll {
+  height: 100%;
+  overflow: hidden;
+}
+
+body.writing-page-lock-scroll .App {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.editor-route-page.container {
+  width: 100%;
+  max-width: none;
+  height: calc(100dvh - 112px);
+  min-height: 0 !important;
+  margin-top: 0 !important;
+  padding: clamp(10px, 1.5vh, 18px) clamp(12px, 2.2vw, 36px);
+  overflow: hidden;
+}
+
+.writing-page-shell {
+  height: 100%;
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: 0 !important;
+  overflow: hidden;
+}
+
+.writing-form--workspace {
+  height: 100%;
+  min-height: 0;
+  padding-bottom: 0;
+  text-align: left;
+}
+
+.writing-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 410px);
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.writing-editor-panel {
+  min-width: 0;
+  min-height: 0;
+}
+
+.writing-workspace .writing-editor-container {
+  height: 100%;
+  min-height: 0;
+  margin-bottom: 0;
+  border-radius: 0;
+  border-color: var(--color-border-neutral) !important;
+  background: var(--color-surface-default);
+  box-shadow: var(--shadow-card-soft);
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+}
+
+.writing-workspace .writing-editor {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 8px 0;
+  align-items: center;
+  min-height: 58px;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--color-border-neutral);
+  border-radius: 0;
+  background: var(--color-surface-default);
+  overflow: visible;
+  position: relative;
+  z-index: 20;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  margin-right: 10px;
+  padding-right: 10px;
+  border-right: 1px solid var(--color-border-subtle);
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:last-child {
+  border-right: 0;
+  padding-right: 0;
+  margin-right: 0;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--color-text-strong) !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 30px 0 11px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-strong) !important;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label::before {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label svg {
+  right: 9px;
+  top: 50%;
+  margin-top: 0 !important;
+  transform: translateY(-50%);
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label .ql-stroke {
+  stroke: var(--color-text-muted);
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow button.ql-active,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  border-color: rgba(61, 109, 242, 0.34);
+  background: rgba(61, 109, 242, 0.08) !important;
+  color: #2852c7 !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow button.ql-active .ql-stroke,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-stroke {
+  stroke: #2852c7 !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow button.ql-active .ql-stroke-miter,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-stroke-miter {
+  stroke: #2852c7 !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow button.ql-active .ql-fill,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-fill {
+  fill: #2852c7 !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker {
+  position: relative;
+  height: 32px;
+  color: var(--color-text-strong) !important;
+  z-index: 21;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header {
+  width: 118px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font {
+  width: 132px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-size {
+  width: 84px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker {
+  width: 32px;
+  height: 32px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-label {
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label svg,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-label svg {
+  width: 19px;
+  height: 19px;
+  margin: 0;
+  transform: none;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded {
+  z-index: 40;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  border-color: rgba(61, 109, 242, 0.34);
+  background: rgba(61, 109, 242, 0.08);
+  box-shadow: 0 0 0 3px rgba(61, 109, 242, 0.1);
+  color: #2852c7 !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options {
+  top: calc(100% + 8px);
+  min-width: 100%;
+  max-height: min(300px, calc(100dvh - 180px));
+  padding: 6px;
+  border: 1px solid var(--color-border-neutral);
+  border-radius: 10px;
+  background: var(--color-surface-default);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 50;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-options {
+  min-width: 150px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-options {
+  min-width: 190px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-size .ql-picker-options {
+  min-width: 96px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-options {
+  width: 48px;
+  min-width: 48px;
+  max-height: none;
+  padding: 6px;
+  overflow: visible;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-item {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  margin: 0 0 4px;
+  padding: 0 !important;
+  border-radius: 7px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-item:last-child {
+  margin-bottom: 0;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-item svg {
+  width: 19px;
+  height: 19px;
+  margin: 0;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-item::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-item::after {
+  content: none !important;
+  display: none !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-options {
+  width: 176px;
+  min-width: 176px;
+  max-height: none;
+  padding: 10px;
+  overflow: visible;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker.ql-expanded .ql-picker-options {
+  display: grid;
+  grid-template-columns: repeat(7, 18px);
+  gap: 6px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-item {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0 !important;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  border-radius: 5px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-item::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-item::after {
+  content: none !important;
+  display: none !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options::-webkit-scrollbar {
+  width: 8px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.7);
+  background-clip: padding-box;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 7px;
+  color: var(--color-text-strong);
+  font-size: 0.92rem !important;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: 0;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item::before {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font-family: inherit !important;
+  font-size: 0.92rem !important;
+  font-weight: inherit !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item::before {
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item:not([data-value]):not(.ql-style-settings-item)::before {
+  content: "본문";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+  content: "제목 1";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+  content: "제목 2";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+  content: "제목 3";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before {
+  content: "제목 4";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="5"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before {
+  content: "제목 5";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="6"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before {
+  content: "제목 6";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before {
+  font-family: Arial, sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before {
+  font-family: "Times New Roman", serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Courier New"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Courier New"]::before {
+  font-family: "Courier New", monospace !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before {
+  font-family: Georgia, serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before {
+  font-family: Verdana, sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="맑은 고딕"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="맑은 고딕"]::before {
+  font-family: "Malgun Gothic", "맑은 고딕", sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="나눔고딕"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="나눔고딕"]::before {
+  font-family: "Nanum Gothic", "나눔고딕", sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="나눔바른고딕"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="나눔바른고딕"]::before {
+  font-family: "NanumBarunGothic", "나눔바른고딕", sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="arial"]::before {
+  content: "Arial";
+  font-family: Arial, sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="times"]::before {
+  content: "Times New Roman";
+  font-family: "Times New Roman", serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="courier"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="courier"]::before {
+  content: "Courier New";
+  font-family: "Courier New", monospace !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="georgia"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="georgia"]::before {
+  content: "Georgia";
+  font-family: Georgia, serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="verdana"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="verdana"]::before {
+  content: "Verdana";
+  font-family: Verdana, sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="malgun"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="malgun"]::before {
+  content: "맑은 고딕";
+  font-family: "Malgun Gothic", "맑은 고딕", sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nanum"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nanum"]::before {
+  content: "나눔고딕";
+  font-family: "Nanum Gothic", "나눔고딕", sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nanumbarun"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nanumbarun"]::before {
+  content: "나눔바른고딕";
+  font-family: "NanumBarunGothic", "나눔바른고딕", sans-serif !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="dongle"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="dongle"]::before {
+  content: "Dongle";
+  font-family: "Dongle", sans-serif !important;
+  font-size: 1.55rem !important;
+  line-height: 1 !important;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item.ql-selected {
+  background: rgba(61, 109, 242, 0.1);
+  color: #2852c7;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item.ql-selected::after {
+  content: '✓';
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: #2852c7;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-style-settings-item {
+  margin-top: 5px;
+  border-top: 1px solid var(--color-border-subtle);
+  color: #2852c7;
+  cursor: pointer;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-style-settings-item::before {
+  content: "스타일 수정...";
+  font-family: inherit !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+}
+
+.writing-workspace .writing-editor .ql-container {
+  flex: 1 1 auto;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+  border: none !important;
+  border-radius: 0 !important;
+  font-size: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.writing-workspace .writing-editor .ql-editor {
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0;
+}
+
+.writing-workspace .writing-editor .ql-editor {
+  padding: clamp(14px, 2vh, 24px) clamp(16px, 1.8vw, 24px);
+  color: var(--color-text-primary);
+  overflow-y: auto !important;
+}
+
+.writing-workspace .writing-editor .ql-editor.ql-blank::before {
+  position: absolute !important;
+  top: clamp(14px, 2vh, 24px);
+  left: clamp(16px, 1.8vw, 24px);
+  right: clamp(16px, 1.8vw, 24px);
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  margin: 0;
+  color: #8a94a6;
+  font-style: normal;
+  line-height: inherit;
+}
+
+.writing-workspace .writing-editor .ql-container:focus-within .ql-editor.ql-blank::before,
+.writing-workspace .writing-editor .ql-editor.ql-blank:focus::before {
+  display: none;
+}
+
+.writing-workspace .writing-editor .ql-editor > p:first-child {
+  margin-top: 0;
+}
+
+.writing-editor-footer {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 46px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--color-border-neutral);
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.writing-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.55rem, 1.2vh, 1rem);
+  height: 100%;
+  min-height: 0;
+  position: static;
+}
+
+.writing-side-panel {
+  margin: 0;
+  padding: clamp(0.75rem, 1.6vh, 1.1rem);
+  border: 1px solid var(--color-border-neutral);
+  border-radius: 8px;
+  background: var(--color-surface-default);
+  box-shadow: var(--shadow-card-soft);
+}
+
+.writing-side-panel .writing-label,
+.writing-side-panel legend.writing-label {
+  display: block;
+  width: auto;
+  margin: 0 0 0.55rem;
+  padding: 0;
+  color: var(--color-text-heading);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.writing-sidebar-input {
+  min-height: 42px;
+  border: 1px solid var(--color-border-muted) !important;
+  border-radius: 6px !important;
+  background: var(--color-surface-default);
+  color: var(--color-text-heading);
+  font-weight: 600;
+}
+
+.writing-sidebar-input::placeholder,
+.writing-tag-input input::placeholder {
+  color: #8a94a6;
+}
+
+.writing-sidebar-input:focus,
+.writing-tag-input:focus-within {
+  border-color: #3d6df2 !important;
+  box-shadow: 0 0 0 3px rgba(61, 109, 242, 0.12) !important;
+}
+
+.writing-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.writing-setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.writing-setting-group .writing-label {
+  margin-bottom: 0;
+}
+
+.writing-segmented-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 4px;
+  border: 1px solid var(--color-border-muted);
+  border-radius: 999px;
+  background: var(--color-surface-soft);
+}
+
+.writing-segmented-control::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 14px) / 2);
+  border: 1px solid rgba(61, 109, 242, 0.34);
+  border-radius: 999px;
+  background: var(--color-surface-default);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  transform: translateX(0);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s ease;
+  z-index: 0;
+}
+
+.writing-segmented-control.is-right-selected::before {
+  transform: translateX(calc(100% + 6px));
+}
+
+.writing-segment-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  min-height: 36px;
+  padding: 0 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.94rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.writing-segment-button.is-selected {
+  border-color: transparent;
+  background: transparent;
+  color: #2852c7;
+  box-shadow: none;
+}
+
+.writing-segment-button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(61, 109, 242, 0.16);
+}
+
+.writing-tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 42px;
+  max-height: 86px;
+  padding: 7px 9px;
+  border: 1px solid var(--color-border-muted);
+  border-radius: 6px;
+  background: var(--color-surface-default);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  cursor: text;
+}
+
+.writing-tag-input input {
+  flex: 1 1 140px;
+  min-width: 80px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-heading);
+  font-weight: 600;
+}
+
+.writing-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(61, 109, 242, 0.1);
+  color: #2852c7;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.writing-tag-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(61, 109, 242, 0.16);
+  color: #2852c7;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.writing-submit-button {
+  width: 100%;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.writing-submit-button.btn-primary-solid:active {
+  transform: none !important;
+}
+
+.writing-submit-status {
+  margin-top: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.style-editor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(15, 23, 42, 0.44);
+  backdrop-filter: blur(6px);
+}
+
+.style-editor-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(1120px, 100%);
+  max-height: min(92dvh, 860px);
+  border: 1px solid var(--color-border-neutral);
+  border-radius: 18px;
+  background: var(--color-surface-default);
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.style-editor-header,
+.style-editor-footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-color: var(--color-border-neutral);
+}
+
+.style-editor-header {
+  border-bottom: 1px solid var(--color-border-neutral);
+}
+
+.style-editor-header h3 {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: 1.18rem;
+  font-weight: 800;
+}
+
+.style-editor-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.style-editor-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 24px;
+  overflow: auto;
+}
+
+.style-editor-controls-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.5fr) minmax(0, 1.5fr);
+  gap: 22px;
+  align-items: start;
+  padding: 18px 20px;
+  border: 1px solid var(--color-border-neutral);
+  border-radius: 12px;
+  background: var(--color-surface-default);
+}
+
+.style-editor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.style-editor-section--properties {
+  align-self: stretch;
+  padding-right: 22px;
+  border-right: 1px solid var(--color-border-subtle);
+}
+
+.style-editor-section--format {
+  min-height: 0;
+}
+
+.style-editor-section h4 {
+  margin: 0 0 2px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.style-editor-property-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  max-width: none;
+}
+
+.style-editor-format-grid {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.9fr) minmax(260px, 1.1fr);
+  gap: 12px 16px;
+}
+
+.style-editor-field,
+.style-editor-button-field {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.style-editor-field span,
+.style-editor-button-field > span {
+  color: var(--color-text-strong);
+  font-size: 0.94rem;
+  font-weight: 750;
+  text-align: right;
+}
+
+.style-editor-field input,
+.style-editor-field select {
+  min-width: 0;
+  height: 38px;
+  border: 1px solid var(--color-border-muted);
+  border-radius: 8px;
+  background: var(--color-surface-default);
+  color: var(--color-text-heading);
+  font-size: 0.95rem;
+  font-weight: 650;
+  outline: none;
+}
+
+.style-editor-field input[type="text"],
+.style-editor-field select {
+  width: 100%;
+  padding: 0 12px;
+}
+
+.style-editor-field input:focus,
+.style-editor-field select:focus {
+  border-color: #3d6df2;
+  box-shadow: 0 0 0 3px rgba(61, 109, 242, 0.12);
+}
+
+.style-editor-field.is-disabled span {
+  color: var(--color-text-muted);
+}
+
+.style-editor-field input:disabled,
+.style-editor-field select:disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.style-editor-font-field {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.style-editor-size-field {
+  width: 100%;
+}
+
+.style-editor-color-field {
+  width: 100%;
+}
+
+.style-editor-color-field input[type="color"] {
+  width: 54px;
+  min-width: 54px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.style-editor-toggle-group,
+.style-editor-align-group {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--color-surface-muted);
+}
+
+.style-editor-toggle-group button,
+.style-editor-align-group button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  min-width: 42px;
+  border: 0;
+  border-right: 1px solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-strong);
+  cursor: pointer;
+}
+
+.style-editor-toggle-group button {
+  min-width: 72px;
+  padding: 0 12px;
+}
+
+.style-editor-toggle-group button:last-child,
+.style-editor-align-group button:last-child {
+  border-right: 0;
+}
+
+.style-editor-toggle-group button svg,
+.style-editor-align-group button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.style-editor-toggle-group button span {
+  margin-left: 4px;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.style-editor-toggle-group button span:first-child {
+  margin-left: 0;
+}
+
+.style-editor-toggle-group button.is-active,
+.style-editor-align-group button.is-active {
+  background: #2852c7;
+  color: #fff;
+}
+
+.style-editor-align-field {
+  width: 100%;
+}
+
+.style-editor-preview-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-neutral);
+}
+
+.style-editor-preview {
+  min-height: 190px;
+  padding: 18px 22px;
+  border: 1px solid var(--color-border-neutral);
+  background: var(--color-surface-default);
+  color: var(--color-text-strong);
+  overflow: hidden;
+}
+
+.style-editor-preview p,
+.style-editor-preview h1,
+.style-editor-preview h2,
+.style-editor-preview h3,
+.style-editor-preview h4,
+.style-editor-preview h5,
+.style-editor-preview h6 {
+  word-break: keep-all;
+}
+
+.style-editor-preview .style-editor-preview-muted {
+  color: #a5adbb;
+}
+
+.style-editor-summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  min-height: 150px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-strong);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.style-editor-summary strong {
+  color: var(--color-text-heading);
+  font-size: 1.02rem;
+  font-weight: 850;
+}
+
+.style-editor-footer {
+  border-top: 1px solid var(--color-border-neutral);
+  gap: 12px;
+}
+
+.style-editor-footer-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.style-editor-reset,
+.style-editor-cancel,
+.style-editor-confirm {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.style-editor-reset,
+.style-editor-cancel {
+  background: var(--color-surface-muted);
+  color: var(--color-text-strong);
+}
+
+.style-editor-confirm {
+  background: #2852c7;
+  color: #fff;
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor-container,
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow,
+body[data-theme='dark'] .writing-side-panel,
+body[data-theme='dark'] .writing-tag-input {
+  background: var(--color-surface-default);
+  border-color: var(--color-border-neutral) !important;
+}
+
+body[data-theme='dark'] .writing-segmented-control {
+  background: var(--color-surface-soft);
+  border-color: var(--color-border-neutral);
+}
+
+body[data-theme='dark'] .writing-segmented-control::before {
+  border-color: rgba(96, 165, 250, 0.32);
+  background: var(--color-surface-default);
+  box-shadow: none;
+}
+
+body[data-theme='dark'] .writing-segment-button.is-selected {
+  color: #9cc5ff;
+  box-shadow: none;
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-picker-options {
+  background: var(--color-surface-soft);
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  border-color: rgba(96, 165, 250, 0.4);
+  background: rgba(96, 165, 250, 0.14);
+  color: #9cc5ff !important;
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button.ql-active,
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  border-color: rgba(96, 165, 250, 0.4);
+  background: rgba(96, 165, 250, 0.14) !important;
+  color: #9cc5ff !important;
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button.ql-active .ql-stroke,
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-stroke {
+  stroke: #d9eaff !important;
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button.ql-active .ql-stroke-miter,
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-stroke-miter {
+  stroke: #d9eaff !important;
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button.ql-active .ql-fill,
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-fill {
+  fill: #d9eaff !important;
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item.ql-selected {
+  background: rgba(96, 165, 250, 0.18);
+  color: #9cc5ff;
+}
+
+body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item.ql-selected::after {
+  color: #9cc5ff;
+}
+
+body[data-theme='dark'] .writing-sidebar-input {
+  background: var(--color-surface-soft);
+  color: var(--color-text-heading);
+}
+
+body[data-theme='dark'] .writing-tag-chip {
+  background: rgba(96, 165, 250, 0.16);
+  color: #9cc5ff;
+}
+
+body[data-theme='dark'] .writing-tag-remove {
+  background: rgba(96, 165, 250, 0.24);
+  color: #d9eaff;
+}
+
+body[data-theme='dark'] .style-editor-modal,
+body[data-theme='dark'] .style-editor-field input,
+body[data-theme='dark'] .style-editor-field select,
+body[data-theme='dark'] .style-editor-preview {
+  background: var(--color-surface-default);
+}
+
+body[data-theme='dark'] .style-editor-preview {
+  background: #ffffff;
+}
+
+body[data-theme='dark'] .style-editor-field input:disabled,
+body[data-theme='dark'] .style-editor-field select:disabled,
+body[data-theme='dark'] .style-editor-toggle-group,
+body[data-theme='dark'] .style-editor-align-group,
+body[data-theme='dark'] .style-editor-summary,
+body[data-theme='dark'] .style-editor-reset,
+body[data-theme='dark'] .style-editor-cancel,
+body[data-theme='dark'] .style-editor-close {
+  background: var(--color-surface-soft);
+}
+
+@media (hover: hover) {
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow button:hover,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label:hover,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker:hover .ql-picker-label {
+    border-color: rgba(61, 109, 242, 0.22);
+    background: rgba(61, 109, 242, 0.08) !important;
+    color: #2852c7 !important;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+    border-color: rgba(61, 109, 242, 0.34);
+    background: rgba(61, 109, 242, 0.08) !important;
+    box-shadow: 0 0 0 3px rgba(61, 109, 242, 0.1);
+    color: #2852c7 !important;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow button:hover .ql-stroke,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow button:focus-visible .ql-stroke,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker:hover .ql-picker-label .ql-stroke,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-stroke {
+    stroke: #2852c7 !important;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow button:hover .ql-stroke-miter,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow button:focus-visible .ql-stroke-miter,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke-miter,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker:hover .ql-picker-label .ql-stroke-miter,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-stroke-miter {
+    stroke: #2852c7 !important;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow button:hover .ql-fill,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow button:focus-visible .ql-fill,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label:hover .ql-fill,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker:hover .ql-picker-label .ql-fill,
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-fill {
+    fill: #2852c7 !important;
+  }
+
+  .writing-submit-button.btn-primary-solid:hover {
+    transform: none !important;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item:hover {
+    background: rgba(61, 109, 242, 0.08);
+    color: #2852c7;
+  }
+
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button:hover,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label:hover,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker:hover .ql-picker-label,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+    border-color: rgba(96, 165, 250, 0.4);
+    background: rgba(96, 165, 250, 0.14) !important;
+    color: #9cc5ff !important;
+  }
+
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button:hover .ql-stroke,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button:focus-visible .ql-stroke,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker:hover .ql-picker-label .ql-stroke,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-stroke {
+    stroke: #d9eaff !important;
+  }
+
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button:hover .ql-stroke-miter,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button:focus-visible .ql-stroke-miter,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke-miter,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker:hover .ql-picker-label .ql-stroke-miter,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-stroke-miter {
+    stroke: #d9eaff !important;
+  }
+
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button:hover .ql-fill,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow button:focus-visible .ql-fill,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label:hover .ql-fill,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker:hover .ql-picker-label .ql-fill,
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label .ql-fill {
+    fill: #d9eaff !important;
+  }
+
+  body[data-theme='dark'] .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item:hover {
+    background: rgba(96, 165, 250, 0.14);
+    color: #d9eaff;
+  }
+
+  .writing-tag-remove:hover {
+    background: rgba(61, 109, 242, 0.24);
+  }
+
+  .style-editor-close:hover,
+  .style-editor-reset:hover,
+  .style-editor-cancel:hover {
+    background: rgba(61, 109, 242, 0.1);
+    color: #2852c7;
+  }
+
+  .style-editor-confirm:hover,
+  .style-editor-toggle-group button.is-active:hover,
+  .style-editor-align-group button.is-active:hover {
+    background: #1f45ad;
+  }
+}
+
+@media (max-width: 992px) {
+  .editor-route-page.container {
+    height: calc(100dvh - 96px);
+    padding: 8px 12px;
+  }
+
+  .writing-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 34vw);
+    gap: 0.75rem;
+  }
+
+  .style-editor-controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .style-editor-section--properties {
+    padding-right: 0;
+    padding-bottom: 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .writing-sidebar {
+    gap: 0.6rem;
+  }
+
+  .writing-side-panel {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  html.writing-page-lock-scroll,
+  body.writing-page-lock-scroll {
+    position: fixed;
+    width: 100%;
+  }
+
+  .editor-route-page.container {
+    height: calc(100dvh - 82px);
+    padding: 6px 8px;
+  }
+
+  .writing-page-shell {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .writing-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0.55rem;
+  }
+
+  .style-editor-modal {
+    max-height: 94dvh;
+  }
+
+  .style-editor-body {
+    padding: 14px;
+  }
+
+  .style-editor-controls-grid {
+    padding: 14px;
+  }
+
+  .style-editor-controls-grid,
+  .style-editor-format-grid,
+  .style-editor-preview-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .style-editor-section {
+    padding: 0;
+  }
+
+  .style-editor-field,
+  .style-editor-button-field {
+    grid-template-columns: 74px minmax(0, 1fr);
+  }
+
+  .writing-workspace .writing-editor-container {
+    height: 100%;
+    min-height: 0;
+    margin-bottom: 0;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow {
+    min-height: 48px;
+    padding: 7px 9px;
+  }
+
+  .writing-workspace .writing-editor .ql-container,
+  .writing-workspace .writing-editor .ql-editor {
+    height: 100% !important;
+    max-height: none !important;
+  }
+
+  .writing-workspace .writing-editor .ql-editor {
+    padding: 12px 14px;
+  }
+
+  .writing-workspace .writing-editor .ql-editor.ql-blank::before {
+    top: 12px;
+    left: 14px;
+    right: 14px;
+  }
+
+  .writing-editor-footer {
+    min-height: 38px;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .writing-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    height: auto;
+  }
+
+  .writing-side-panel {
+    padding: 0.65rem;
+  }
+
+  .writing-side-panel .writing-label,
+  .writing-side-panel legend.writing-label {
+    margin-bottom: 0.4rem;
+    font-size: 0.86rem;
+  }
+
+  .writing-sidebar-input {
+    min-height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .writing-settings-panel {
+    grid-column: 1 / -1;
+    gap: 0.55rem;
+  }
+
+  .writing-setting-group {
+    gap: 0.35rem;
+  }
+
+  .writing-segmented-control {
+    gap: 4px;
+    padding: 3px;
+  }
+
+  .writing-segmented-control::before {
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc((100% - 10px) / 2);
+  }
+
+  .writing-segmented-control.is-right-selected::before {
+    transform: translateX(calc(100% + 4px));
+  }
+
+  .writing-segment-button {
+    min-height: 32px;
+    padding: 0 0.5rem;
+    font-size: 0.84rem;
+  }
+
+  .writing-tag-input {
+    min-height: 36px;
+    max-height: 72px;
+    gap: 5px;
+    padding: 5px 7px;
+  }
+
+  .writing-tag-chip {
+    min-height: 24px;
+    padding: 3px 6px;
+    font-size: 0.78rem;
+  }
+
+  .writing-submit-button {
+    grid-column: 1 / -1;
+    height: 38px;
+    font-size: 0.92rem;
+  }
+
+  .writing-submit-status {
+    grid-column: 1 / -1;
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+  }
+
+  .writing-form--workspace {
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-route-page.container {
+    height: calc(100dvh - 76px);
+  }
+
+  .writing-side-panel {
+    padding: 0.55rem;
+  }
+}
+
+@media (max-height: 760px) {
+  .editor-route-page.container {
+    height: calc(100dvh - 104px);
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow {
+    min-height: 46px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .writing-editor-footer {
+    min-height: 36px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    font-size: 0.82rem;
+  }
+
+  .writing-sidebar {
+    gap: 0.5rem;
+  }
+
+  .writing-side-panel {
+    padding: 0.65rem;
+  }
+
+  .writing-sidebar-input {
+    min-height: 36px;
+  }
+
+  .writing-submit-button {
+    height: 38px;
   }
 }

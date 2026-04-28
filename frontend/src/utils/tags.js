@@ -1,8 +1,14 @@
-const normalizeTag = (value) =>
+export const normalizeTag = (value) =>
   (value || '')
     .toString()
     .toLowerCase()
     .replace(/[^\p{L}\p{N}_]+/gu, ' ')
+    .trim();
+
+const cleanTag = (value) =>
+  (value || '')
+    .toString()
+    .replace(/^#+/, '')
     .trim();
 
 export const extractHashtagsFromContent = (content) => {
@@ -24,6 +30,21 @@ export const extractHashtagsFromContent = (content) => {
     seen.add(normalized);
     tags.push(raw);
   }
+
+  return tags;
+};
+
+export const mergePostTags = (...tagGroups) => {
+  const tags = [];
+  const seen = new Set();
+
+  tagGroups.flat().forEach((tag) => {
+    const cleaned = cleanTag(tag);
+    const normalized = normalizeTag(cleaned);
+    if (!cleaned || !normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    tags.push(cleaned);
+  });
 
   return tags;
 };

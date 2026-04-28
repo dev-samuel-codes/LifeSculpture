@@ -9,6 +9,13 @@ import {
   registerQuillFormats,
   showTableSizeModal,
 } from '../utils/quillSetup';
+import {
+  handleAutoSymbolEnter,
+  handleEmptyBlockBackspace,
+  indentCurrentLines,
+  selectAllEditorContent,
+  selectCurrentLine,
+} from '../utils/keyboardShortcuts';
 
 const ensureClipboardPreservesCodeIndent = (() => {
   let patched = false;
@@ -86,7 +93,11 @@ export const useQuillModules = () =>
             return;
           }
 
-          const size = await showTableSizeModal().catch(() => null);
+          const tableButton =
+            typeof document !== 'undefined'
+              ? document.querySelector('.ql-toolbar .ql-table')
+              : null;
+          const size = await showTableSizeModal(tableButton).catch(() => null);
           if (!size) {
             return;
           }
@@ -245,14 +256,15 @@ export const useQuillModules = () =>
             [
               {
                 font: [
-                  'Arial',
-                  'Times New Roman',
-                  'Courier New',
-                  'Georgia',
-                  'Verdana',
-                  '맑은 고딕',
-                  '나눔고딕',
-                  '나눔바른고딕',
+                  'arial',
+                  'times',
+                  'courier',
+                  'georgia',
+                  'verdana',
+                  'malgun',
+                  'nanum',
+                  'nanumbarun',
+                  'dongle',
                 ],
               },
             ],
@@ -281,10 +293,8 @@ export const useQuillModules = () =>
             ['bold', 'italic', 'underline', 'strike'],
             [{ script: 'sub' }, { script: 'super' }],
             ['blockquote', 'code-block'],
-            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-            [{ align: ['', 'center', 'right', 'justify'] }],
+            [{ align: ['justify', '', 'center', 'right'] }],
             ['link', 'image', 'video', 'formula', 'table'],
-            ['clean'],
           ],
           handlers: {
             formula() {
@@ -329,10 +339,32 @@ export const useQuillModules = () =>
         },
         keyboard: {
           bindings: {
+            selectAllContent: {
+              key: 'a',
+              shortKey: true,
+              handler() {
+                return selectAllEditorContent(this.quill);
+              },
+            },
+            selectCurrentLine: {
+              key: 'l',
+              shortKey: true,
+              handler(range) {
+                return selectCurrentLine(this.quill, range);
+              },
+            },
             tab: {
               key: 9,
-              handler() {
-                return true;
+              shiftKey: false,
+              handler(range) {
+                return indentCurrentLines(this.quill, range, 'indent');
+              },
+            },
+            shiftTab: {
+              key: 9,
+              shiftKey: true,
+              handler(range) {
+                return indentCurrentLines(this.quill, range, 'outdent');
               },
             },
             'ctrl+b': {
@@ -359,6 +391,9 @@ export const useQuillModules = () =>
             deleteTableBackward: {
               key: 'backspace',
               handler(range) {
+                if (handleEmptyBlockBackspace(this.quill, range)) {
+                  return false;
+                }
                 return handleTableDeletion(this.quill, range, 'backward');
               },
             },
@@ -368,40 +403,10 @@ export const useQuillModules = () =>
                 return handleTableDeletion(this.quill, range, 'forward');
               },
             },
-            tableEnter: {
+            autoSymbolEnter: {
               key: 13,
               handler(range) {
-                const quillInstance = this.quill;
-                if (!quillInstance || !range) {
-                  return true;
-                }
-
-                const currentFormat = quillInstance.getFormat(range.index, range.length);
-                const previousFormat =
-                  range.index > 0 ? quillInstance.getFormat(range.index - 1, 1) : null;
-                const relevantKeys = ['table', 'table-cell-line', 'table-header-cell', 'table-body-cell'];
-                const hasTableContext = relevantKeys.some(
-                  (key) => currentFormat?.[key] || previousFormat?.[key],
-                );
-
-                if (!hasTableContext) {
-                  return true;
-                }
-
-                const appliedFormat = { ...currentFormat };
-                relevantKeys.forEach((key) => {
-                  if (!appliedFormat[key] && previousFormat && previousFormat[key]) {
-                    appliedFormat[key] = previousFormat[key];
-                  }
-                });
-
-                quillInstance.insertText(range.index, '\n', appliedFormat, 'user');
-                quillInstance.setSelection(
-                  range.index + 1,
-                  0,
-                  ReactQuill?.Quill?.sources?.SILENT ?? 'silent',
-                );
-                return false;
+                return !handleAutoSymbolEnter(this.quill, range);
               },
             },
           },
@@ -417,7 +422,6 @@ export const useQuillModules = () =>
       return {
         toolbar: [
           ['bold', 'italic', 'underline'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
           ['link', 'image'],
           ['clean'],
         ],
@@ -445,6 +449,7 @@ export const quillFormats = [
   'video',
   'formula',
   'table',
+  'line-break',
 ];
 
 export const useQuillToolbar = () => {

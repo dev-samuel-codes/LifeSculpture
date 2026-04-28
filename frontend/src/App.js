@@ -18,8 +18,11 @@ const preloadBlogPage = () => import('./pages/BlogPage');
 const preloadPostDetailPage = () => import('./pages/PostDetailPage');
 
 // 페이지 공통 래퍼 (홈 제외)
-function Page({ children }) {
-  return <div className="container mt-4 min-vh-100">{children}</div>;
+function Page({ children, className = '' }) {
+  const pageClassName = ['container', 'mt-4', 'min-vh-100', className]
+    .filter(Boolean)
+    .join(' ');
+  return <div className={pageClassName}>{children}</div>;
 }
 
 function App() {
@@ -63,11 +66,11 @@ function App() {
               {role === 'admin' && (
                 <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
               )}
-              {role === 'admin' && (
-                <Route path="/write" element={<Page><WritePostPage /></Page>} />
+              {(role === 'admin' || process.env.NODE_ENV === 'development') && (
+                <Route path="/write" element={<Page className="editor-route-page"><WritePostPage /></Page>} />
               )}
-              {role === 'admin' && (
-                <Route path="/edit-post/:category/:id" element={<Page><EditPostPage /></Page>} />
+              {(role === 'admin' || process.env.NODE_ENV === 'development') && (
+                <Route path="/edit-post/:category/:id" element={<Page className="editor-route-page"><EditPostPage /></Page>} />
               )}
 
               <Route path="/posts/:category/:id" element={<Page><PostDetailPage /></Page>} />

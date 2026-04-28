@@ -17,14 +17,15 @@ export const registerQuillFormats = () => {
 
     if (Font) {
       Font.whitelist = [
-        'Arial',
-        'Times New Roman',
-        'Courier New',
-        'Georgia',
-        'Verdana',
-        '맑은 고딕',
-        '나눔고딕',
-        '나눔바른고딕',
+        'arial',
+        'times',
+        'courier',
+        'georgia',
+        'verdana',
+        'malgun',
+        'nanum',
+        'nanumbarun',
+        'dongle',
       ];
       Quill.register(Font, true);
     }
@@ -81,7 +82,10 @@ export const initializeQuillHandlers = () => {
   }
 };
 
-export const showTableSizeModal = () =>
+const TABLE_GRID_ROWS = 8;
+const TABLE_GRID_COLS = 10;
+
+export const showTableSizeModal = (anchorElement = null) =>
   new Promise((resolve, reject) => {
     if (typeof document === 'undefined') {
       reject(new Error('Document is not available.'));
@@ -93,135 +97,108 @@ export const showTableSizeModal = () =>
       existing.remove();
     }
 
-    const overlay = document.createElement('div');
-    overlay.id = 'quill-table-modal';
-    overlay.innerHTML = `
-      <div class="qt-modal">
-        <h3 class="qt-title">테이블 삽입</h3>
-        <form class="qt-form">
-          <div class="qt-field">
-            <label for="qt-rows">행</label>
-            <input id="qt-rows" name="rows" type="number" min="1" max="10" value="3" required />
-          </div>
-          <div class="qt-field">
-            <label for="qt-cols">열</label>
-            <input id="qt-cols" name="cols" type="number" min="1" max="10" value="3" required />
-          </div>
-          <div class="qt-actions">
-            <button type="button" class="qt-btn qt-cancel">취소</button>
-            <button type="submit" class="qt-btn qt-confirm">삽입</button>
-          </div>
-        </form>
-      </div>
+    const popover = document.createElement('div');
+    popover.id = 'quill-table-modal';
+    popover.setAttribute('role', 'dialog');
+    popover.setAttribute('aria-label', '테이블 크기 선택');
+    popover.innerHTML = `
+      <div class="qt-title" aria-live="polite">1x1 표</div>
+      <div class="qt-grid" role="grid" aria-label="표 크기 선택"></div>
       <style>
         #quill-table-modal {
           position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.45);
-          display: flex;
-          align-items: center;
-          justify-content: center;
           z-index: 9999;
-          backdrop-filter: blur(2px);
-        }
-        #quill-table-modal .qt-modal {
-          background: linear-gradient(145deg, #1f2937 0%, #0f172a 100%);
-          border-radius: 12px;
-          padding: 24px 28px;
-          width: min(320px, 90vw);
-          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.196);
-          font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-          color: #e5e7eb;
+          width: 324px;
+          padding: 12px;
+          border: 1px solid var(--color-border-neutral, #e5e7eb);
+          border-radius: 8px;
+          background: var(--color-surface-default, #ffffff);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+          color: var(--color-text-strong, #2f3640);
+          font-family: inherit;
         }
         #quill-table-modal .qt-title {
-          margin: 0 0 16px;
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: #ffffff;
-          text-align: center;
+          margin: 0 0 10px;
+          color: var(--color-text-heading, #1f2937);
+          font-size: 1rem;
+          font-weight: 800;
+          letter-spacing: 0;
         }
-        #quill-table-modal .qt-form {
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
-        #quill-table-modal .qt-field {
-          display: flex;
-          flex-direction: column;
+        #quill-table-modal .qt-grid {
+          display: grid;
+          grid-template-columns: repeat(10, 24px);
           gap: 6px;
         }
-        #quill-table-modal label {
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #e5e7eb;
-        }
-        #quill-table-modal input[type="number"] {
-          border: 1px solid rgba(148, 163, 184, 0.35);
-          border-radius: 8px;
-          padding: 8px 10px;
-          font-size: 0.95rem;
-          outline: none;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-          background: rgba(15, 23, 42, 0.65);
-          color: #f8fafc;
-        }
-        #quill-table-modal input[type="number"]:focus {
-          border-color: #60a5fa;
-          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.175);
-          background: rgba(17, 24, 39, 0.85);
-        }
-        #quill-table-modal .qt-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 6px;
-        }
-        #quill-table-modal .qt-btn {
-          border: none;
-          border-radius: 8px;
-          padding: 8px 16px;
-          font-size: 0.95rem;
-          font-weight: 600;
+        #quill-table-modal .qt-cell {
+          width: 24px;
+          height: 24px;
+          border: 1px solid var(--color-border-strong, #8b919b);
+          border-radius: 2px;
+          background: var(--color-surface-default, #ffffff);
           cursor: pointer;
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
+          transition: background-color 0.08s ease, border-color 0.08s ease, box-shadow 0.08s ease;
         }
-        #quill-table-modal .qt-cancel {
-          background: rgba(55, 65, 81, 0.85);
-          color: #e5e7eb;
+        #quill-table-modal .qt-cell.qt-selected {
+          border-color: #3d7fe5;
+          background: rgba(61, 127, 229, 0.12);
+          box-shadow: inset 0 0 0 1px rgba(61, 127, 229, 0.26);
         }
-        #quill-table-modal .qt-confirm {
-          background: linear-gradient(135deg, #2563eb, #1d4ed8);
-          color: #ffffff;
+        body[data-theme='dark'] #quill-table-modal {
+          box-shadow: 0 22px 44px rgba(0, 0, 0, 0.42);
         }
-        #quill-table-modal .qt-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 8px 16px rgba(15, 23, 42, 0.084);
+        body[data-theme='dark'] #quill-table-modal .qt-cell {
+          background: var(--color-surface-soft, #232e45);
+          border-color: rgba(203, 213, 225, 0.46);
         }
-        #quill-table-modal .qt-btn:active {
-          transform: translateY(0);
-          box-shadow: none;
-        }
-        @media (prefers-color-scheme: dark) {
-          #quill-table-modal .qt-modal {
-            background: linear-gradient(145deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
-          }
+        body[data-theme='dark'] #quill-table-modal .qt-cell.qt-selected {
+          border-color: #6aa6ff;
+          background: rgba(96, 165, 250, 0.24);
         }
       </style>
     `;
 
-    const form = overlay.querySelector('.qt-form');
-    const cancelBtn = overlay.querySelector('.qt-cancel');
-    const rowsInput = overlay.querySelector('#qt-rows');
-    const colsInput = overlay.querySelector('#qt-cols');
+    const title = popover.querySelector('.qt-title');
+    const grid = popover.querySelector('.qt-grid');
 
-    const cleanup = () => {
-      overlay.removeEventListener('click', handleBackdropClick);
-      document.removeEventListener('keydown', handleKeydown);
-      overlay.remove();
+    const updateSelection = (rows, cols) => {
+      if (title) {
+        title.textContent = `${cols}x${rows} 표`;
+      }
+      grid?.querySelectorAll('.qt-cell').forEach((cell) => {
+        const cellRows = Number(cell.dataset.rows);
+        const cellCols = Number(cell.dataset.cols);
+        cell.classList.toggle('qt-selected', cellRows <= rows && cellCols <= cols);
+      });
     };
 
-    const handleBackdropClick = (event) => {
-      if (event.target === overlay) {
+    for (let row = 1; row <= TABLE_GRID_ROWS; row += 1) {
+      for (let col = 1; col <= TABLE_GRID_COLS; col += 1) {
+        const rows = row;
+        const cols = col;
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = 'qt-cell';
+        cell.dataset.rows = String(rows);
+        cell.dataset.cols = String(cols);
+        cell.setAttribute('aria-label', `${cols}x${rows} 표`);
+        cell.addEventListener('mouseenter', () => updateSelection(rows, cols));
+        cell.addEventListener('focus', () => updateSelection(rows, cols));
+        cell.addEventListener('click', () => {
+          cleanup();
+          resolve({ rows, cols });
+        });
+        grid?.appendChild(cell);
+      }
+    }
+
+    const cleanup = () => {
+      document.removeEventListener('mousedown', handleOutsideClick, true);
+      document.removeEventListener('keydown', handleKeydown);
+      popover.remove();
+    };
+
+    const handleOutsideClick = (event) => {
+      if (!popover.contains(event.target) && !anchorElement?.contains?.(event.target)) {
         cleanup();
         reject(new Error('cancel'));
       }
@@ -234,29 +211,28 @@ export const showTableSizeModal = () =>
       }
     };
 
-    overlay.addEventListener('click', handleBackdropClick);
+    const positionPopover = () => {
+      const fallbackRect = {
+        bottom: window.innerHeight / 2,
+        left: window.innerWidth / 2 - 16,
+      };
+      const rect = anchorElement?.getBoundingClientRect?.() || fallbackRect;
+      const popoverRect = popover.getBoundingClientRect();
+      const margin = 8;
+      const top = Math.min(rect.bottom + margin, window.innerHeight - popoverRect.height - margin);
+      const left = Math.min(
+        Math.max(rect.left, margin),
+        window.innerWidth - popoverRect.width - margin,
+      );
+      popover.style.top = `${Math.max(top, margin)}px`;
+      popover.style.left = `${left}px`;
+    };
+
+    document.body.appendChild(popover);
+    updateSelection(1, 1);
+    positionPopover();
+    popover.querySelector('.qt-cell')?.focus();
+
+    document.addEventListener('mousedown', handleOutsideClick, true);
     document.addEventListener('keydown', handleKeydown);
-
-    cancelBtn?.addEventListener('click', () => {
-      cleanup();
-      reject(new Error('cancel'));
-    });
-
-    form?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const rows = parseInt(rowsInput?.value ?? '0', 10);
-      const cols = parseInt(colsInput?.value ?? '0', 10);
-      const inRange = (value) => Number.isInteger(value) && value >= 1 && value <= 10;
-
-      if (!inRange(rows) || !inRange(cols)) {
-        alert('행과 열은 1에서 10 사이의 숫자로 입력해주세요.');
-        return;
-      }
-
-      cleanup();
-      resolve({ rows, cols });
-    });
-
-    document.body.appendChild(overlay);
-    rowsInput?.focus();
   });

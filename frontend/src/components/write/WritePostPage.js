@@ -1,16 +1,10 @@
-// WritePostPage 컴포넌트: 글 작성 페이지의 UI 레이아웃을 구성
 import React from 'react';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
-import { registerTextEditorImageBlot } from '../text-editor/TextEditorCustomBlots';
-import TextEditorFormulaDialog from '../text-editor/TextEditorFormulaDialog';
+import PostEditorForm from './PostEditorForm';
 import useWritingEditor from './hooks/useWritingEditor';
 import '../../style/components/write/WritePostPage.css';
 import '../../style/components/editor/QuillToolbar.css';
 import '../../style/components/editor/CustomFormulaEditor.css';
 import '../../style/components/editor/RichText.css';
-
-registerTextEditorImageBlot();
 
 function WritePostPage() {
   const {
@@ -20,17 +14,20 @@ function WritePostPage() {
       content,
       category,
       isPublic,
+      tags,
+      contentStyleSettings,
       editorHeight,
       isUploading,
       isFormulaEditorOpen,
       formulaInitialValue,
       draftStatus,
-      draftUpdatedAt,
     },
     actions: {
       setTitle,
       setCategory,
       setIsPublic,
+      setTags,
+      setContentStyleSettings,
       handleContentChange,
       handleSubmit,
       handleFormulaSave,
@@ -39,98 +36,47 @@ function WritePostPage() {
     quill: { modules, formats },
   } = useWritingEditor();
 
-  const formatDraftTimestamp = (timestamp) => {
-    if (!timestamp) return '';
-    try {
-      return new Intl.DateTimeFormat('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(new Date(timestamp));
-    } catch {
-      return '';
-    }
-  };
-
   const draftStatusMessage = (() => {
-    const formattedTime = draftUpdatedAt
-      ? ` • ${formatDraftTimestamp(draftUpdatedAt)}`
-      : '';
     switch (draftStatus) {
       case 'saving':
-        return '임시 저장 중...';
+        return '임시저장 중...';
       case 'saved':
-        return `임시 저장 완료${formattedTime}`;
       case 'loaded':
-        return `임시 저장본을 불러왔어요${formattedTime}`;
-      case 'error':
-        return '임시 저장에 실패했어요. 잠시 후 다시 시도해주세요.';
+        return '임시저장 완료';
       default:
-        return '입력 내용이 자동으로 임시 저장돼요.';
+        return '';
     }
   })();
 
   return (
-    <>
-      <div className="container mt-4 h-100">
-        <div className="settings-card settings-writing-container">
-          <form onSubmit={handleSubmit} className="writing-form">
-            <div className="writing-fields-group">
-              <div className="row mb-3 writing-row">
-                <div className="col-md-9">
-                  <label htmlFor="titleInput" className="form-label writing-label">Title</label>
-                  <input type="text" className="form-control" id="titleInput" value={title} onChange={(e) => setTitle(e.target.value)} required />
-                </div>
-                <div className="col-md-3">
-                  <label htmlFor="categorySelect" className="form-label writing-label">Category</label>
-                  <select className="form-select" id="categorySelect" value={category} onChange={(e) => setCategory(e.target.value)}>
-                    <option value="study">Study</option>
-                    <option value="blog">Blog</option>
-                  </select>
-                </div>
-              </div>
-              <div className="mb-3">
-                <div
-                  className="writing-editor-container"
-                  style={{ '--rich-text-editor-height': editorHeight }}
-                >
-                  <ReactQuill
-                    ref={quillRef}
-                    className="writing-editor rich-text-editor"
-                    theme="snow"
-                    value={content}
-                    onChange={handleContentChange}
-                    modules={modules}
-                    formats={formats}
-                    style={{ height: 'auto', '--rich-text-editor-height': editorHeight }}
-                  />
-                </div>
-              </div>
-              <div className="writing-actions">
-                <div className="writing-actions-left">
-                  <div className="public-switch-container d-none d-md-flex">
-                    <label className="switch">
-                      <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-                      <span className="slider round"></span>
-                    </label>
-                    <span className="ms-2">{isPublic ? '공개' : '비공개'}</span>
-                  </div>
-                  <span className="draft-status-text">{draftStatusMessage}</span>
-                </div>
-                <button type="submit" className="btn btn-primary btn-primary-solid" disabled={isUploading}>
-                  {isUploading ? '업로드 중...' : '게시하기'}
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-      <TextEditorFormulaDialog
-        isOpen={isFormulaEditorOpen}
-        onClose={closeFormulaEditor}
-        onSave={handleFormulaSave}
-        initialValue={formulaInitialValue}
-      />
-    </>
+    <PostEditorForm
+      mode="create"
+      title={title}
+      content={content}
+      category={category}
+      isPublic={isPublic}
+      tags={tags}
+      contentStyleSettings={contentStyleSettings}
+      editorHeight={editorHeight}
+      isSubmitting={isUploading}
+      statusMessage={draftStatusMessage}
+      quillRef={quillRef}
+      modules={modules}
+      formats={formats}
+      onTitleChange={setTitle}
+      onContentChange={handleContentChange}
+      onCategoryChange={setCategory}
+      onPublicChange={setIsPublic}
+      onTagsChange={setTags}
+      onContentStyleSettingsChange={setContentStyleSettings}
+      onSubmit={handleSubmit}
+      formulaDialog={{
+        isOpen: isFormulaEditorOpen,
+        onClose: closeFormulaEditor,
+        onSave: handleFormulaSave,
+        initialValue: formulaInitialValue,
+      }}
+    />
   );
 }
 
