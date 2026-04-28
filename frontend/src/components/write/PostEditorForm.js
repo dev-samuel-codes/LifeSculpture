@@ -256,7 +256,7 @@ function PostEditorForm({
             </section>
 
             <aside className="writing-sidebar" aria-label="게시글 설정">
-              <section className="writing-side-panel">
+              <section className="writing-side-panel writing-title-panel">
                 <input
                   type="text"
                   className="form-control writing-sidebar-input"
@@ -317,7 +317,7 @@ function PostEditorForm({
                 </div>
               </section>
 
-              <section className="writing-side-panel">
+              <section className="writing-side-panel writing-tags-panel">
                 <TagInput tags={tags} onChange={onTagsChange} />
               </section>
 

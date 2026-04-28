@@ -873,10 +873,11 @@ body.writing-page-lock-scroll .App {
 }
 
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label svg {
-  right: 9px;
-  top: 50%;
+  position: absolute;
+  right: 9px !important;
+  top: 50% !important;
   margin-top: 0 !important;
-  transform: translateY(-50%);
+  transform: translateY(-50%) !important;
 }
 
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker-label .ql-stroke {
@@ -2064,7 +2065,7 @@ body[data-theme='dark'] .style-editor-close {
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1180px), (orientation: portrait) {
   .editor-route-page.container {
     height: calc(100dvh - 96px);
     padding: 8px 12px;
@@ -2072,14 +2073,68 @@ body[data-theme='dark'] .style-editor-close {
 
   .writing-workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto auto;
     gap: 0.75rem;
   }
 
+  .writing-editor-panel {
+    grid-row: 2;
+  }
+
   .writing-workspace .writing-editor .ql-toolbar.ql-snow {
+    display: grid;
+    grid-template-columns: repeat(12, max-content);
     gap: 6px 0;
+    align-items: center;
+    justify-content: start;
     min-height: 50px;
     padding: 8px 10px;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(1) {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(2) {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(3) {
+    grid-row: 1;
+    grid-column: 3;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(7) {
+    grid-row: 1;
+    grid-column: 4;
+    border-right: 0;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(4) {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(5) {
+    grid-row: 2;
+    grid-column: 2;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(6) {
+    grid-row: 2;
+    grid-column: 3;
+    border-right: 0;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(8) {
+    grid-row: 3;
+    grid-column: 1 / -1;
   }
 
   .style-editor-controls-grid {
@@ -2094,38 +2149,53 @@ body[data-theme='dark'] .style-editor-close {
   }
 
   .writing-sidebar {
-    display: grid;
-    grid-template-columns: minmax(260px, 1.05fr) minmax(300px, 1fr);
-    gap: 0.6rem;
-    height: auto;
+    display: contents;
   }
 
   .writing-side-panel {
     padding: 0.75rem;
   }
 
-  .writing-settings-panel {
-    grid-row: span 2;
+  .writing-title-panel {
+    grid-row: 1;
   }
 
-  .writing-submit-button,
+  .writing-settings-panel {
+    display: grid;
+    grid-row: 4;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .writing-tags-panel {
+    grid-row: 3;
+  }
+
+  .writing-setting-group {
+    min-width: 0;
+  }
+
+  .writing-submit-button {
+    grid-row: 5;
+  }
+
   .writing-submit-status {
-    grid-column: 2;
+    grid-row: 6;
   }
 }
 
 @media (max-width: 992px) {
   .writing-sidebar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: contents;
   }
 
   .writing-settings-panel {
-    grid-row: auto;
+    grid-row: 4;
   }
 
   .writing-submit-button,
   .writing-submit-status {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 }
 
@@ -2148,7 +2218,7 @@ body[data-theme='dark'] .style-editor-close {
 
   .writing-workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto auto;
     gap: 0.55rem;
   }
 
@@ -2215,8 +2285,7 @@ body[data-theme='dark'] .style-editor-close {
   }
 
   .writing-sidebar {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: contents;
     gap: 0.5rem;
     height: auto;
   }
@@ -2238,6 +2307,8 @@ body[data-theme='dark'] .style-editor-close {
 
   .writing-settings-panel {
     grid-column: 1 / -1;
+    grid-row: 4;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem;
   }
 
@@ -2282,12 +2353,14 @@ body[data-theme='dark'] .style-editor-close {
 
   .writing-submit-button {
     grid-column: 1 / -1;
+    grid-row: 5;
     height: 38px;
     font-size: 0.92rem;
   }
 
   .writing-submit-status {
     grid-column: 1 / -1;
+    grid-row: 6;
     margin-top: 0.25rem;
     font-size: 0.78rem;
   }
@@ -2300,6 +2373,28 @@ body[data-theme='dark'] .style-editor-close {
 @media (max-width: 480px) {
   .editor-route-page.container {
     height: calc(100dvh - 76px);
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats {
+    margin-right: 6px;
+    padding-right: 6px;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header {
+    width: 98px;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font {
+    width: 110px;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-size {
+    width: 62px;
   }
 
   .writing-side-panel {
