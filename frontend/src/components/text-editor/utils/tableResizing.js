@@ -1,4 +1,5 @@
 const RESIZE_HANDLE_CLASS = 'ql-table-resize-handle';
+const MOVE_HANDLE_CLASS = 'ql-table-move-handle';
 const TABLE_MENU_CLASS = 'ql-table-action-menu';
 const MIN_TABLE_WIDTH = 160;
 
@@ -34,11 +35,26 @@ const applyTableWidth = (table, width) => {
   }
 };
 
+const applyTableOffset = (table, offset) => {
+  if (!table || !Number.isFinite(offset)) return;
+  const roundedOffset = Math.max(Math.round(offset), 0);
+  const offsetValue = `${roundedOffset}px`;
+  if (table.style.marginLeft !== offsetValue) {
+    table.style.marginLeft = offsetValue;
+  }
+};
+
 const getTableIndex = (root, table) => Array.from(root.querySelectorAll('table')).indexOf(table);
 
 const rememberTableWidth = (tableWidths, tableIndex, width) => {
   if (tableIndex >= 0 && Number.isFinite(width)) {
     tableWidths.set(tableIndex, Math.round(width));
+  }
+};
+
+const rememberTableOffset = (tableOffsets, tableIndex, offset) => {
+  if (tableIndex >= 0 && Number.isFinite(offset)) {
+    tableOffsets.set(tableIndex, Math.max(Math.round(offset), 0));
   }
 };
 
@@ -86,6 +102,13 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
   handle.hidden = true;
   container.appendChild(handle);
 
+  const moveHandle = document.createElement('button');
+  moveHandle.type = 'button';
+  moveHandle.className = MOVE_HANDLE_CLASS;
+  moveHandle.setAttribute('aria-label', '표 좌우 이동');
+  moveHandle.hidden = true;
+  container.appendChild(moveHandle);
+
   const menu = document.createElement('div');
   menu.className = TABLE_MENU_CLASS;
   menu.setAttribute('role', 'menu');
@@ -101,14 +124,20 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
   let activeTable = null;
   let activeCell = null;
   let resizeState = null;
+  let moveState = null;
   let rafId = null;
   const tableWidths = new Map();
+  const tableOffsets = new Map();
 
   const reapplyStoredWidths = () => {
     root.querySelectorAll('table').forEach((table, index) => {
       const storedWidth = tableWidths.get(index);
       if (storedWidth) {
         applyTableWidth(table, storedWidth);
+      }
+      const storedOffset = tableOffsets.get(index);
+      if (Number.isFinite(storedOffset)) {
+        applyTableOffset(table, storedOffset);
       }
     });
   };
@@ -122,10 +151,11 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
   };
 
   const hideHandle = () => {
-    if (resizeState) return;
+    if (resizeState || moveState) return;
     activeTable = null;
     activeCell = null;
     handle.hidden = true;
+    moveHandle.hidden = true;
     menu.hidden = true;
   };
 
@@ -145,6 +175,10 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
     handle.hidden = false;
     handle.style.left = `${tableRect.right - containerRect.left + container.scrollLeft - 9}px`;
     handle.style.top = `${tableRect.top - containerRect.top + container.scrollTop - 12}px`;
+
+    moveHandle.hidden = false;
+    moveHandle.style.left = `${tableRect.right - containerRect.left + container.scrollLeft - 9}px`;
+    moveHandle.style.top = `${tableRect.bottom - containerRect.top + container.scrollTop + 5}px`;
   };
 
   const schedulePosition = () => {
@@ -214,6 +248,15 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
     scheduleContentSync();
   };
 
+  const syncMovedTable = (table, offset, fallbackIndex = -1) => {
+    editor?.update?.('user');
+    const tableIndex = getTableIndex(root, table);
+    const resolvedIndex = tableIndex >= 0 ? tableIndex : fallbackIndex;
+    rememberTableOffset(tableOffsets, resolvedIndex, offset);
+    applyTableOffset(table, offset);
+    scheduleContentSync();
+  };
+
   const handleRootPointerDown = (event) => {
     const table = findTableFromTarget(root, event.target);
     if (table) {
@@ -231,13 +274,18 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
       return;
     }
 
-    if (event.target !== handle) {
+    if (event.target !== handle && event.target !== moveHandle) {
       hideHandle();
     }
   };
 
   const handleDocumentPointerDown = (event) => {
-    if (root.contains(event.target) || handle.contains(event.target) || menu.contains(event.target)) {
+    if (
+      root.contains(event.target) ||
+      handle.contains(event.target) ||
+      moveHandle.contains(event.target) ||
+      menu.contains(event.target)
+    ) {
       return;
     }
     hideHandle();
@@ -321,6 +369,61 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
     };
   };
 
+  const handleMovePointerMove = (event) => {
+    if (!moveState) return;
+
+    const deltaX = event.clientX - moveState.startX;
+    const nextOffset = Math.min(
+      Math.max(moveState.startOffset + deltaX, 0),
+      moveState.maxOffset,
+    );
+    rememberTableOffset(tableOffsets, moveState.tableIndex, nextOffset);
+    applyTableOffset(moveState.table, nextOffset);
+    moveState.lastOffset = nextOffset;
+    schedulePosition();
+  };
+
+  const finishMove = () => {
+    if (!moveState) return;
+
+    syncMovedTable(
+      moveState.table,
+      moveState.lastOffset ?? moveState.startOffset,
+      moveState.tableIndex,
+    );
+    moveState = null;
+    const pointerId = Number(moveHandle.dataset.pointerId);
+    if (Number.isInteger(pointerId)) {
+      moveHandle.releasePointerCapture?.(pointerId);
+    }
+    delete moveHandle.dataset.pointerId;
+    schedulePosition();
+  };
+
+  const handleMovePointerDown = (event) => {
+    if (!activeTable || event.button !== 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const tableRect = activeTable.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const inlineOffset = Number.parseFloat(activeTable.style.marginLeft);
+    const fallbackOffset = tableRect.left - rootRect.left + root.scrollLeft;
+    const startOffset = Number.isFinite(inlineOffset) ? inlineOffset : Math.max(fallbackOffset, 0);
+    const maxOffset = Math.max(root.clientWidth - tableRect.width, 0);
+    moveHandle.dataset.pointerId = String(event.pointerId);
+    moveHandle.setPointerCapture?.(event.pointerId);
+    moveState = {
+      table: activeTable,
+      tableIndex: getTableIndex(root, activeTable),
+      startX: event.clientX,
+      startOffset,
+      lastOffset: startOffset,
+      maxOffset,
+    };
+  };
+
   const handleMenuClick = (event) => {
     const button = event.target.closest?.('button[data-action]');
     if (!button || !menu.contains(button)) return;
@@ -354,9 +457,16 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
   handle.addEventListener('pointermove', handleResizePointerMove);
   handle.addEventListener('pointerup', finishResize);
   handle.addEventListener('pointercancel', finishResize);
+  moveHandle.addEventListener('pointerdown', handleMovePointerDown);
+  moveHandle.addEventListener('pointermove', handleMovePointerMove);
+  moveHandle.addEventListener('pointerup', finishMove);
+  moveHandle.addEventListener('pointercancel', finishMove);
   document.addEventListener('pointermove', handleResizePointerMove);
   document.addEventListener('pointerup', finishResize);
   document.addEventListener('pointercancel', finishResize);
+  document.addEventListener('pointermove', handleMovePointerMove);
+  document.addEventListener('pointerup', finishMove);
+  document.addEventListener('pointercancel', finishMove);
   menu.addEventListener('click', handleMenuClick);
   window.addEventListener('resize', schedulePosition);
   root.addEventListener('scroll', schedulePosition);
@@ -384,14 +494,22 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
     handle.removeEventListener('pointermove', handleResizePointerMove);
     handle.removeEventListener('pointerup', finishResize);
     handle.removeEventListener('pointercancel', finishResize);
+    moveHandle.removeEventListener('pointerdown', handleMovePointerDown);
+    moveHandle.removeEventListener('pointermove', handleMovePointerMove);
+    moveHandle.removeEventListener('pointerup', finishMove);
+    moveHandle.removeEventListener('pointercancel', finishMove);
     document.removeEventListener('pointermove', handleResizePointerMove);
     document.removeEventListener('pointerup', finishResize);
     document.removeEventListener('pointercancel', finishResize);
+    document.removeEventListener('pointermove', handleMovePointerMove);
+    document.removeEventListener('pointerup', finishMove);
+    document.removeEventListener('pointercancel', finishMove);
     menu.removeEventListener('click', handleMenuClick);
     window.removeEventListener('resize', schedulePosition);
     root.removeEventListener('scroll', schedulePosition);
     mutationObserver.disconnect();
     handle.remove();
+    moveHandle.remove();
     menu.remove();
   };
 };

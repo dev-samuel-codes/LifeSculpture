@@ -14,6 +14,7 @@ export const registerQuillFormats = () => {
   try {
     const Font = Quill.import('formats/font');
     const Size = Quill.import('formats/size');
+    const Parchment = Quill.import('parchment');
 
     if (Font) {
       Font.whitelist = [
@@ -50,6 +51,14 @@ export const registerQuillFormats = () => {
         '72',
       ];
       Quill.register(Size, true);
+    }
+
+    if (Parchment?.StyleAttributor) {
+      const LineHeight = new Parchment.StyleAttributor('lineheight', 'line-height', {
+        scope: Parchment.Scope.BLOCK,
+        whitelist: ['0.5', '0.75', '1', '1.2', '1.4', '1.6', '1.8', '2'],
+      });
+      Quill.register(LineHeight, true);
     }
 
     quillFormatsRegistered = true;

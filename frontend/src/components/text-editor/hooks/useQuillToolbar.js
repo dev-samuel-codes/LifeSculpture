@@ -13,6 +13,7 @@ import {
   handleAutoSymbolEnter,
   handleEmptyBlockBackspace,
   indentCurrentLines,
+  insertFilledCircleSymbol,
   selectAllEditorContent,
   selectCurrentLine,
 } from '../utils/keyboardShortcuts';
@@ -290,6 +291,7 @@ export const useQuillModules = () =>
                 ],
               },
             ],
+            [{ lineheight: [false, '0.5', '0.75', '1', '1.2', '1.4', '1.6', '1.8', '2'] }],
             ['bold', 'italic', 'underline', 'strike'],
             [{ script: 'sub' }, { script: 'super' }],
             ['blockquote', 'code-block'],
@@ -351,6 +353,13 @@ export const useQuillModules = () =>
               shortKey: true,
               handler(range) {
                 return selectCurrentLine(this.quill, range);
+              },
+            },
+            insertFilledCircleSymbol: {
+              key: 'o',
+              shortKey: true,
+              handler(range) {
+                return !insertFilledCircleSymbol(this.quill, range);
               },
             },
             tab: {
@@ -433,6 +442,7 @@ export const quillFormats = [
   'header',
   'font',
   'size',
+  'lineheight',
   'bold',
   'italic',
   'underline',

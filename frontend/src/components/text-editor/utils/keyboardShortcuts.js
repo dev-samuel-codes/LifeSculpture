@@ -5,7 +5,7 @@ const HANDLED_EVENT_FLAG = '__lifeSculptureEditorShortcutHandled';
 const LINE_FORMAT_KEYS = ['indent', 'align', 'direction'];
 const EMPTY_CANCELABLE_BLOCK_FORMATS = ['blockquote', 'code-block'];
 const AUTO_MARKER_SOURCE =
-  '(?:->|→|\\d+[.)]|[A-Za-z][.)]|[-*+•○●◦◯‣▪‧·–—#>])';
+  '(?:-->|⇒|->|→|\\d+[.)]|[A-Za-z][.)]|[-*+•○●◦◯‣▪‧·–—#>])';
 const AUTO_SYMBOL_MARKER_REGEX = new RegExp(`^(\\s*)(${AUTO_MARKER_SOURCE})$`, 'u');
 const AUTO_SYMBOL_REGEX = new RegExp(`^(\\s*)(${AUTO_MARKER_SOURCE})(\\s+)(.*)$`, 'u');
 
@@ -57,8 +57,9 @@ const copyLineFormats = (editor, sourceIndex, targetIndex) => {
 };
 
 const normalizeAutoMarker = (marker) => {
+  if (marker === '-->') return '⇒';
   if (marker === '->') return '→';
-  if (['•', '●', '◦', '◯'].includes(marker)) return '○';
+  if (['•', '◦', '◯'].includes(marker)) return '○';
   return marker;
 };
 
@@ -119,6 +120,20 @@ export const indentCurrentLines = (editor, range, direction = 'indent') => {
   );
   editor.setSelection?.(activeRange.index, activeRange.length, SILENT_SOURCE);
   return false;
+};
+
+export const insertFilledCircleSymbol = (editor, range) => {
+  const activeRange = getActiveRange(editor, range);
+  if (!editor || !activeRange || typeof editor.insertText !== 'function') return false;
+
+  const insertIndex = activeRange.index;
+  if (activeRange.length > 0 && typeof editor.deleteText === 'function') {
+    editor.deleteText(insertIndex, activeRange.length, SHORTCUT_SOURCE);
+  }
+
+  editor.insertText(insertIndex, '●', SHORTCUT_SOURCE);
+  editor.setSelection?.(insertIndex + 1, 0, SILENT_SOURCE);
+  return true;
 };
 
 export const handleAutoSymbolEnter = (editor, range) => {
@@ -184,15 +199,18 @@ export const handleArrowMarkerInput = (editor, range) => {
   if (!lineDetails) return false;
 
   const cursorOffset = activeRange.index - lineDetails.index;
-  if (cursorOffset !== lineDetails.text.length) return false;
+  if (cursorOffset < 1) return false;
 
-  const match = lineDetails.text.slice(0, cursorOffset).match(/^(\s*)-$/u);
+  const match = lineDetails.text.slice(0, cursorOffset).match(/(--|-)$/u);
   if (!match) return false;
 
-  const nextMarker = `${match[1]}→`;
-  editor.deleteText(lineDetails.index, cursorOffset, SHORTCUT_SOURCE);
-  editor.insertText(lineDetails.index, nextMarker, SHORTCUT_SOURCE);
-  editor.setSelection(lineDetails.index + nextMarker.length, 0, SILENT_SOURCE);
+  const marker = match[1];
+  const nextMarker = marker === '--' ? '⇒' : '→';
+  const markerIndex = activeRange.index - marker.length;
+
+  editor.deleteText(markerIndex, marker.length, SHORTCUT_SOURCE);
+  editor.insertText(markerIndex, nextMarker, SHORTCUT_SOURCE);
+  editor.setSelection(markerIndex + nextMarker.length, 0, SILENT_SOURCE);
   return true;
 };
 
@@ -280,6 +298,15 @@ export const setupEditorCommandShortcuts = (editor) => {
       event.preventDefault();
       event.stopPropagation();
       selectCurrentLine(editor);
+      return;
+    }
+
+    if (key === 'o' || key === 'ㅐ' || event.code === 'KeyO') {
+      event[HANDLED_EVENT_FLAG] = true;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      insertFilledCircleSymbol(editor);
     }
   };
 

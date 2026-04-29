@@ -925,6 +925,10 @@ body.writing-page-lock-scroll .App {
   width: 84px;
 }
 
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight {
+  width: 78px;
+}
+
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-color-picker,
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker {
   width: 32px;
@@ -983,6 +987,10 @@ body.writing-page-lock-scroll .App {
 
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-size .ql-picker-options {
   min-width: 96px;
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-options {
+  min-width: 92px;
 }
 
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-icon-picker .ql-picker-options {
@@ -1127,6 +1135,51 @@ body.writing-page-lock-scroll .App {
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="6"]::before,
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before {
   content: "제목 6";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item:not([data-value])::before {
+  content: "행간";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="0.5"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="0.5"]::before {
+  content: "0.5";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="0.75"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="0.75"]::before {
+  content: "0.75";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1"]::before {
+  content: "1.0";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.2"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.2"]::before {
+  content: "1.2";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.4"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.4"]::before {
+  content: "1.4";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.6"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.6"]::before {
+  content: "1.6";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.8"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.8"]::before {
+  content: "1.8";
+}
+
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="2"]::before,
+.writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="2"]::before {
+  content: "2.0";
 }
 
 .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before,
@@ -2110,25 +2163,30 @@ body[data-theme='dark'] .style-editor-close {
     grid-column: 3;
   }
 
-  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(7) {
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(8) {
     grid-row: 1;
-    grid-column: 4;
+    grid-column: 5;
     border-right: 0;
     margin-right: 0;
     padding-right: 0;
   }
 
   .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(4) {
-    grid-row: 2;
-    grid-column: 1;
+    grid-row: 1;
+    grid-column: 4;
   }
 
   .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(5) {
     grid-row: 2;
-    grid-column: 2;
+    grid-column: 1;
   }
 
   .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(6) {
+    grid-row: 2;
+    grid-column: 2;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(7) {
     grid-row: 2;
     grid-column: 3;
     border-right: 0;
@@ -2136,7 +2194,7 @@ body[data-theme='dark'] .style-editor-close {
     padding-right: 0;
   }
 
-  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(8) {
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-formats:nth-child(9) {
     grid-row: 3;
     grid-column: 1 / -1;
   }
@@ -2398,6 +2456,10 @@ body[data-theme='dark'] .style-editor-close {
 
   .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-size {
     width: 62px;
+  }
+
+  .writing-workspace .writing-editor .ql-toolbar.ql-snow .ql-picker.ql-lineheight {
+    width: 68px;
   }
 
   .writing-side-panel {

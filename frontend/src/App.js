@@ -1,6 +1,6 @@
 import './style/App.css';
 import React, { lazy, Suspense, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/layout/Header';
 import Connect from './components/layout/Connect';
 import { AuthContext } from './context/AuthContext';
@@ -27,6 +27,9 @@ function Page({ children, className = '' }) {
 
 function App() {
   const { role, loading: authLoading } = React.useContext(AuthContext);
+  const location = useLocation();
+  const isEditorRoute =
+    location.pathname === '/write' || location.pathname.startsWith('/edit-post/');
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -53,7 +56,7 @@ function App() {
       {authLoading ? (
         <>
           <div style={{ padding: 16 }}>Loading session…</div>
-          <Connect />
+          {!isEditorRoute && <Connect />}
         </>
       ) : (
         <>
@@ -77,7 +80,7 @@ function App() {
             </Routes>
           </Suspense>
 
-          <Connect />
+          {!isEditorRoute && <Connect />}
         </>
       )}
 
