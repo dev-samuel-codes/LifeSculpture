@@ -409,6 +409,7 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
 .rich-text table,
 .rich-text-editor .ql-editor table {
   width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   margin: 1.1rem 0;
@@ -416,6 +417,7 @@ body[data-theme='dark'] .rich-text-editor .ql-editor .ql-syntax {
   border-radius: 0;
   overflow: visible;
   box-shadow: none;
+  box-sizing: border-box;
 }
 
 .rich-text table th,

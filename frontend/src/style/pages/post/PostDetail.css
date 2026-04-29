@@ -523,6 +523,7 @@ body[data-theme='dark'] .image-modal-content {
 /* ?뚯씠釉??ㅽ???*/
 .post-content table {
   width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   margin: 1.1rem 0;
@@ -530,6 +531,7 @@ body[data-theme='dark'] .image-modal-content {
   overflow: visible;
   box-shadow: none;
   border: 1px solid #111827;
+  box-sizing: border-box;
 }
 
 .post-content table th,

@@ -274,12 +274,14 @@ body[data-theme='dark'] .writing-editor {
 .writing-editor .ql-editor table {
   border-collapse: collapse;
   width: 100%;
+  max-width: 100%;
   table-layout: fixed;
   margin: 18px 0;
   border: 1px solid #111827;
   border-radius: 0;
   box-shadow: none;
   overflow: visible;
+  box-sizing: border-box;
 }
 
 .writing-editor .ql-editor table td,

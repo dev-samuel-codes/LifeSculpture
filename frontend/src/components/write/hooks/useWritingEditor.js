@@ -17,6 +17,11 @@ import {
   hasContentStyleSettings,
   normalizeContentStyleSettings,
 } from '../../text-editor/utils/contentStyleSettings';
+import {
+  extractContentTableSettingsFromRoot,
+  hasContentTableSettings,
+  normalizeContentTableSettings,
+} from '../../text-editor/utils/contentTableSettings';
 import { extractHashtagsFromContent, mergePostTags } from '../../../utils/tags';
 
 const AUTO_SAVE_DELAY = 2000;
@@ -32,6 +37,7 @@ const useWritingEditor = () => {
   const [isPublic, setIsPublic] = useState(true);
   const [tags, setTags] = useState([]);
   const [contentStyleSettings, setContentStyleSettings] = useState(null);
+  const [contentTableSettings, setContentTableSettings] = useState(null);
   const [editorHeight, setEditorHeight] = useState('400px');
   const [contentSize, setContentSize] = useState(0);
   const [pendingImages, setPendingImages] = useState([]);
@@ -48,6 +54,14 @@ const useWritingEditor = () => {
   const skipNextAutoSaveRef = useRef(false);
 
   const { modules, formats, handleImageUpload } = useQuillToolbar();
+
+  const getReadyEditor = useCallback(() => {
+    try {
+      return quillRef.current?.getEditor?.() || null;
+    } catch (error) {
+      return null;
+    }
+  }, []);
 
   const handleContentChange = useCallback(
     (newContent) => {
@@ -120,6 +134,11 @@ const useWritingEditor = () => {
           ? normalizeContentStyleSettings(parsedDraft.contentStyleSettings)
           : null,
       );
+      setContentTableSettings(
+        hasContentTableSettings(parsedDraft.contentTableSettings)
+          ? normalizeContentTableSettings(parsedDraft.contentTableSettings)
+          : null,
+      );
       setDraftUpdatedAt(parsedDraft.updatedAt ?? Date.now());
       setDraftStatus('loaded');
       skipNextAutoSaveRef.current = true;
@@ -144,7 +163,8 @@ const useWritingEditor = () => {
       category !== 'study' ||
       isPublic !== true ||
       tags.length > 0 ||
-      hasContentStyleSettings(contentStyleSettings);
+      hasContentStyleSettings(contentStyleSettings) ||
+      hasContentTableSettings(contentTableSettings);
 
     if (!shouldPersistDraft) {
       clearDraftStorage();
@@ -163,6 +183,9 @@ const useWritingEditor = () => {
           tags,
           ...(hasContentStyleSettings(contentStyleSettings)
             ? { contentStyleSettings: normalizeContentStyleSettings(contentStyleSettings) }
+            : {}),
+          ...(hasContentTableSettings(contentTableSettings)
+            ? { contentTableSettings: normalizeContentTableSettings(contentTableSettings) }
             : {}),
           updatedAt: Date.now(),
         };
@@ -183,27 +206,46 @@ const useWritingEditor = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [category, clearDraftStorage, content, contentStyleSettings, isPublic, tags, title]);
+  }, [
+    category,
+    clearDraftStorage,
+    content,
+    contentStyleSettings,
+    contentTableSettings,
+    isPublic,
+    tags,
+    title,
+  ]);
 
   useQuillEditorBridge({
     quillRef,
     enabled: true,
     content,
+    contentTableSettings,
     onPendingImage: handlePendingImage,
     onOpenFormulaEditor: handleOpenFormulaEditor,
     onContentChange: handleContentChange,
+    onContentTableSettingsChange: setContentTableSettings,
   });
 
-  const uploadPendingImages = useCallback(async ({ category: uploadCategory, postId } = {}) => {
-    const resolvedCategory = uploadCategory || category;
-    return replacePendingImages({
-      content,
-      pendingImages,
-      category: resolvedCategory,
-      postId,
-      uploadImage: handleImageUpload,
-    });
-  }, [category, content, handleImageUpload, pendingImages]);
+  const getCurrentEditorContent = useCallback(
+    () => getReadyEditor()?.root?.innerHTML || content,
+    [content, getReadyEditor],
+  );
+
+  const uploadPendingImages = useCallback(
+    async ({ category: uploadCategory, postId, sourceContent = content } = {}) => {
+      const resolvedCategory = uploadCategory || category;
+      return replacePendingImages({
+        content: sourceContent,
+        pendingImages,
+        category: resolvedCategory,
+        postId,
+        uploadImage: handleImageUpload,
+      });
+    },
+    [category, content, handleImageUpload, pendingImages],
+  );
 
   const resetForm = useCallback(() => {
     setTitle('');
@@ -212,6 +254,7 @@ const useWritingEditor = () => {
     setIsPublic(true);
     setTags([]);
     setContentStyleSettings(null);
+    setContentTableSettings(null);
     setPendingImages([]);
     setContentSize(0);
     clearDraftStorage();
@@ -244,9 +287,17 @@ const useWritingEditor = () => {
       setIsUploading(true);
       try {
         const docRef = doc(collection(db, category));
+        const editorContent = getCurrentEditorContent();
+        const nextTableSettings =
+          extractContentTableSettingsFromRoot(getReadyEditor()?.root) ||
+          contentTableSettings;
+        const normalizedTableSettings = hasContentTableSettings(nextTableSettings)
+          ? normalizeContentTableSettings(nextTableSettings)
+          : null;
         const finalContent = await uploadPendingImages({
           category,
           postId: docRef.id,
+          sourceContent: editorContent,
         });
         const nextTags = mergePostTags(tags, extractHashtagsFromContent(finalContent));
         const normalizedStyleSettings = hasContentStyleSettings(contentStyleSettings)
@@ -263,6 +314,7 @@ const useWritingEditor = () => {
           isPublic,
           tags: nextTags,
           ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
+          ...(normalizedTableSettings ? { contentTableSettings: normalizedTableSettings } : {}),
         });
         batch.set(indexRef, {
           title: title.trim(),
@@ -289,6 +341,9 @@ const useWritingEditor = () => {
       content,
       contentSize,
       contentStyleSettings,
+      contentTableSettings,
+      getCurrentEditorContent,
+      getReadyEditor,
       isPublic,
       navigate,
       resetForm,
@@ -324,6 +379,7 @@ const useWritingEditor = () => {
         isPublic,
         tags,
         contentStyleSettings,
+        contentTableSettings,
         editorHeight,
         isUploading,
         isFormulaEditorOpen,
@@ -337,6 +393,7 @@ const useWritingEditor = () => {
         setIsPublic,
         setTags,
         setContentStyleSettings,
+        setContentTableSettings,
         handleContentChange,
         handleSubmit,
         handleFormulaSave,
@@ -352,6 +409,7 @@ const useWritingEditor = () => {
       closeFormulaEditor,
       content,
       contentStyleSettings,
+      contentTableSettings,
       draftStatus,
       draftUpdatedAt,
       editorHeight,

@@ -10,6 +10,7 @@ import { formatDateOnly } from '../utils/date';
 import { extractImageUrls } from '../components/text-editor/utils/media';
 import { setupResponsiveImageSizing } from '../components/text-editor/utils/imageSizing';
 import { getContentStyleCssVariables } from '../components/text-editor/utils/contentStyleSettings';
+import { applyContentTableSettingsToRoot } from '../components/text-editor/utils/contentTableSettings';
 import { deleteStorageImages } from '../utils/storage';
 import {
   deletePost as removePost,
@@ -286,6 +287,20 @@ function PostDetailPage() {
 
     return setupResponsiveImageSizing({ root: contentElement });
   }, [renderedContent]);
+
+  useEffect(() => {
+    const contentElement = document.querySelector('.post-content');
+    if (!contentElement) return undefined;
+
+    const applyTableSettings = () => {
+      applyContentTableSettingsToRoot(contentElement, post?.contentTableSettings);
+    };
+
+    applyTableSettings();
+    window.addEventListener('resize', applyTableSettings);
+
+    return () => window.removeEventListener('resize', applyTableSettings);
+  }, [post?.contentTableSettings, renderedContent]);
 
   useEffect(() => {
     const handleResize = () => {

@@ -72,7 +72,14 @@ const sanitizePostUpdates = (input) => {
     return {};
   }
 
-  const allowedKeys = new Set(['title', 'content', 'tags', 'isPublic', 'contentStyleSettings']);
+  const allowedKeys = new Set([
+    'title',
+    'content',
+    'tags',
+    'isPublic',
+    'contentStyleSettings',
+    'contentTableSettings',
+  ]);
   const updates = {};
 
   for (const [key, value] of Object.entries(input)) {

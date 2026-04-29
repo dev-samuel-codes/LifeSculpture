@@ -3,6 +3,7 @@ import { convertHeicToJpeg } from '../utils/media';
 import { setupResponsiveImageSizing } from '../utils/imageSizing';
 import { setupEditorCommandShortcuts } from '../utils/keyboardShortcuts';
 import { setupTableResizing } from '../utils/tableResizing';
+import { applyContentTableSettingsToRoot } from '../utils/contentTableSettings';
 
 const DEFAULT_EDITOR_ALIGN = 'justify';
 
@@ -26,6 +27,24 @@ const TABLE_PRESENTATION_STYLE_KEYS = [
   'marginLeft',
   'marginRight',
 ];
+
+const setAttributeIfChanged = (element, name, value) => {
+  if (!value || element.getAttribute(name) === value) return false;
+  element.setAttribute(name, value);
+  return true;
+};
+
+const setDatasetIfChanged = (element, name, value) => {
+  if (!value || element.dataset[name] === value) return false;
+  element.dataset[name] = value;
+  return true;
+};
+
+const setStyleIfChanged = (element, name, value) => {
+  if (!value || element.style[name] === value) return false;
+  element.style[name] = value;
+  return true;
+};
 
 const getElementFromNode = (node) => {
   if (!node) return null;
@@ -79,32 +98,49 @@ const getStoredTablePresentation = (content) => {
   return Array.from(documentSnapshot.querySelectorAll('table')).map((table) => ({
     width: table.getAttribute('width') || '',
     style: table.getAttribute('style') || '',
+    dataWidth: table.dataset.tableWidth || '',
+    dataOffset: table.dataset.tableOffset || '',
   }));
 };
 
 const applyStoredTablePresentation = (editor, content) => {
   const tablePresentations = getStoredTablePresentation(content);
-  if (!editor?.root || tablePresentations.length === 0) return;
+  if (!editor?.root || tablePresentations.length === 0) return false;
+
+  let didChange = false;
 
   const editorTables = Array.from(editor.root.querySelectorAll('table'));
   editorTables.forEach((table, index) => {
     const tablePresentation = tablePresentations[index];
     if (!tablePresentation) return;
 
-    if (tablePresentation.width) {
-      table.setAttribute('width', tablePresentation.width);
+    const storedWidth = tablePresentation.width || tablePresentation.dataWidth;
+    if (storedWidth) {
+      didChange = setAttributeIfChanged(table, 'width', storedWidth) || didChange;
+      didChange = setDatasetIfChanged(table, 'tableWidth', storedWidth) || didChange;
+      didChange = setStyleIfChanged(table, 'width', `${storedWidth}px`) || didChange;
     }
-
-    if (!tablePresentation.style) return;
 
     const sourceStyle = document.createElement('table').style;
     sourceStyle.cssText = tablePresentation.style;
+    if (!sourceStyle.marginLeft && tablePresentation.dataOffset) {
+      sourceStyle.marginLeft = `${tablePresentation.dataOffset}px`;
+    }
+
     TABLE_PRESENTATION_STYLE_KEYS.forEach((styleKey) => {
       if (sourceStyle[styleKey]) {
-        table.style[styleKey] = sourceStyle[styleKey];
+        didChange = setStyleIfChanged(table, styleKey, sourceStyle[styleKey]) || didChange;
       }
     });
+
+    if (sourceStyle.marginLeft) {
+      didChange =
+        setDatasetIfChanged(table, 'tableOffset', String(Number.parseInt(sourceStyle.marginLeft, 10) || 0)) ||
+        didChange;
+    }
   });
+
+  return didChange;
 };
 
 const clearSelectionOverlay = (overlay) => {
@@ -477,13 +513,23 @@ const setupDefaultAlignment = (editor) => {
   };
 };
 
+const getReadyEditor = (quillRef) => {
+  try {
+    return quillRef.current?.getEditor?.() || null;
+  } catch (error) {
+    return null;
+  }
+};
+
 function useQuillEditorBridge({
   quillRef,
   enabled = true,
   content,
+  contentTableSettings,
   onPendingImage,
   onOpenFormulaEditor,
   onContentChange,
+  onContentTableSettingsChange,
 }) {
   const handleImageInsert = useCallback(() => {
     const input = document.createElement('input');
@@ -503,7 +549,7 @@ function useQuillEditorBridge({
           if (!tempUrl) return;
 
           onPendingImage?.({ file: processedFile, tempUrl });
-          const editor = quillRef.current?.getEditor();
+          const editor = getReadyEditor(quillRef);
           if (!editor) return;
 
           const range = editor.getSelection(true) || { index: editor.getLength() };
@@ -527,7 +573,7 @@ function useQuillEditorBridge({
     let retryCount = 0;
 
     const setupEditor = () => {
-      const editor = quillRef.current?.getEditor();
+      const editor = getReadyEditor(quillRef);
       if (!editor) return false;
       const toolbarModule = editor.getModule('toolbar');
       if (!toolbarModule?.container) return false;
@@ -548,6 +594,7 @@ function useQuillEditorBridge({
         root: editor.root,
         editor,
         onResize: onContentChange,
+        onTableSettingsChange: onContentTableSettingsChange,
       });
       return true;
     };
@@ -574,11 +621,18 @@ function useQuillEditorBridge({
       cleanupDefaultAlignment?.();
       window.openFormulaEditor = null;
     };
-  }, [enabled, handleImageInsert, onContentChange, onOpenFormulaEditor, quillRef]);
+  }, [
+    enabled,
+    handleImageInsert,
+    onContentChange,
+    onContentTableSettingsChange,
+    onOpenFormulaEditor,
+    quillRef,
+  ]);
 
   useEffect(() => {
     if (!enabled) return undefined;
-    const editor = quillRef.current?.getEditor();
+    const editor = getReadyEditor(quillRef);
     if (!editor) return undefined;
 
     return setupResponsiveImageSizing({ root: editor.root });
@@ -588,12 +642,13 @@ function useQuillEditorBridge({
     if (!enabled || typeof window === 'undefined') return undefined;
 
     const timeoutId = window.setTimeout(() => {
-      const editor = quillRef.current?.getEditor();
+      const editor = getReadyEditor(quillRef);
       applyStoredTablePresentation(editor, content);
+      applyContentTableSettingsToRoot(editor?.root, contentTableSettings);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [content, enabled, quillRef]);
+  }, [content, contentTableSettings, enabled, quillRef]);
 }
 
 export default useQuillEditorBridge;

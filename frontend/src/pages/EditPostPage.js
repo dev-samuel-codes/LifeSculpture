@@ -21,6 +21,11 @@ import {
   hasContentStyleSettings,
   normalizeContentStyleSettings,
 } from '../components/text-editor/utils/contentStyleSettings';
+import {
+  extractContentTableSettingsFromRoot,
+  hasContentTableSettings,
+  normalizeContentTableSettings,
+} from '../components/text-editor/utils/contentTableSettings';
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { invalidatePostListCache } from '../hooks/usePostList';
 import { deleteStorageImages } from '../utils/storage';
@@ -42,6 +47,7 @@ function EditPostPage() {
   const [isPublic, setIsPublic] = useState(true);
   const [tags, setTags] = useState([]);
   const [contentStyleSettings, setContentStyleSettings] = useState(null);
+  const [contentTableSettings, setContentTableSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [contentSize, setContentSize] = useState(0);
@@ -56,6 +62,14 @@ function EditPostPage() {
   const quillRef = useRef(null);
   const editorHeight = useResponsiveEditorHeight();
   const { modules, formats, handleImageUpload } = useQuillToolbar();
+
+  const getReadyEditor = useCallback(() => {
+    try {
+      return quillRef.current?.getEditor?.() || null;
+    } catch (error) {
+      return null;
+    }
+  }, []);
 
   const shouldTrackImage = useCallback(
     (url) =>
@@ -100,6 +114,11 @@ function EditPostPage() {
               ? normalizeContentStyleSettings(postData.contentStyleSettings)
               : null,
           );
+          setContentTableSettings(
+            hasContentTableSettings(postData.contentTableSettings)
+              ? normalizeContentTableSettings(postData.contentTableSettings)
+              : null,
+          );
           setOriginalImageUrls(getTrackedImageUrls(initialContent));
           setContentSize(calculateContentSize(initialContent));
         } else {
@@ -119,14 +138,17 @@ function EditPostPage() {
     quillRef,
     enabled: !loading,
     content,
+    contentTableSettings,
     onPendingImage: handlePendingImage,
     onOpenFormulaEditor: handleOpenFormulaEditor,
     onContentChange: handleContentChange,
+    onContentTableSettingsChange: setContentTableSettings,
   });
 
   useEffect(() => {
     if (!quillRef.current) return;
-    const editor = quillRef.current.getEditor();
+    const editor = getReadyEditor();
+    if (!editor) return;
     const codeBlocks = editor.root.querySelectorAll('pre');
     codeBlocks.forEach((block) => {
       block.style.whiteSpace = 'pre';
@@ -134,13 +156,18 @@ function EditPostPage() {
       block.style.maxWidth = '800px';
       block.style.margin = '1.75rem auto';
     });
-  }, [content]);
+  }, [content, getReadyEditor]);
+
+  const getCurrentEditorContent = useCallback(
+    () => getReadyEditor()?.root?.innerHTML || content,
+    [content, getReadyEditor],
+  );
 
   const uploadPendingImages = useCallback(
-    async () => {
+    async (sourceContent = content) => {
       const resolvedCategory = category.trim() || categoryParam;
       return replacePendingImages({
-        content,
+        content: sourceContent,
         pendingImages,
         category: resolvedCategory,
         postId: id,
@@ -163,7 +190,14 @@ function EditPostPage() {
 
     setIsUploading(true);
     try {
-      const finalContent = await uploadPendingImages();
+      const editorContent = getCurrentEditorContent();
+      const nextTableSettings =
+        extractContentTableSettingsFromRoot(getReadyEditor()?.root) ||
+        contentTableSettings;
+      const normalizedTableSettings = hasContentTableSettings(nextTableSettings)
+        ? normalizeContentTableSettings(nextTableSettings)
+        : null;
+      const finalContent = await uploadPendingImages(editorContent);
       const currentUrls = getTrackedImageUrls(finalContent).filter((url) => url.startsWith('https'));
       const originalUrls = originalImageUrls.filter((url) => url.startsWith('https'));
       const removedUrls = originalUrls.filter(
@@ -200,6 +234,7 @@ function EditPostPage() {
             isPublic,
             tags: nextTags,
             ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
+            ...(normalizedTableSettings ? { contentTableSettings: normalizedTableSettings } : {}),
           },
         });
       } else {
@@ -213,6 +248,7 @@ function EditPostPage() {
             isPublic,
             tags: nextTags,
             ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
+            ...(normalizedTableSettings ? { contentTableSettings: normalizedTableSettings } : {}),
           },
         });
       }

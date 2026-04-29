@@ -3,6 +3,29 @@ const MOVE_HANDLE_CLASS = 'ql-table-move-handle';
 const TABLE_MENU_CLASS = 'ql-table-action-menu';
 const MIN_TABLE_WIDTH = 160;
 
+const getContentTableSettings = (root) => {
+  const containerWidth = Math.round(
+    root?.clientWidth || root?.getBoundingClientRect?.().width || 0,
+  );
+  const tables = Array.from(root?.querySelectorAll?.('table') || [])
+    .map((table) => {
+      const width = Number.parseInt(
+        table.dataset.tableWidth || table.getAttribute('width') || table.style.width,
+        10,
+      );
+      const offset = Number.parseInt(table.dataset.tableOffset || table.style.marginLeft, 10);
+      if (!Number.isFinite(width) && !Number.isFinite(offset)) return null;
+      return {
+        ...(Number.isFinite(width) ? { width } : {}),
+        ...(Number.isFinite(offset) ? { offset: Math.max(offset, 0) } : {}),
+        ...(Number.isFinite(containerWidth) && containerWidth > 0 ? { containerWidth } : {}),
+      };
+    })
+    .filter(Boolean);
+
+  return tables.length > 0 ? { version: 1, tables } : null;
+};
+
 const findTableFromTarget = (root, target) => {
   if (!(target instanceof Element)) return null;
   const table = target.closest('table');
@@ -33,6 +56,9 @@ const applyTableWidth = (table, width) => {
   if (table.getAttribute('width') !== String(roundedWidth)) {
     table.setAttribute('width', String(roundedWidth));
   }
+  if (table.dataset.tableWidth !== String(roundedWidth)) {
+    table.dataset.tableWidth = String(roundedWidth);
+  }
 };
 
 const applyTableOffset = (table, offset) => {
@@ -41,6 +67,9 @@ const applyTableOffset = (table, offset) => {
   const offsetValue = `${roundedOffset}px`;
   if (table.style.marginLeft !== offsetValue) {
     table.style.marginLeft = offsetValue;
+  }
+  if (table.dataset.tableOffset !== String(roundedOffset)) {
+    table.dataset.tableOffset = String(roundedOffset);
   }
 };
 
@@ -89,7 +118,7 @@ const insertLineBreakAtCellEnd = (cell) => {
   setCaretAfterNode(lineBreak);
 };
 
-export const setupTableResizing = ({ root, editor, onResize } = {}) => {
+export const setupTableResizing = ({ root, editor, onResize, onTableSettingsChange } = {}) => {
   if (typeof window === 'undefined' || !root) {
     return () => {};
   }
@@ -146,6 +175,7 @@ export const setupTableResizing = ({ root, editor, onResize } = {}) => {
     window.requestAnimationFrame(() => {
       reapplyStoredWidths();
       onResize?.(root.innerHTML);
+      onTableSettingsChange?.(getContentTableSettings(root));
       schedulePosition();
     });
   };
