@@ -299,7 +299,9 @@ function PostDetailPage() {
     applyTableSettings();
     window.addEventListener('resize', applyTableSettings);
 
-    return () => window.removeEventListener('resize', applyTableSettings);
+    return () => {
+      window.removeEventListener('resize', applyTableSettings);
+    };
   }, [post?.contentTableSettings, renderedContent]);
 
   useEffect(() => {

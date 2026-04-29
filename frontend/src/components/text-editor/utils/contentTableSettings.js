@@ -1,5 +1,5 @@
 const SETTINGS_VERSION = 1;
-const MIN_TABLE_WIDTH = 160;
+const MIN_TABLE_WIDTH = 120;
 
 const parsePx = (value) => {
   const parsed = Number.parseFloat(String(value || '').replace('px', ''));
