@@ -33,3 +33,14 @@ export const sanitizeHtml = (html) => {
 
 export const sanitizeContent = (html) =>
   String(html || '').trim().replace(/<p><br><\/p>/g, '');
+
+export const normalizeTableCellBreaksForEditor = (html) => {
+  if (!html || typeof DOMParser === 'undefined') return html || '';
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('td br, th br').forEach((lineBreak) => {
+    lineBreak.replaceWith(doc.createTextNode('\n'));
+  });
+
+  return doc.body.innerHTML;
+};

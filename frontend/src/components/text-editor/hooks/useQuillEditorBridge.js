@@ -19,6 +19,14 @@ const PRESERVED_SELECTION_RECT_CLASS = 'ql-preserved-selection-rect';
 const PRESERVED_SELECTION_HORIZONTAL_MARGIN = 2;
 const PRESERVED_SELECTION_VERTICAL_MARGIN = 1;
 
+const TABLE_PRESENTATION_STYLE_KEYS = [
+  'width',
+  'minWidth',
+  'maxWidth',
+  'marginLeft',
+  'marginRight',
+];
+
 const getElementFromNode = (node) => {
   if (!node) return null;
   return node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
@@ -61,6 +69,43 @@ const getStoredSelectionRange = (editor) =>
   editor?.selection?.savedRange ||
   editor?.selection?.lastRange ||
   null;
+
+const getStoredTablePresentation = (content) => {
+  if (!content || typeof window === 'undefined' || typeof DOMParser === 'undefined') {
+    return [];
+  }
+
+  const documentSnapshot = new DOMParser().parseFromString(content, 'text/html');
+  return Array.from(documentSnapshot.querySelectorAll('table')).map((table) => ({
+    width: table.getAttribute('width') || '',
+    style: table.getAttribute('style') || '',
+  }));
+};
+
+const applyStoredTablePresentation = (editor, content) => {
+  const tablePresentations = getStoredTablePresentation(content);
+  if (!editor?.root || tablePresentations.length === 0) return;
+
+  const editorTables = Array.from(editor.root.querySelectorAll('table'));
+  editorTables.forEach((table, index) => {
+    const tablePresentation = tablePresentations[index];
+    if (!tablePresentation) return;
+
+    if (tablePresentation.width) {
+      table.setAttribute('width', tablePresentation.width);
+    }
+
+    if (!tablePresentation.style) return;
+
+    const sourceStyle = document.createElement('table').style;
+    sourceStyle.cssText = tablePresentation.style;
+    TABLE_PRESENTATION_STYLE_KEYS.forEach((styleKey) => {
+      if (sourceStyle[styleKey]) {
+        table.style[styleKey] = sourceStyle[styleKey];
+      }
+    });
+  });
+};
 
 const clearSelectionOverlay = (overlay) => {
   if (!overlay) return;
@@ -537,6 +582,17 @@ function useQuillEditorBridge({
     if (!editor) return undefined;
 
     return setupResponsiveImageSizing({ root: editor.root });
+  }, [content, enabled, quillRef]);
+
+  useEffect(() => {
+    if (!enabled || typeof window === 'undefined') return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      const editor = quillRef.current?.getEditor();
+      applyStoredTablePresentation(editor, content);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [content, enabled, quillRef]);
 }
 

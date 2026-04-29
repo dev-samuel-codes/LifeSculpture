@@ -7,7 +7,11 @@ import PostEditorForm from '../components/write/PostEditorForm';
 import { useQuillToolbar } from '../components/text-editor/hooks/useQuillToolbar';
 import useQuillEditorBridge from '../components/text-editor/hooks/useQuillEditorBridge';
 import { MAX_EDITOR_CONTENT_SIZE } from '../components/text-editor/constants';
-import { calculateContentSize, sanitizeHtml } from '../components/text-editor/utils/content';
+import {
+  calculateContentSize,
+  normalizeTableCellBreaksForEditor,
+  sanitizeHtml,
+} from '../components/text-editor/utils/content';
 import {
   extractImageUrls,
   isSameStorageImage,
@@ -85,7 +89,7 @@ function EditPostPage() {
       try {
         const postData = await getPost({ category: categoryParam, id });
         if (postData) {
-          const initialContent = postData.content || '';
+          const initialContent = normalizeTableCellBreaksForEditor(postData.content || '');
           setTitle(postData.title || '');
           setContent(initialContent);
           setCategory(postData.category || categoryParam);
