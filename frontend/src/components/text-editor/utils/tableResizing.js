@@ -38,6 +38,86 @@ const findCellFromTarget = (root, target) => {
   return cell && root.contains(cell) ? cell : null;
 };
 
+const getElementFromNode = (node) => {
+  if (!node) return null;
+  return node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+};
+
+const normalizeCellText = (text = '') =>
+  text.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ').trim();
+
+const isEmptyElement = (element) => {
+  if (!(element instanceof Element)) return false;
+  if (element.matches('br')) return true;
+  if (element.querySelector('img, video, iframe, .ql-formula')) return false;
+  return normalizeCellText(element.textContent).length === 0;
+};
+
+const isIgnorableNode = (node) => {
+  if (!node) return true;
+  if (node.nodeType === Node.TEXT_NODE) {
+    return normalizeCellText(node.textContent).length === 0;
+  }
+  return node.nodeType === Node.ELEMENT_NODE && isEmptyElement(node);
+};
+
+const isTableEmpty = (table) => {
+  if (!table) return false;
+  return Array.from(table.querySelectorAll('td, th')).every(isEmptyElement);
+};
+
+const findTableInNode = (node) => {
+  if (!(node instanceof Element)) return null;
+  if (node.matches('table')) return node;
+  return node.querySelector('table');
+};
+
+const getEmptyTableFromNode = (node) => {
+  const table = findTableInNode(node);
+  return table && isTableEmpty(table) ? table : null;
+};
+
+const getRootChildForNode = (root, node) => {
+  let current = getElementFromNode(node);
+  while (current && current.parentElement !== root) {
+    current = current.parentElement;
+  }
+  return current?.parentElement === root ? current : null;
+};
+
+const isRangeAtStartOfNode = (range, node) => {
+  if (!range || !node) return false;
+
+  const beforeRange = document.createRange();
+  beforeRange.selectNodeContents(node);
+  beforeRange.setEnd(range.startContainer, range.startOffset);
+  return normalizeCellText(beforeRange.toString()).length === 0;
+};
+
+const getPreviousEmptyTable = (node) => {
+  let previousNode = node;
+  while (previousNode) {
+    const table = getEmptyTableFromNode(previousNode);
+    if (table) return table;
+    if (!isIgnorableNode(previousNode)) return null;
+    previousNode = previousNode.previousSibling;
+  }
+  return null;
+};
+
+const findEmptyTableBeforeRange = (root, range) => {
+  if (!root || !range || !range.collapsed) return null;
+
+  if (range.startContainer === root) {
+    return getPreviousEmptyTable(root.childNodes[range.startOffset - 1]);
+  }
+
+  const rootChild = getRootChildForNode(root, range.startContainer);
+  if (!rootChild || !isRangeAtStartOfNode(range, rootChild)) return null;
+
+  return getPreviousEmptyTable(rootChild.previousSibling);
+};
+
 const TABLE_ACTIONS = [
   { action: 'insertRowBelow', label: '행 추가' },
   { action: 'insertColumnRight', label: '열 추가' },
@@ -108,14 +188,16 @@ const setCaretAfterNode = (node) => {
   selection.addRange(range);
 };
 
-const insertLineBreakAtCellEnd = (cell) => {
-  const range = document.createRange();
-  range.selectNodeContents(cell);
-  range.collapse(false);
+const insertLineBreakAtSelection = (cell, range) => {
+  if (!cell || !range) return false;
+  const commonElement = getElementFromNode(range.commonAncestorContainer);
+  if (!commonElement || !cell.contains(commonElement)) return false;
 
-  const lineBreak = document.createTextNode('\n');
+  range.deleteContents();
+  const lineBreak = document.createElement('br');
   range.insertNode(lineBreak);
   setCaretAfterNode(lineBreak);
+  return true;
 };
 
 export const setupTableResizing = ({ root, editor, onResize, onTableSettingsChange } = {}) => {
@@ -344,7 +426,32 @@ export const setupTableResizing = ({ root, editor, onResize, onTableSettingsChan
     event.stopPropagation();
     event.stopImmediatePropagation?.();
 
-    insertLineBreakAtCellEnd(cell);
+    if (!insertLineBreakAtSelection(cell, selection.getRangeAt(0))) return;
+    editor?.update?.('user');
+    scheduleContentSync();
+  };
+
+  const handleTableBackspace = (event) => {
+    if (event.key !== 'Backspace' || event.isComposing) return;
+
+    const selection = window.getSelection?.();
+    if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) return;
+
+    const range = selection.getRangeAt(0);
+    const selectionElement = getElementFromNode(range.startContainer);
+    if (!selectionElement || !root.contains(selectionElement)) return;
+    if (findTableFromTarget(root, selectionElement)) return;
+
+    const table = findEmptyTableBeforeRange(root, range);
+    if (!table) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+
+    table.remove();
+    hideHandle();
+    editor?.update?.('user');
     scheduleContentSync();
   };
 
@@ -480,6 +587,7 @@ export const setupTableResizing = ({ root, editor, onResize, onTableSettingsChan
 
   root.addEventListener('pointerdown', handleRootPointerDown, true);
   root.addEventListener('keydown', handleTableEnter, true);
+  root.addEventListener('keydown', handleTableBackspace, true);
   root.addEventListener('focusin', handleRootFocusIn);
   root.addEventListener('contextmenu', handleRootContextMenu, true);
   document.addEventListener('pointerdown', handleDocumentPointerDown, true);
@@ -517,6 +625,7 @@ export const setupTableResizing = ({ root, editor, onResize, onTableSettingsChan
     }
     root.removeEventListener('pointerdown', handleRootPointerDown, true);
     root.removeEventListener('keydown', handleTableEnter, true);
+    root.removeEventListener('keydown', handleTableBackspace, true);
     root.removeEventListener('focusin', handleRootFocusIn);
     root.removeEventListener('contextmenu', handleRootContextMenu, true);
     document.removeEventListener('pointerdown', handleDocumentPointerDown, true);
