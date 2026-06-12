@@ -8,7 +8,6 @@ import {
   fetchLikeCount,
   hasUserLiked,
   likeComment,
-  syncCommentLikeCount,
   unlikeComment,
 } from '../../../services/comments';
 import { AuthContext } from '../../../context/AuthContext';
@@ -25,20 +24,12 @@ const getUserLikeCacheKey = (category, postId, commentId, uid) =>
 const resolveLikeCount = async (raw, category, postId) => {
   const cacheKey = getCommentCacheKey(category, postId, raw.id);
 
-  if (typeof raw.likeCount === 'number') {
-    commentLikeCountCache.set(cacheKey, raw.likeCount);
-    return raw.likeCount;
-  }
-
   if (commentLikeCountCache.has(cacheKey)) {
     return commentLikeCountCache.get(cacheKey);
   }
 
   const count = await fetchLikeCount({ category, postId, commentId: raw.id }).catch(() => 0);
   commentLikeCountCache.set(cacheKey, count);
-  if (typeof raw.likeCount !== 'number') {
-    void syncCommentLikeCount({ category, postId, commentId: raw.id, likeCount: count }).catch(() => {});
-  }
   return count;
 };
 

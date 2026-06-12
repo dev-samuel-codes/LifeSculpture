@@ -4,7 +4,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { storage } from '../../../firebase/firebase';
 import { convertHeicToJpeg } from './media';
 
-const MAX_UPLOAD_MB = 15;
+const MAX_UPLOAD_MB = 5;
 const TARGET_SIZE_KB = 100;
 const MAX_DIMENSION = 2560;
 const MIN_DIMENSION = 64;
@@ -33,7 +33,7 @@ const isSvgFile = (file) =>
   file?.type === 'image/svg+xml' || /\.svg$/i.test(file?.name || '');
 const isHeicFile = (file) =>
   /image\/(heic|heif)/i.test(file?.type || '') || /\.(heic|heif)$/i.test(file?.name || '');
-const hasImageExtension = (name) => /\.(jpe?g|png|webp|gif|svg|heic|heif)$/i.test(name || '');
+const hasImageExtension = (name) => /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(name || '');
 const isImageCandidate = (file) =>
   file?.type?.startsWith('image/') || hasImageExtension(file?.name) || isHeicFile(file);
 
@@ -54,7 +54,6 @@ const getExtensionForType = (type) => {
   if (type === 'image/webp') return 'webp';
   if (type === 'image/png') return 'png';
   if (type === 'image/gif') return 'gif';
-  if (type === 'image/svg+xml') return 'svg';
   return 'jpg';
 };
 const buildStoragePath = ({ category, postId, fileName }) => {
@@ -217,6 +216,10 @@ export const handleImageUpload = async (file, { category, postId } = {}) => {
     alert('이미지 파일만 업로드할 수 있어요.');
     return null;
   }
+  if (isSvgFile(file)) {
+    alert('SVG 이미지는 보안상 업로드할 수 없어요. PNG, JPG, WebP, GIF를 사용해주세요.');
+    return null;
+  }
   if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
     console.error('[handleImageUpload] file too large:', file.size);
     alert(`이미지 용량이 큽니다. 최대 ${MAX_UPLOAD_MB}MB까지 업로드할 수 있어요.`);
@@ -231,10 +234,10 @@ export const handleImageUpload = async (file, { category, postId } = {}) => {
       normalizedFile = await convertHeicToJpeg(file);
     }
 
-    const isConvertible = !isGifFile(normalizedFile) && !isSvgFile(normalizedFile);
+    const isConvertible = !isGifFile(normalizedFile);
     if (!isConvertible) {
       if (normalizedFile.size > targetBytes) {
-        alert('GIF/SVG 이미지는 100KB 이하만 업로드할 수 있어요.');
+        alert('GIF 이미지는 100KB 이하만 업로드할 수 있어요.');
         return null;
       }
 

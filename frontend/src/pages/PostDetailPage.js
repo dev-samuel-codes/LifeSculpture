@@ -8,6 +8,7 @@ import LoginRequiredPopup from '../components/auth/LoginRequiredPopup';
 import LikeButton from '../components/posts/LikeButton';
 import { formatDateOnly } from '../utils/date';
 import { extractImageUrls } from '../components/text-editor/utils/media';
+import { sanitizeHtml } from '../components/text-editor/utils/content';
 import { setupResponsiveImageSizing } from '../components/text-editor/utils/imageSizing';
 import { getContentStyleCssVariables } from '../components/text-editor/utils/contentStyleSettings';
 import { applyContentTableSettingsToRoot } from '../components/text-editor/utils/contentTableSettings';
@@ -247,7 +248,7 @@ function PostDetailPage() {
       return;
     }
 
-    const { html, toc } = buildContentWithToc(post.content);
+    const { html, toc } = buildContentWithToc(sanitizeHtml(post.content));
     setRenderedContent(html);
     setTocItems(toc);
   }, [post?.content]);
@@ -357,7 +358,7 @@ function PostDetailPage() {
 
     try {
       const nextLikedState = !isLiked;
-      const newLikeCount = nextLikedState ? likeCount + 1 : likeCount - 1;
+      const newLikeCount = nextLikedState ? likeCount + 1 : Math.max(likeCount - 1, 0);
       await setPostLike({ category, id, uid, like: nextLikedState });
       setIsLiked(nextLikedState);
       setLikeCount(newLikeCount);
@@ -482,7 +483,7 @@ function PostDetailPage() {
         <section
           className="post-content rich-text"
           style={contentStyleVariables}
-          dangerouslySetInnerHTML={{ __html: renderedContent || post.content }}
+          dangerouslySetInnerHTML={{ __html: renderedContent || sanitizeHtml(post.content) }}
         />
 
         <CommentsSection category={category} postId={id} />

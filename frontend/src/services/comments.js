@@ -4,14 +4,12 @@ import {
   getDoc,
   getDocs,
   getCountFromServer,
-  increment,
   limit as limitQuery,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
   startAfter,
-  updateDoc,
   where,
   deleteDoc,
 } from 'firebase/firestore';
@@ -90,8 +88,6 @@ export async function createComment({
     authorPhoto: authorPhoto ?? null,
     content,
     parentId: parentId ?? null,
-    likeCount: 0,
-    replyCount: 0,
     createdAt: timestamp,
     updatedAt: timestamp,
   });
@@ -107,17 +103,6 @@ export async function fetchLikeCount({ category, postId, commentId }) {
   return agg.data().count ?? 0;
 }
 
-export async function syncCommentLikeCount({
-  category,
-  postId,
-  commentId,
-  likeCount,
-}) {
-  await updateDoc(commentDoc(category, postId, commentId), {
-    likeCount,
-  });
-}
-
 export async function hasUserLiked({
   category,
   postId,
@@ -130,23 +115,13 @@ export async function hasUserLiked({
 }
 
 export async function likeComment({ category, postId, commentId, uid }) {
-  await Promise.all([
-    setDoc(likeDoc(category, postId, commentId, uid), {
-      createdAt: serverTimestamp(),
-    }),
-    updateDoc(commentDoc(category, postId, commentId), {
-      likeCount: increment(1),
-    }),
-  ]);
+  await setDoc(likeDoc(category, postId, commentId, uid), {
+    createdAt: serverTimestamp(),
+  });
 }
 
 export async function unlikeComment({ category, postId, commentId, uid }) {
-  await Promise.all([
-    deleteDoc(likeDoc(category, postId, commentId, uid)),
-    updateDoc(commentDoc(category, postId, commentId), {
-      likeCount: increment(-1),
-    }),
-  ]);
+  await deleteDoc(likeDoc(category, postId, commentId, uid));
 }
 
 export async function deleteCommentTree({ category, postId, commentId }) {

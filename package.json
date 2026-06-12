@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test:rules",
+    "test:rules": "bash scripts/run-rules-tests.sh",
     "start": "concurrently \"npm start --prefix frontend\" \"npm run start-backend\"",
     "start-backend": "cd server && node index.js",
     "build": "npm run build --prefix frontend"
@@ -13,7 +14,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^9.2.0"
-  },
-  "dependencies": {}
+    "@firebase/rules-unit-testing": "^5.0.1",
+    "concurrently": "^9.2.0",
+    "firebase": "^12.14.0",
+    "firebase-tools": "^15.20.0",
+    "jest": "^30.4.2"
+  }
 }

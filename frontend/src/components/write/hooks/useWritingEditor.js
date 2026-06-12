@@ -11,6 +11,7 @@ import { replacePendingImages } from '../../text-editor/utils/pendingImages';
 import {
   calculateContentSize,
   sanitizeContent,
+  sanitizeHtml,
 } from '../../text-editor/utils/content';
 import { getResponsiveEditorHeight } from '../../text-editor/utils/layout';
 import {
@@ -294,11 +295,12 @@ const useWritingEditor = () => {
         const normalizedTableSettings = hasContentTableSettings(nextTableSettings)
           ? normalizeContentTableSettings(nextTableSettings)
           : null;
-        const finalContent = await uploadPendingImages({
+        const uploadedContent = await uploadPendingImages({
           category,
           postId: docRef.id,
           sourceContent: editorContent,
         });
+        const finalContent = sanitizeHtml(uploadedContent);
         const nextTags = mergePostTags(tags, extractHashtagsFromContent(finalContent));
         const normalizedStyleSettings = hasContentStyleSettings(contentStyleSettings)
           ? normalizeContentStyleSettings(contentStyleSettings)

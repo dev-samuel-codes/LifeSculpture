@@ -23,9 +23,11 @@ service cloud.firestore {
     // Allow legacy like fields (kept for backward compatibility)
     function isLegacyLikeUpdate() {
       return request.auth != null &&
-             (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) ||
-              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']) ||
-              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']));
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
+             (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['likeCount']) ||
+              (request.resource.data.likeCount is int && request.resource.data.likeCount >= 0)) &&
+             (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['likedBy']) ||
+              request.resource.data.likedBy is list);
     }
 
     function isValidParent(cat, postId) {
