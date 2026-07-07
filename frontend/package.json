@@ -28,6 +28,7 @@
   },
   "scripts": {
     "start": "dotenv -e .env -- react-scripts start",
+    "prebuild": "node scripts/validate-build-env.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
