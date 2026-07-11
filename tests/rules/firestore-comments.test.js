@@ -67,6 +67,15 @@ beforeEach(async () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    await db.doc('blog/private-post/comments/private-comment').set({
+      authorId: 'user-a',
+      authorName: 'User A',
+      authorPhoto: null,
+      content: 'private comment',
+      parentId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
   });
 });
 
@@ -74,13 +83,13 @@ afterAll(async () => {
   await testEnv.cleanup();
 });
 
-test('signed-in user can create a comment without client counters', async () => {
+test('signed-in user can create an anonymous comment without client counters', async () => {
   const db = testEnv.authenticatedContext('user-a', { name: 'User A' }).firestore();
   const commentRef = db.doc('blog/post-a/comments/comment-new');
 
   await assertSucceeds(commentRef.set({
     authorId: 'user-a',
-    authorName: 'User A',
+    authorName: null,
     authorPhoto: null,
     content: 'hello',
     parentId: null,
@@ -90,11 +99,11 @@ test('signed-in user can create a comment without client counters', async () => 
 });
 
 test('signed-in user cannot spoof comment display identity', async () => {
-  // Given: the authenticated token contains the user's trusted display name.
+  // Given: the authenticated token contains a user-controlled display name.
   const db = testEnv.authenticatedContext('user-a', { name: 'User A' }).firestore();
   const commentRef = db.doc('blog/post-a/comments/comment-spoofed');
 
-  // When: the caller writes a different display name.
+  // When: the caller tries to persist a privileged-looking display name.
   const createSpoofedComment = commentRef.set({
     authorId: 'user-a',
     authorName: '관리자',
@@ -117,7 +126,7 @@ test('signed-in user cannot forge comment timestamps', async () => {
   // When: the caller supplies timestamps instead of the server timestamp.
   const createFutureComment = commentRef.set({
     authorId: 'user-a',
-    authorName: 'User A',
+    authorName: null,
     authorPhoto: null,
     content: 'hello',
     parentId: null,
@@ -135,7 +144,7 @@ test('signed-in user cannot create a comment with likeCount or replyCount', asyn
 
   await assertFails(commentRef.set({
     authorId: 'user-a',
-    authorName: 'User A',
+    authorName: null,
     authorPhoto: null,
     content: 'hello',
     parentId: null,
@@ -190,6 +199,23 @@ test('unauthenticated user can read only public posts and indexes', async () => 
   await assertFails(readPrivateIndex);
 });
 
+test('unauthenticated post index query returns only public posts', async () => {
+  // Given: public and private index documents exist in the same collection.
+  const db = testEnv.unauthenticatedContext().firestore();
+
+  // When: the caller uses the visibility-constrained query used by the post list.
+  const snapshot = await assertSucceeds(
+    db
+      .collection('post_index/blog/posts')
+      .where('isPublic', '==', true)
+      .orderBy('createdAt', 'desc')
+      .get(),
+  );
+
+  // Then: the query succeeds without returning the private index document.
+  expect(snapshot.docs.map((document) => document.id)).toEqual(['post-a']);
+});
+
 test('admin can read private posts and indexes', async () => {
   // Given: the caller has the stored admin role.
   const db = testEnv.authenticatedContext('admin-uid').firestore();
@@ -201,6 +227,28 @@ test('admin can read private posts and indexes', async () => {
   // Then: both reads remain available to the administrator.
   await assertSucceeds(readPrivatePost);
   await assertSucceeds(readPrivateIndex);
+});
+
+test('unauthenticated user cannot read comments under a private post', async () => {
+  // Given: a comment belongs to a private post.
+  const db = testEnv.unauthenticatedContext().firestore();
+
+  // When: an unauthenticated caller reads the nested comment directly.
+  const readPrivateComment = db.doc('blog/private-post/comments/private-comment').get();
+
+  // Then: the nested content is denied with its parent post.
+  await assertFails(readPrivateComment);
+});
+
+test('admin can read comments under a private post', async () => {
+  // Given: the caller has the stored admin role.
+  const db = testEnv.authenticatedContext('admin-uid').firestore();
+
+  // When: the administrator reads a nested private comment.
+  const readPrivateComment = db.doc('blog/private-post/comments/private-comment').get();
+
+  // Then: administrative access remains available.
+  await assertSucceeds(readPrivateComment);
 });
 
 test('unauthenticated user cannot increment post viewCount', async () => {

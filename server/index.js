@@ -8,12 +8,12 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const cors = require('cors');
 const admin = require('firebase-admin');
+const { resolveUserRole } = require('./authz');
 
 const REQUIRED_ENV_KEYS = [
   'SERVICE_ACCOUNT_KEY_PATH',
   'JWT_SECRET_KEY',
   'GOOGLE_CLIENT_ID_BACKEND',
-  'ADMIN_EMAIL',
 ];
 
 const missingEnv = REQUIRED_ENV_KEYS.filter((key) => !process.env[key]);
@@ -44,7 +44,6 @@ const app = express();
 const port = Number(process.env.PORT || 5000);
 const SECRET_KEY = process.env.JWT_SECRET_KEY;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID_BACKEND;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
@@ -175,23 +174,6 @@ const extractBearerToken = (authorizationHeader) => {
   return token;
 };
 
-const resolveUserRole = async ({ uid, email }) => {
-  if (email === ADMIN_EMAIL) {
-    return 'admin';
-  }
-
-  try {
-    const snap = await dbAdmin.collection('users').doc(uid).get();
-    if (!snap.exists) {
-      return null;
-    }
-    return snap.data()?.role ?? null;
-  } catch (error) {
-    console.error('[auth] 사용자 역할 조회 실패:', error);
-    return null;
-  }
-};
-
 const requireAdmin = async (req, res, next) => {
   try {
     const token = extractBearerToken(req.headers.authorization);
@@ -201,7 +183,7 @@ const requireAdmin = async (req, res, next) => {
     }
 
     const decoded = await admin.auth().verifyIdToken(token);
-    const role = await resolveUserRole({ uid: decoded.uid, email: decoded.email });
+    const role = await resolveUserRole(dbAdmin, decoded.uid);
 
     if (role !== 'admin') {
       res.status(403).json({ message: 'Admin role required' });
@@ -305,7 +287,7 @@ app.post('/auth/firebase', async (req, res) => {
     const email = decodedToken.email;
     const name = decodedToken.name || email;
     const picture = decodedToken.picture || null;
-    const role = email === ADMIN_EMAIL ? 'admin' : 'user';
+    const role = await resolveUserRole(dbAdmin, uid);
 
     const appToken = jwt.sign({ uid, email, name, picture, role }, SECRET_KEY, {
       expiresIn: '1h',
@@ -337,7 +319,7 @@ app.post('/auth/google', async (req, res) => {
     const email = payload.email;
     const name = payload.name;
     const picture = payload.picture;
-    const role = email === ADMIN_EMAIL ? 'admin' : 'user';
+    const role = await resolveUserRole(dbAdmin, uid);
 
     const token = jwt.sign({ uid, email, name, picture, role }, SECRET_KEY, {
       expiresIn: '1h',

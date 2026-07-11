@@ -46,3 +46,22 @@ test('does not derive admin role from an email address', async () => {
   // Then: the email value cannot elevate the caller.
   assert.equal(role, 'user');
 });
+
+test('rejects when the trusted role store is unavailable', async () => {
+  // Given: the trusted role lookup fails before returning a snapshot.
+  const firestore = {
+    collection: () => ({
+      doc: () => ({
+        get: async () => {
+          throw new Error('role store unavailable');
+        },
+      }),
+    }),
+  };
+
+  // When: the application resolves authorization during the outage.
+  const lookup = resolveUserRole(firestore, 'admin-user');
+
+  // Then: authentication fails closed instead of persisting a downgraded role.
+  await assert.rejects(lookup, /role store unavailable/);
+});

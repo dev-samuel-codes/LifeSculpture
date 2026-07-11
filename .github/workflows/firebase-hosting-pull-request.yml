@@ -26,6 +26,7 @@ jobs:
           java-version: '21'
       - run: npm ci
       - run: npm run test:rules
+      - run: npm run test:server
       - run: npm ci --prefix frontend
       - run: npm test --prefix frontend -- --watchAll=false
       - run: npm run test:env --prefix frontend

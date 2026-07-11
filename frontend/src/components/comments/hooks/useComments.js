@@ -11,7 +11,6 @@ import {
   unlikeComment,
 } from '../../../services/comments';
 import { AuthContext } from '../../../context/AuthContext';
-import { ANONYMOUS_NAME } from '../utils';
 
 const commentLikeCountCache = new Map();
 const commentLikedByCache = new Map();
@@ -76,8 +75,8 @@ const useComments = ({ category, postId }) => {
     () => ({
       isAuthenticated: auth?.isAuthenticated ?? false,
       uid: auth?.uid ?? null,
-      name: auth?.userName ?? null,
-      photo: auth?.userPicture ?? null,
+      name: auth?.role === 'admin' ? auth?.userName ?? null : null,
+      photo: auth?.role === 'admin' ? auth?.userPicture ?? null : null,
       role: auth?.role ?? null,
     }),
     [auth?.isAuthenticated, auth?.role, auth?.uid, auth?.userName, auth?.userPicture],

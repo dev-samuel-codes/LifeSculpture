@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:rules && npm run test:env",
+    "test": "npm run test:rules && npm run test:server && npm run test:env",
     "test:rules": "bash scripts/run-rules-tests.sh",
+    "test:server": "npm test --prefix server",
     "test:env": "npm run test:env --prefix frontend",
     "test:hosting": "firebase emulators:exec --only hosting --project demo-lifesculpture \"node --test tests/hosting/cache-headers.test.js\"",
     "start": "concurrently \"npm start --prefix frontend\" \"npm run start-backend\"",

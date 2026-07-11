@@ -18,13 +18,18 @@ service cloud.firestore {
       return resource.data.isPublic == true;
     }
 
+    function isPublicPostAt(cat, postId) {
+      let postPath = /databases/$(database)/documents/$(cat)/$(postId);
+      return exists(postPath) && get(postPath).data.isPublic == true;
+    }
+
+    function canReadPostAt(cat, postId) {
+      return isPublicPostAt(cat, postId) || isAdmin();
+    }
+
     function hasMatchingCommentIdentity() {
-      let hasName = request.auth.token.keys().hasAny(['name']);
-      let hasPicture = request.auth.token.keys().hasAny(['picture']);
-      return ((hasName && request.resource.data.authorName == request.auth.token.name) ||
-              (!hasName && request.resource.data.authorName == null)) &&
-             ((hasPicture && request.resource.data.authorPhoto == request.auth.token.picture) ||
-              (!hasPicture && request.resource.data.authorPhoto == null));
+      return request.resource.data.authorName == null &&
+             request.resource.data.authorPhoto == null;
     }
 
     // Allow legacy like fields (kept for backward compatibility)
@@ -114,24 +119,31 @@ service cloud.firestore {
       allow update: if isLegacyLikeUpdate();
 
       match /comments/{commentId} {
-        allow read: if true;
+        allow read: if canReadPostAt("blog", postId);
         allow create: if isAdmin() ||
-                       (isSignedIn() &&
+                       (isPublicPostAt("blog", postId) &&
+                        isSignedIn() &&
                         request.resource.data.authorId == request.auth.uid &&
                         isValidCommentCreate("blog", postId));
-        allow update: if (isSignedIn() &&
+        allow update: if (isPublicPostAt("blog", postId) &&
+                         isSignedIn() &&
                          resource.data.authorId == request.auth.uid &&
                          isValidCommentUpdate("blog", postId)) || isAdmin();
-        allow delete: if canDeleteComment("blog", postId) || isAdmin();
+        allow delete: if (isPublicPostAt("blog", postId) &&
+                          canDeleteComment("blog", postId)) || isAdmin();
 
         match /likes/{likeUid} {
-          allow read: if true;
+          allow read: if canReadPostAt("blog", postId);
           allow create: if isAdmin() ||
-                         (isSignedIn() &&
+                         (isPublicPostAt("blog", postId) &&
+                          isSignedIn() &&
                           likeUid == request.auth.uid &&
                           request.resource.data.keys().hasOnly(['createdAt']) &&
                           request.resource.data.createdAt == request.time);
-          allow delete: if isSignedIn() && likeUid == request.auth.uid;
+          allow delete: if isAdmin() ||
+                         (isPublicPostAt("blog", postId) &&
+                          isSignedIn() &&
+                          likeUid == request.auth.uid);
           allow update: if false;
         }
       }
@@ -143,24 +155,31 @@ service cloud.firestore {
       allow update: if isLegacyLikeUpdate();
 
       match /comments/{commentId} {
-        allow read: if true;
+        allow read: if canReadPostAt("study", postId);
         allow create: if isAdmin() ||
-                       (isSignedIn() &&
+                       (isPublicPostAt("study", postId) &&
+                        isSignedIn() &&
                         request.resource.data.authorId == request.auth.uid &&
                         isValidCommentCreate("study", postId));
-        allow update: if (isSignedIn() &&
+        allow update: if (isPublicPostAt("study", postId) &&
+                         isSignedIn() &&
                          resource.data.authorId == request.auth.uid &&
                          isValidCommentUpdate("study", postId)) || isAdmin();
-        allow delete: if canDeleteComment("study", postId) || isAdmin();
+        allow delete: if (isPublicPostAt("study", postId) &&
+                          canDeleteComment("study", postId)) || isAdmin();
 
         match /likes/{likeUid} {
-          allow read: if true;
+          allow read: if canReadPostAt("study", postId);
           allow create: if isAdmin() ||
-                         (isSignedIn() &&
+                         (isPublicPostAt("study", postId) &&
+                          isSignedIn() &&
                           likeUid == request.auth.uid &&
                           request.resource.data.keys().hasOnly(['createdAt']) &&
                           request.resource.data.createdAt == request.time);
-          allow delete: if isSignedIn() && likeUid == request.auth.uid;
+          allow delete: if isAdmin() ||
+                         (isPublicPostAt("study", postId) &&
+                          isSignedIn() &&
+                          likeUid == request.auth.uid);
           allow update: if false;
         }
       }

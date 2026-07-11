@@ -1,5 +1,5 @@
 // PostDetailPage.js
-import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { storage } from '../firebase/firebase';
 import { AuthContext } from '../context/AuthContext';
