@@ -1,45 +1,27 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import HomeContentCards from '../components/home/HomeContentCards';
-import useStorageImage from '../hooks/useStorageImage';
+import mainBackgroundImage from '../assets/MainBackgroundImage.png';
+import aiImage from '../assets/ai.jpg';
+import codingImage from '../assets/coding.jpg';
+import tipImage from '../assets/tip.jpg';
+import travelImage from '../assets/travel.webp';
 import '../style/pages/home/Home.css';
 
 const CARD_CONFIG = [
-  { key: 'coding', link: '/study', title: '웹, 앱 개발' },
-  { key: 'ai', link: '/study', title: 'AI' },
-  { key: 'travel', link: '/blog', title: '여행' },
-  { key: 'tip', link: '/blog', title: '팁' },
+  { key: 'coding', image: codingImage, link: '/study', title: '웹, 앱 개발' },
+  { key: 'ai', image: aiImage, link: '/study', title: 'AI' },
+  { key: 'travel', image: travelImage, link: '/blog', title: '여행' },
+  { key: 'tip', image: tipImage, link: '/blog', title: '팁' },
 ];
 
 function HomePage() {
-  const mainBackground = useStorageImage('image/MainBackgroundImage.png');
-  const codingImage = useStorageImage('image/coding.jpg');
-  const aiImage = useStorageImage('image/ai.jpg');
-  const travelImage = useStorageImage('image/travel.jpg');
-  const tipImage = useStorageImage('image/tip.jpg');
-
-  const cards = useMemo(() => {
-    const imageMap = {
-      coding: codingImage,
-      ai: aiImage,
-      travel: travelImage,
-      tip: tipImage,
-    };
-    return CARD_CONFIG.map((config) => ({
-      ...config,
-      image: imageMap[config.key],
-    }));
-  }, [codingImage, aiImage, travelImage, tipImage]);
-
-  const mainSectionStyle = mainBackground.url
-    ? { backgroundImage: `url(${mainBackground.url})` }
-    : undefined;
+  const mainSectionStyle = { backgroundImage: `url(${mainBackgroundImage})` };
 
   return (
     <div>
       <div
         className="main-section1"
         style={mainSectionStyle}
-        data-loading={mainBackground.loading || !mainBackground.url}
       >
         <h2>Every Day, A New Page</h2>
       </div>
@@ -47,7 +29,7 @@ function HomePage() {
       <div className="main-section2">
         <div className="main-section2-title">Contents</div>
 
-        <HomeContentCards cards={cards} />
+        <HomeContentCards cards={CARD_CONFIG} />
       </div>
     </div>
   );

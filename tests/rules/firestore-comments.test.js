@@ -10,6 +10,7 @@ let testEnv;
 
 const timestamp = () => firebase.firestore.FieldValue.serverTimestamp();
 const increment = (value) => firebase.firestore.FieldValue.increment(value);
+const arrayUnion = (value) => firebase.firestore.FieldValue.arrayUnion(value);
 
 beforeAll(async () => {
   testEnv = await createRulesTestEnv();
@@ -25,6 +26,14 @@ beforeEach(async () => {
       likeCount: 0,
       likedBy: [],
       isPublic: true,
+    });
+    await db.doc('users/admin-uid').set({
+      email: 'admin@example.invalid',
+      role: 'admin',
+    });
+    await db.doc('users/user-a').set({
+      email: 'user@example.invalid',
+      role: 'user',
     });
     await db.doc('blog/post-a/comments/comment-a').set({
       authorId: 'user-a',
@@ -101,4 +110,56 @@ test('post like legacy update cannot make likeCount negative', async () => {
   const postRef = db.doc('blog/post-a');
 
   await assertFails(postRef.update({ likeCount: -1 }));
+});
+
+test('unauthenticated user cannot read user profiles', async () => {
+  // Given: a user profile exists in Firestore.
+  const db = testEnv.unauthenticatedContext().firestore();
+
+  // When: an unauthenticated client reads that profile.
+  const readProfile = db.doc('users/user-a').get();
+
+  // Then: the read is denied.
+  await assertFails(readProfile);
+});
+
+test('admin can read user profiles', async () => {
+  // Given: the caller has the admin role.
+  const db = testEnv.authenticatedContext('admin-uid').firestore();
+
+  // When: the admin reads a user profile.
+  const readProfile = db.doc('users/user-a').get();
+
+  // Then: the read succeeds.
+  await assertSucceeds(readProfile);
+});
+
+test('signed-in user can add only their own post like', async () => {
+  // Given: a signed-in user and an unliked post.
+  const db = testEnv.authenticatedContext('user-a').firestore();
+  const postRef = db.doc('blog/post-a');
+
+  // When: the user adds their own uid and increments the count once.
+  const addOwnLike = postRef.update({
+    likeCount: increment(1),
+    likedBy: arrayUnion('user-a'),
+  });
+
+  // Then: the update succeeds.
+  await assertSucceeds(addOwnLike);
+});
+
+test('signed-in user cannot overwrite post likes with arbitrary values', async () => {
+  // Given: a signed-in user and an existing post.
+  const db = testEnv.authenticatedContext('user-a').firestore();
+  const postRef = db.doc('blog/post-a');
+
+  // When: the user impersonates another uid and replaces the count.
+  const overwriteLikes = postRef.update({
+    likeCount: 999999,
+    likedBy: ['user-a', 'victim'],
+  });
+
+  // Then: the update is denied.
+  await assertFails(overwriteLikes);
 });

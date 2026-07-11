@@ -22,12 +22,28 @@ service cloud.firestore {
 
     // Allow legacy like fields (kept for backward compatibility)
     function isLegacyLikeUpdate() {
+      let previousLikes = resource.data.likedBy.toSet();
+      let nextLikes = request.resource.data.likedBy.toSet();
+      let addedLikes = nextLikes.difference(previousLikes);
+      let removedLikes = previousLikes.difference(nextLikes);
       return request.auth != null &&
              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
-             (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['likeCount']) ||
-              (request.resource.data.likeCount is int && request.resource.data.likeCount >= 0)) &&
-             (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['likedBy']) ||
-              request.resource.data.likedBy is list);
+             resource.data.likeCount is int &&
+             resource.data.likedBy is list &&
+             request.resource.data.likeCount is int &&
+             request.resource.data.likeCount >= 0 &&
+             request.resource.data.likedBy is list &&
+             request.resource.data.likedBy.size() == nextLikes.size() &&
+             ((request.resource.data.likeCount == resource.data.likeCount + 1 &&
+               !previousLikes.hasAny([request.auth.uid]) &&
+               addedLikes.size() == 1 &&
+               addedLikes.hasOnly([request.auth.uid]) &&
+               removedLikes.size() == 0) ||
+              (request.resource.data.likeCount == resource.data.likeCount - 1 &&
+               previousLikes.hasAny([request.auth.uid]) &&
+               addedLikes.size() == 0 &&
+               removedLikes.size() == 1 &&
+               removedLikes.hasOnly([request.auth.uid])));
     }
 
     function isValidParent(cat, postId) {
@@ -152,35 +168,6 @@ service cloud.firestore {
     match /post_filters/{category} {
       allow read: if true;
       allow write: if isAdmin();
-    }
-
-    match /{cat}/{postId} {
-      allow read: if true;
-
-      match /comments/{commentId} {
-        allow read: if true;
-        allow create: if cat != "users" &&
-                       (isAdmin() ||
-                        (isSignedIn() &&
-                         request.resource.data.authorId == request.auth.uid &&
-                         isValidCommentCreate(cat, postId)));
-        allow update: if cat != "users" &&
-                       ((isSignedIn() &&
-                         resource.data.authorId == request.auth.uid &&
-                         isValidCommentUpdate(cat, postId)) || isAdmin());
-        allow delete: if cat != "users" && (canDeleteComment(cat, postId) || isAdmin());
-
-        match /likes/{likeUid} {
-          allow read: if true;
-          allow create: if isAdmin() ||
-                         (isSignedIn() &&
-                          likeUid == request.auth.uid &&
-                          request.resource.data.keys().hasOnly(['createdAt']) &&
-                          request.resource.data.createdAt == request.time);
-          allow delete: if isSignedIn() && likeUid == request.auth.uid;
-          allow update: if false;
-        }
-      }
     }
 
     match /{document=**} {

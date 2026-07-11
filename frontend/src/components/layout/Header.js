@@ -5,7 +5,7 @@ import GoogleLoginButton from '../auth/GoogleLoginButton';
 import { AuthContext } from '../../context/AuthContext';
 import '../../style/components/layout/Headerbar.css';
 import LazyImage from '../media/LazyImage';
-import useStorageImage from '../../hooks/useStorageImage';
+import defaultProfileImage from '../../assets/download.png';
 import ThemeToggleButton from '../auth/ThemeToggleButton';
 
 const Header = () => {
@@ -13,9 +13,7 @@ const Header = () => {
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const { isAuthenticated, role, userName, userEmail, userPicture, logout } = useContext(AuthContext);
 
-  const defaultProfileImage = useStorageImage('image/download.png');
-  const profileImageSrc = userPicture || defaultProfileImage.url;
-  const profileImageLoading = !userPicture && (defaultProfileImage.loading || !defaultProfileImage.url);
+  const profileImageSrc = userPicture || defaultProfileImage;
   const profileImageAlt = isAuthenticated && userPicture ? 'Profile' : 'Default Profile';
 
   const profileRef = useRef(null);
@@ -114,7 +112,6 @@ const Header = () => {
                   src={profileImageSrc}
                   alt={profileImageAlt}
                   className="profile-pic"
-                  data-loading={profileImageLoading}
                 />
               </span>
 
@@ -160,7 +157,6 @@ const Header = () => {
                     src={profileImageSrc}
                     alt={profileImageAlt}
                     className="profile-pic"
-                    data-loading={profileImageLoading}
                   />
                   <div>
                     <p className="mobile-profile-name">

@@ -10,9 +10,8 @@ function HomeContentCards({ cards }) {
       {cards.map(({ key, image, link, title }) => (
         <LazyBackgroundImage
           key={key}
-          src={image.url}
+          src={image}
           className="main-card"
-          data-loading={image.loading || !image.url}
         >
           <Link to={link} style={linkStyle}>
             <div className="main-card-overlay"></div>
