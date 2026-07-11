@@ -76,7 +76,7 @@ const useComments = ({ category, postId }) => {
     () => ({
       isAuthenticated: auth?.isAuthenticated ?? false,
       uid: auth?.uid ?? null,
-      name: auth?.userName || ANONYMOUS_NAME,
+      name: auth?.userName ?? null,
       photo: auth?.userPicture ?? null,
       role: auth?.role ?? null,
     }),

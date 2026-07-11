@@ -16,7 +16,6 @@ import { deleteStorageImages } from '../utils/storage';
 import {
   deletePost as removePost,
   getPost,
-  incrementPostView,
   setPostLike,
   setPostVisibility,
 } from '../services/posts';
@@ -170,7 +169,6 @@ function PostDetailPage() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [renderedContent, setRenderedContent] = useState('');
   const [tocItems, setTocItems] = useState([]);
-  const viewCountIncremented = useRef(false);
 
   const isAdmin = role === 'admin';
   const contentStyleVariables = useMemo(
@@ -218,28 +216,6 @@ function PostDetailPage() {
     navigate(location.pathname, { replace: true, state: {} });
     window.location.reload();
   }, [location, navigate]);
-
-  useEffect(() => {
-    if (!post || !post.id || isAdmin || viewCountIncremented.current) return;
-
-    const incrementViewCount = async () => {
-      try {
-        await incrementPostView({ category, id });
-        setPost((prev) => ({
-          ...prev,
-          viewCount: (prev?.viewCount || 0) + 1,
-        }));
-      } catch (err) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn('조회수 증가에 실패했습니다:', err);
-        }
-      } finally {
-        viewCountIncremented.current = true;
-      }
-    };
-
-    incrementViewCount();
-  }, [post, category, id, isAdmin]);
 
   useEffect(() => {
     if (!post?.content) {

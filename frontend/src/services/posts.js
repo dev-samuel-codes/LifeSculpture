@@ -12,6 +12,7 @@ import {
   query,
   startAfter,
   updateDoc,
+  where,
   writeBatch,
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/firebase';
@@ -258,11 +259,16 @@ const toPlainPost = (snap) => {
 
 export async function listPostsPage({
   category,
+  includePrivate = false,
   order = 'desc',
   limit = 24,
   cursor = null,
 }) {
-  const constraints = [orderBy('createdAt', order === 'asc' ? 'asc' : 'desc'), limitQuery(limit)];
+  const constraints = [];
+  if (!includePrivate) {
+    constraints.push(where('isPublic', '==', true));
+  }
+  constraints.push(orderBy('createdAt', order === 'asc' ? 'asc' : 'desc'), limitQuery(limit));
   if (cursor) {
     constraints.push(startAfter(cursor));
   }
@@ -343,13 +349,6 @@ export async function movePostCategory({
   }
 
   return payload;
-}
-
-export async function incrementPostView({ category, id }) {
-  await updateDoc(docRef(category, id), {
-    viewCount: increment(1),
-  });
-  await safeUpdateIndex(category, id, { viewCount: increment(1) });
 }
 
 export async function setPostVisibility({ category, id, isPublic }) {

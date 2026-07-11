@@ -7,8 +7,10 @@ const FETCH_BATCH_SIZE = 24;
 const POST_LIST_CACHE_TTL = 60 * 1000;
 
 const postListCache = new Map();
-const getCacheKey = (collectionName) => collectionName || 'default';
-const readCache = (collectionName) => postListCache.get(getCacheKey(collectionName));
+const getCacheKey = (collectionName, includePrivate = false) =>
+  (collectionName || 'default') + ':' + (includePrivate ? 'all' : 'public');
+const readCache = (collectionName, includePrivate) =>
+  postListCache.get(getCacheKey(collectionName, includePrivate));
 
 export const invalidatePostListCache = (collectionNames = []) => {
   if (!Array.isArray(collectionNames) || collectionNames.length === 0) {
@@ -17,7 +19,8 @@ export const invalidatePostListCache = (collectionNames = []) => {
   }
 
   collectionNames.forEach((collectionName) => {
-    postListCache.delete(getCacheKey(collectionName));
+    postListCache.delete(getCacheKey(collectionName, false));
+    postListCache.delete(getCacheKey(collectionName, true));
   });
 };
 
@@ -31,7 +34,8 @@ const norm = (value) =>
 const ensureArray = (value) => (Array.isArray(value) ? value : []);
 
 function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS_PER_PAGE_DEFAULT }) {
-  const initialCache = readCache(collectionName);
+  const includePrivate = role === 'admin';
+  const initialCache = readCache(collectionName, includePrivate);
   const [allPosts, setAllPosts] = useState(() => initialCache?.posts ?? []);
   const [loading, setLoading] = useState(() => !initialCache);
   const [error, setError] = useState(null);
@@ -50,7 +54,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
 
   const updateCache = useCallback(
     (posts, nextCursor, nextHasMore, fullyLoaded) => {
-      postListCache.set(getCacheKey(collectionName), {
+      postListCache.set(getCacheKey(collectionName, includePrivate), {
         posts,
         cursor: nextCursor,
         hasMore: nextHasMore,
@@ -58,7 +62,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
         timestamp: Date.now(),
       });
     },
-    [collectionName],
+    [collectionName, includePrivate],
   );
 
   const appendPosts = useCallback(
@@ -94,6 +98,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     try {
       const { posts, cursor: nextCursor, hasMore: nextHasMore } = await listPostsPage({
         category: collectionName,
+        includePrivate,
         limit: FETCH_BATCH_SIZE,
       });
       if (initialLoadRef.current === loadId) {
@@ -115,10 +120,10 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
         setLoading(false);
       }
     }
-  }, [collectionName, updateCache]);
+  }, [collectionName, includePrivate, updateCache]);
 
   useEffect(() => {
-    const cached = readCache(collectionName);
+    const cached = readCache(collectionName, includePrivate);
     if (cached) {
       setAllPosts(cached.posts);
       cursorRef.current = cached.cursor ?? null;
@@ -135,15 +140,15 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     setIsFullyLoaded(false);
     setLoading(true);
     setError(null);
-  }, [collectionName]);
+  }, [collectionName, includePrivate]);
 
   useEffect(() => {
-    const cached = readCache(collectionName);
+    const cached = readCache(collectionName, includePrivate);
     const isStale = !cached || Date.now() - cached.timestamp > POST_LIST_CACHE_TTL;
     if (isStale) {
       fetchInitialPosts({ silent: Boolean(cached) });
     }
-  }, [collectionName, fetchInitialPosts]);
+  }, [collectionName, fetchInitialPosts, includePrivate]);
 
   const fetchMorePosts = useCallback(async () => {
     const currentCursor = cursorRef.current;
@@ -158,6 +163,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     try {
       const { posts, cursor: nextCursor, hasMore: nextHasMore } = await listPostsPage({
         category: collectionName,
+        includePrivate,
         limit: FETCH_BATCH_SIZE,
         cursor: currentCursor,
       });
@@ -169,7 +175,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     } finally {
       setIsFetchingMore(false);
     }
-  }, [appendPosts, collectionName, hasMore, isFetchingMore]);
+  }, [appendPosts, collectionName, hasMore, includePrivate, isFetchingMore]);
 
   const fetchAllRemaining = useCallback(async () => {
     if (isFullyLoaded) return;

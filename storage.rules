@@ -14,6 +14,11 @@ service firebase.storage {
              && request.resource.contentType.matches('image/(jpeg|jpg|png|webp|gif)');
     }
 
+    function isPublicPost(category, postId) {
+      return firestore.exists(/databases/(default)/documents/$(category)/$(postId))
+             && firestore.get(/databases/(default)/documents/$(category)/$(postId)).data.isPublic == true;
+    }
+
     // Public image assets
     match /image/{file=**} {
       allow read: if true;
@@ -22,8 +27,7 @@ service firebase.storage {
 
     // 게시물 이미지 경로
     match /post-images/{category}/{postId}/{fileName} {
-      // 누구나 읽기 가능 (공개 이미지)
-      allow read: if true;
+      allow read: if isAdmin() || isPublicPost(category, postId);
 
       // 관리자만 업로드/삭제 가능하며 파일 타입과 용량은 Rules에서도 검증
       allow create, update: if isAdmin() && isAllowedPostImage();

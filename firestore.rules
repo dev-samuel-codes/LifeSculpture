@@ -14,10 +14,17 @@ service cloud.firestore {
       return path("/databases/$(database)/documents/" + cat + "/" + postId + "/comments/" + commentId);
     }
 
-    // Allow view-count increments without authentication
-    function isViewCountUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
-             request.resource.data.viewCount == resource.data.viewCount + 1;
+    function isPublicPost() {
+      return resource.data.isPublic == true;
+    }
+
+    function hasMatchingCommentIdentity() {
+      let hasName = request.auth.token.keys().hasAny(['name']);
+      let hasPicture = request.auth.token.keys().hasAny(['picture']);
+      return ((hasName && request.resource.data.authorName == request.auth.token.name) ||
+              (!hasName && request.resource.data.authorName == null)) &&
+             ((hasPicture && request.resource.data.authorPhoto == request.auth.token.picture) ||
+              (!hasPicture && request.resource.data.authorPhoto == null));
     }
 
     // Allow legacy like fields (kept for backward compatibility)
@@ -67,6 +74,9 @@ service cloud.firestore {
              (request.resource.data.authorPhoto == null || request.resource.data.authorPhoto is string) &&
              request.resource.data.content is string &&
              (request.resource.data.parentId == null || request.resource.data.parentId is string) &&
+             request.resource.data.createdAt == request.time &&
+             request.resource.data.updatedAt == request.time &&
+             hasMatchingCommentIdentity() &&
              isValidParent(cat, postId);
     }
 
@@ -84,7 +94,8 @@ service cloud.firestore {
              request.resource.data.authorName == resource.data.authorName &&
              request.resource.data.authorPhoto == resource.data.authorPhoto &&
              request.resource.data.parentId == resource.data.parentId &&
-             
+             request.resource.data.createdAt == resource.data.createdAt &&
+             request.resource.data.updatedAt == request.time &&
              request.resource.data.content is string &&
              isValidParent(cat, postId);
     }
@@ -98,9 +109,9 @@ service cloud.firestore {
     }
 
     match /blog/{postId} {
-      allow read: if true;
+      allow read: if isPublicPost() || isAdmin();
       allow write: if isAdmin();
-      allow update: if isViewCountUpdate() || isLegacyLikeUpdate();
+      allow update: if isLegacyLikeUpdate();
 
       match /comments/{commentId} {
         allow read: if true;
@@ -127,9 +138,9 @@ service cloud.firestore {
     }
 
     match /study/{postId} {
-      allow read: if true;
+      allow read: if isPublicPost() || isAdmin();
       allow write: if isAdmin();
-      allow update: if isViewCountUpdate() || isLegacyLikeUpdate();
+      allow update: if isLegacyLikeUpdate();
 
       match /comments/{commentId} {
         allow read: if true;
@@ -160,9 +171,9 @@ service cloud.firestore {
     }
 
     match /post_index/{category}/posts/{postId} {
-      allow read: if true;
+      allow read: if isPublicPost() || isAdmin();
       allow write: if isAdmin();
-      allow update: if isViewCountUpdate() || isLegacyLikeUpdate();
+      allow update: if isLegacyLikeUpdate();
     }
 
     match /post_filters/{category} {

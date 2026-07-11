@@ -15,8 +15,22 @@ beforeEach(async () => {
   await testEnv.clearFirestore();
   await testEnv.clearStorage();
   await testEnv.withSecurityRulesDisabled(async (context) => {
-    await context.firestore().doc('users/admin-uid').set({ role: 'admin' });
-    await context.firestore().doc('users/user-uid').set({ role: 'user' });
+    const db = context.firestore();
+    await db.doc('users/admin-uid').set({ role: 'admin' });
+    await db.doc('users/user-uid').set({ role: 'user' });
+    await db.doc('blog/post-a').set({ isPublic: true });
+    await db.doc('blog/private-post').set({ isPublic: false });
+
+    await context.storage().ref('post-images/blog/post-a/public.jpg').putString(
+      'public-image',
+      'raw',
+      { contentType: 'image/jpeg' },
+    );
+    await context.storage().ref('post-images/blog/private-post/private.jpg').putString(
+      'private-image',
+      'raw',
+      { contentType: 'image/jpeg' },
+    );
   });
 });
 
@@ -68,4 +82,46 @@ test('admin can delete post image', async () => {
     contentType: 'image/jpeg',
   }));
   await assertSucceeds(ref.delete());
+});
+
+test('unauthenticated user can read public post image', async () => {
+  // Given: an image belongs to an explicitly public post.
+  const ref = testEnv
+    .unauthenticatedContext()
+    .storage()
+    .ref('post-images/blog/post-a/public.jpg');
+
+  // When: an unauthenticated caller reads its metadata.
+  const readMetadata = ref.getMetadata();
+
+  // Then: the public image remains readable.
+  await assertSucceeds(readMetadata);
+});
+
+test('unauthenticated user cannot read private post image', async () => {
+  // Given: an image belongs to a private post.
+  const ref = testEnv
+    .unauthenticatedContext()
+    .storage()
+    .ref('post-images/blog/private-post/private.jpg');
+
+  // When: an unauthenticated caller reads its metadata.
+  const readMetadata = ref.getMetadata();
+
+  // Then: the private image is denied.
+  await assertFails(readMetadata);
+});
+
+test('admin can read private post image', async () => {
+  // Given: an image belongs to a private post and the caller is an admin.
+  const ref = testEnv
+    .authenticatedContext('admin-uid')
+    .storage()
+    .ref('post-images/blog/private-post/private.jpg');
+
+  // When: the administrator reads its metadata.
+  const readMetadata = ref.getMetadata();
+
+  // Then: administrative access remains available.
+  await assertSucceeds(readMetadata);
 });
