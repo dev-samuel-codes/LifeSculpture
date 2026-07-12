@@ -105,7 +105,7 @@ Expected: each file is ignored by `.gitignore`, `frontend/.gitignore`, or `serve
 
 - [ ] **Step 4: Manual secret action**
 
-If `server/serviceAccountKey.json` was ever shared outside the local machine or committed before, rotate it in Firebase Console before deployment. Do not delete local secret files in this task because the app may need them for local server startup.
+If `server/serviceAccountKey.json` was ever shared or committed, revoke it in Google Cloud Console and remove every local copy. The server now uses Application Default Credentials, so a service account key file is not required for local startup or deployment.
 
 - [ ] **Step 5: Commit**
 

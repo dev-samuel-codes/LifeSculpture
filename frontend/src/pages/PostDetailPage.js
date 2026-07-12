@@ -7,152 +7,18 @@ import CommentsSection from '../components/comments/CommentsSection';
 import LoginRequiredPopup from '../components/auth/LoginRequiredPopup';
 import LikeButton from '../components/posts/LikeButton';
 import { formatDateOnly } from '../utils/date';
-import { extractImageUrls } from '../components/text-editor/utils/media';
 import { sanitizeHtml } from '../components/text-editor/utils/content';
-import { setupResponsiveImageSizing } from '../components/text-editor/utils/imageSizing';
 import { getContentStyleCssVariables } from '../components/text-editor/utils/contentStyleSettings';
-import { applyContentTableSettingsToRoot } from '../components/text-editor/utils/contentTableSettings';
-import { deleteStorageImages } from '../utils/storage';
+import { usePostContentPresentation } from '../hooks/usePostContentPresentation';
+import { deletePostWithStorage } from '../services/postDeletion';
+import { transitionPostVisibility } from '../services/postVisibilityTransition';
 import {
-  deletePost as removePost,
   getPost,
+  hasPostLike,
   setPostLike,
-  setPostVisibility,
 } from '../services/posts';
 import '../style/pages/post/PostDetail.css';
 import '../style/components/editor/RichText.css';
-
-const enhanceCodeBlocks = (html) => {
-  if (!html) return '';
-  if (typeof window === 'undefined' || typeof document === 'undefined') return html;
-
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = html;
-
-  const containers = wrapper.querySelectorAll('.ql-code-block-container');
-
-  containers.forEach((container) => {
-    if (!container.classList.contains('has-separated-header')) {
-      if (!container.querySelector('.code-block-header')) {
-        const header = document.createElement('div');
-        header.className = 'code-block-header';
-
-        const indicators = document.createElement('div');
-        indicators.className = 'code-block-indicators';
-
-        ['red', 'yellow', 'green'].forEach((color) => {
-          const indicator = document.createElement('span');
-          indicator.className = `code-block-indicator ${color}`;
-          indicators.appendChild(indicator);
-        });
-
-        header.appendChild(indicators);
-        container.insertBefore(header, container.firstChild);
-      }
-
-      let body = container.querySelector('.code-block-body');
-
-      if (!body) {
-        body = document.createElement('div');
-        body.className = 'code-block-body';
-
-        while (container.children.length > 1) {
-          body.appendChild(container.children[1]);
-        }
-
-        container.appendChild(body);
-      }
-
-      const preElements = body.querySelectorAll('pre');
-
-      preElements.forEach((pre) => {
-        if (pre.dataset.lineNumbered === 'true') {
-          return;
-        }
-
-        const textContent = pre.textContent || '';
-        const normalized = textContent.replace(/\r\n/g, '\n');
-        const lines = normalized.split('\n');
-
-        if (lines.length > 1 && lines[lines.length - 1] === '') {
-          lines.pop();
-        }
-
-        const codeElement = document.createElement('code');
-
-        lines.forEach((line, index) => {
-          const lineSpan = document.createElement('span');
-
-          lineSpan.textContent = line.length === 0 ? '\u00A0' : line;
-          const lineNumber = String(index + 1);
-          lineSpan.dataset.lineNumber = lineNumber;
-          lineSpan.setAttribute('data-line-number', lineNumber);
-
-          codeElement.appendChild(lineSpan);
-        });
-
-        if (lines.length === 0) {
-          const placeholderLine = document.createElement('span');
-          placeholderLine.textContent = '\u00A0';
-          placeholderLine.dataset.lineNumber = '1';
-          placeholderLine.setAttribute('data-line-number', '1');
-          codeElement.appendChild(placeholderLine);
-        }
-
-        pre.innerHTML = '';
-        pre.appendChild(codeElement);
-        pre.dataset.lineNumbered = 'true';
-      });
-
-      container.classList.add('has-separated-header');
-    }
-  });
-
-  return wrapper.innerHTML;
-};
-
-const buildContentWithToc = (html) => {
-  if (!html) {
-    return { html: '', toc: [] };
-  }
-
-  const enhancedHtml = enhanceCodeBlocks(html);
-
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return { html: enhancedHtml, toc: [] };
-  }
-
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = enhancedHtml;
-
-  const idCounts = {};
-  const headings = wrapper.querySelectorAll('h1, h2, h3, h4, h5, h6');
-
-  const tocItems = Array.from(headings)
-    .filter((heading) => heading.textContent && heading.textContent.trim().length > 0)
-    .map((heading, index) => {
-      const text = heading.textContent.trim();
-      const normalizedBase = text
-        .toLowerCase()
-        .replace(/[^0-9a-zA-Z\u3131-\u318E\uAC00-\uD7A3\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
-      const baseId = normalizedBase || `heading-${index + 1}`;
-      const count = idCounts[baseId] || 0;
-      idCounts[baseId] = count + 1;
-      const uniqueId = count === 0 ? baseId : `${baseId}-${count}`;
-
-      heading.id = uniqueId;
-
-      return {
-        id: uniqueId,
-        text,
-        level: Number(heading.tagName.replace('H', '')) || 2,
-      };
-    });
-
-  return { html: wrapper.innerHTML, toc: tocItems };
-};
 
 function PostDetailPage() {
   const { category, id } = useParams();
@@ -167,8 +33,7 @@ function PostDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
-  const [renderedContent, setRenderedContent] = useState('');
-  const [tocItems, setTocItems] = useState([]);
+  const { renderedContent, tocItems } = usePostContentPresentation(post);
 
   const isAdmin = role === 'admin';
   const contentStyleVariables = useMemo(
@@ -179,7 +44,10 @@ function PostDetailPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const postData = await getPost({ category, id });
+        const [postData, viewerHasLiked] = await Promise.all([
+          getPost({ category, id }),
+          isAuthenticated && uid ? hasPostLike({ category, id, uid }) : false,
+        ]);
         if (!postData) {
           setError('게시물을 찾을 수 없습니다.');
           return;
@@ -188,7 +56,6 @@ function PostDetailPage() {
         const normalizedPost = {
           viewCount: 0,
           likeCount: 0,
-          likedBy: [],
           ...postData,
         };
 
@@ -198,9 +65,7 @@ function PostDetailPage() {
         );
         setLikeCount(normalizedPost.likeCount || 0);
 
-        if (isAuthenticated && uid && normalizedPost.likedBy.includes(uid)) {
-          setIsLiked(true);
-        }
+        setIsLiked(viewerHasLiked);
       } catch (err) {
         setError('게시물을 불러오는 데 실패했습니다.');
       } finally {
@@ -216,106 +81,24 @@ function PostDetailPage() {
     navigate(location.pathname, { replace: true, state: {} });
     window.location.reload();
   }, [location, navigate]);
-
-  useEffect(() => {
-    if (!post?.content) {
-      setRenderedContent('');
-      setTocItems([]);
-      return;
-    }
-
-    const { html, toc } = buildContentWithToc(sanitizeHtml(post.content));
-    setRenderedContent(html);
-    setTocItems(toc);
-  }, [post?.content]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const contentEl = document.querySelector('.post-content');
-      if (!contentEl) return;
-
-      const codeBlocks = contentEl.querySelectorAll('pre');
-
-      codeBlocks.forEach((block) => {
-        block.style.setProperty('white-space', 'pre', 'important');
-        block.style.setProperty('overflow-x', 'auto', 'important');
-        block.style.setProperty('max-width', '800px', 'important');
-        block.style.setProperty('margin', '1.75rem auto', 'important');
-        block.style.setProperty('padding', '1.5rem', 'important');
-        block.style.setProperty('background-color', '#1a1f2a', 'important');
-        block.style.setProperty('border-radius', '14px', 'important');
-        block.style.setProperty('color', '#cfd2d1', 'important');
-
-        const container = block.closest('.ql-code-block-container');
-        if (container) {
-          container.style.setProperty('background-color', 'transparent', 'important');
-          container.style.setProperty('padding', '0', 'important');
-          container.style.setProperty('border', 'none', 'important');
-        }
-      });
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [renderedContent]);
-
-  useEffect(() => {
-    const contentElement = document.querySelector('.post-content');
-    if (!contentElement) return undefined;
-
-    return setupResponsiveImageSizing({ root: contentElement });
-  }, [renderedContent]);
-
-  useEffect(() => {
-    const contentElement = document.querySelector('.post-content');
-    if (!contentElement) return undefined;
-
-    const applyTableSettings = () => {
-      applyContentTableSettingsToRoot(contentElement, post?.contentTableSettings);
-    };
-
-    applyTableSettings();
-    window.addEventListener('resize', applyTableSettings);
-
-    return () => {
-      window.removeEventListener('resize', applyTableSettings);
-    };
-  }, [post?.contentTableSettings, renderedContent]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 640 || !post?.content) return;
-      const contentElement = document.querySelector('.post-content');
-      if (!contentElement) return;
-
-      const paragraphs = contentElement.querySelectorAll('p');
-      paragraphs.forEach((p) => {
-        if (p.classList.contains('ql-align-justify')) {
-          p.style.textAlign = 'left';
-        }
-        p.style.wordSpacing = 'normal';
-        p.style.letterSpacing = 'normal';
-      });
-
-      const justifyElements = contentElement.querySelectorAll('.ql-align-justify');
-      justifyElements.forEach((element) => {
-        element.style.textAlign = 'left';
-        element.style.wordSpacing = 'normal';
-        element.style.letterSpacing = 'normal';
-      });
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [post]);
-
   const handlePublicToggle = async () => {
-    const nextPublicState = !isPublic;
-    setIsPublic(nextPublicState);
     try {
-      await setPostVisibility({ category, id, isPublic: nextPublicState });
+      const nextPost = await transitionPostVisibility({
+        category,
+        id,
+        content: post.content,
+        isPublic,
+        storage,
+        uid,
+        role,
+        pendingStorageCleanup: post.pendingStorageCleanup,
+      });
+      setPost((currentPost) => ({
+        ...currentPost,
+        ...nextPost,
+      }));
+      setIsPublic(nextPost.isPublic);
     } catch (err) {
-      setIsPublic(!nextPublicState);
       if (process.env.NODE_ENV !== 'production') {
         console.warn('게시물 공개 상태 업데이트 실패:', err);
       }
@@ -347,12 +130,19 @@ function PostDetailPage() {
     if (!window.confirm('정말로 이 게시물을 삭제하시겠습니까?\n게시물에 포함된 이미지도 함께 삭제됩니다.')) return;
 
     try {
-      const imageUrls = extractImageUrls(post.content);
-      await removePost({ category, id });
-
-      if (imageUrls.length > 0) {
-        await deleteStorageImages({ urls: imageUrls, storage, uid, role });
-      }
+      await deletePostWithStorage({
+        category,
+        id,
+        post,
+        isPublic,
+        storage,
+        uid,
+        role,
+        onTombstoned: (tombstonedPost) => {
+          setPost((currentPost) => ({ ...currentPost, ...tombstonedPost }));
+          setIsPublic(false);
+        },
+      });
 
       alert('게시물과 관련 이미지가 성공적으로 삭제되었습니다.');
       navigate(`/${category}`);

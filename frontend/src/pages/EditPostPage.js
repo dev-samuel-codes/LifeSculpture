@@ -14,6 +14,7 @@ import {
 } from '../components/text-editor/utils/content';
 import {
   extractImageUrls,
+  extractStoragePath,
   isSameStorageImage,
 } from '../components/text-editor/utils/media';
 import { replacePendingImages } from '../components/text-editor/utils/pendingImages';
@@ -28,8 +29,14 @@ import {
 } from '../components/text-editor/utils/contentTableSettings';
 import useResponsiveEditorHeight from '../hooks/useResponsiveEditorHeight';
 import { invalidatePostListCache } from '../hooks/usePostList';
-import { deleteStorageImages } from '../utils/storage';
-import { getPost, movePostCategory, updatePostFields } from '../services/posts';
+import { deleteStorageImages, preparePrivateImageContent } from '../utils/storage';
+import { cleanupPendingStorage } from '../services/postVisibilityTransition';
+import {
+  getPost,
+  movePostCategory,
+  setPostVisibility,
+  updatePostFields,
+} from '../services/posts';
 import { extractHashtagsFromContent, mergePostTags } from '../utils/tags';
 import '../style/components/write/WritePostPage.css';
 import '../style/components/editor/QuillToolbar.css';
@@ -54,6 +61,8 @@ function EditPostPage() {
   const [pendingImages, setPendingImages] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [originalImageUrls, setOriginalImageUrls] = useState([]);
+  const [originalIsPublic, setOriginalIsPublic] = useState(true);
+  const [originalPendingStorageCleanup, setOriginalPendingStorageCleanup] = useState(null);
 
   const [isFormulaEditorOpen, setIsFormulaEditorOpen] = useState(false);
   const [formulaInitialValue, setFormulaInitialValue] = useState('');
@@ -107,7 +116,10 @@ function EditPostPage() {
           setTitle(postData.title || '');
           setContent(initialContent);
           setCategory(postData.category || categoryParam);
-          setIsPublic(typeof postData.isPublic === 'boolean' ? postData.isPublic : true);
+          const initialIsPublic = typeof postData.isPublic === 'boolean' ? postData.isPublic : true;
+          setIsPublic(initialIsPublic);
+          setOriginalIsPublic(initialIsPublic);
+          setOriginalPendingStorageCleanup(postData.pendingStorageCleanup || null);
           setTags(Array.isArray(postData.tags) ? postData.tags : []);
           setContentStyleSettings(
             hasContentStyleSettings(postData.contentStyleSettings)
@@ -189,6 +201,8 @@ function EditPostPage() {
     }
 
     setIsUploading(true);
+    let privateTransition = null;
+    let persisted = false;
     try {
       const editorContent = getCurrentEditorContent();
       const nextTableSettings =
@@ -200,18 +214,14 @@ function EditPostPage() {
       const finalContent = await uploadPendingImages(editorContent);
       const currentUrls = getTrackedImageUrls(finalContent).filter((url) => url.startsWith('https'));
       const originalUrls = originalImageUrls.filter((url) => url.startsWith('https'));
-      const removedUrls = originalUrls.filter(
-        (url) => !currentUrls.some((candidate) => isSameStorageImage(url, candidate)),
-      );
+      const sourcePathPrefix = `post-images/${categoryParam}/${id}`;
+      const removedUrls = originalUrls.filter((url) => {
+        const path = extractStoragePath(url);
+        return path?.startsWith(`${sourcePathPrefix}/`) &&
+          !currentUrls.some((candidate) => isSameStorageImage(url, candidate));
+      });
 
-      if (removedUrls.length > 0) {
-        const confirmed = window.confirm(`${removedUrls.length}개의 이미지를 삭제하시겠습니까?`);
-        if (confirmed) {
-          await deleteStorageImages({ urls: removedUrls, storage, uid, role });
-        }
-      }
-
-      const sanitizedContent = sanitizeHtml(finalContent);
+      let sanitizedContent = sanitizeHtml(finalContent);
       const nextTags = mergePostTags(tags, extractHashtagsFromContent(sanitizedContent));
       const nextCategory = category.trim();
       const normalizedStyleSettings = hasContentStyleSettings(contentStyleSettings)
@@ -223,6 +233,38 @@ function EditPostPage() {
         return;
       }
 
+      await cleanupPendingStorage({
+        category: categoryParam,
+        id,
+        pendingStorageCleanup: originalPendingStorageCleanup,
+        storage,
+        uid,
+        role,
+      });
+
+      const shouldDeleteRemoved = removedUrls.length > 0 &&
+        window.confirm(`${removedUrls.length}개의 이미지를 삭제하시겠습니까?`);
+
+      if (nextCategory !== categoryParam || (originalIsPublic && !isPublic)) {
+        privateTransition = await preparePrivateImageContent({
+          content: sanitizedContent,
+          storage,
+          pathPrefixes: [`post-images/${categoryParam}/${id}`],
+          targetPathPrefix: nextCategory === categoryParam
+            ? ''
+            : `post-images/${nextCategory}/${id}`,
+        });
+        sanitizedContent = privateTransition.content;
+      }
+
+      const cleanupUrls = [...new Set([
+        ...(privateTransition?.originalUrls || []),
+        ...(shouldDeleteRemoved ? removedUrls : []),
+      ])];
+      const pendingStorageCleanup = cleanupUrls.length > 0
+        ? { urls: cleanupUrls, pathPrefixes: [sourcePathPrefix] }
+        : null;
+
       if (nextCategory === categoryParam) {
         await updatePostFields({
           category: categoryParam,
@@ -232,6 +274,7 @@ function EditPostPage() {
             content: sanitizedContent,
             category: nextCategory,
             isPublic,
+            pendingStorageCleanup,
             tags: nextTags,
             ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
             ...(normalizedTableSettings ? { contentTableSettings: normalizedTableSettings } : {}),
@@ -246,11 +289,40 @@ function EditPostPage() {
             title: title.trim(),
             content: sanitizedContent,
             isPublic,
+            pendingStorageCleanup,
             tags: nextTags,
             ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
             ...(normalizedTableSettings ? { contentTableSettings: normalizedTableSettings } : {}),
           },
         });
+      }
+      persisted = true;
+
+      if (cleanupUrls.length > 0) {
+        try {
+          await deleteStorageImages({
+            urls: cleanupUrls,
+            storage,
+            uid,
+            role,
+            pathPrefixes: [sourcePathPrefix],
+          });
+          await updatePostFields({
+            category: nextCategory,
+            id,
+            data: { pendingStorageCleanup: null },
+          });
+        } catch (cleanupError) {
+          if (originalIsPublic && !isPublic) {
+            await setPostVisibility({
+              category: nextCategory,
+              id,
+              isPublic: true,
+              content: privateTransition.content,
+            });
+          }
+          throw cleanupError;
+        }
       }
 
       invalidatePostListCache([categoryParam, nextCategory]);
@@ -264,6 +336,20 @@ function EditPostPage() {
         navigate(targetPath, { replace: true });
       }
     } catch (err) {
+      if (privateTransition && !persisted) {
+        try {
+          await deleteStorageImages({
+            urls: privateTransition.privateUrls,
+            storage,
+            uid,
+            role,
+          });
+        } catch (cleanupError) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('비공개 이미지 복사본 정리 실패:', cleanupError);
+          }
+        }
+      }
       alert(`수정 실패: ${err.message}`);
     } finally {
       setIsUploading(false);

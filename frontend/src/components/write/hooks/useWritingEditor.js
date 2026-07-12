@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { db } from '../../../firebase/firebase';
+import { db, storage } from '../../../firebase/firebase';
 import { useQuillToolbar } from '../../text-editor/hooks/useQuillToolbar';
 import useQuillEditorBridge from '../../text-editor/hooks/useQuillEditorBridge';
 import { MAX_EDITOR_CONTENT_SIZE } from '../../text-editor/constants';
@@ -24,6 +24,10 @@ import {
   normalizeContentTableSettings,
 } from '../../text-editor/utils/contentTableSettings';
 import { extractHashtagsFromContent, mergePostTags } from '../../../utils/tags';
+import {
+  deleteStorageObjects,
+  preparePrivateImageContent,
+} from '../../../utils/storage';
 
 const AUTO_SAVE_DELAY = 2000;
 const DRAFT_STORAGE_KEY = 'settings-writing-draft';
@@ -286,8 +290,12 @@ const useWritingEditor = () => {
       }
 
       setIsUploading(true);
+      let privateTransition = null;
+      let persisted = false;
+      let privatePathPrefixes = [];
       try {
         const docRef = doc(collection(db, category));
+        privatePathPrefixes = [`post-images/${category}/${docRef.id}`];
         const editorContent = getCurrentEditorContent();
         const nextTableSettings =
           extractContentTableSettingsFromRoot(getReadyEditor()?.root) ||
@@ -300,7 +308,20 @@ const useWritingEditor = () => {
           postId: docRef.id,
           sourceContent: editorContent,
         });
-        const finalContent = sanitizeHtml(uploadedContent);
+        let finalContent = sanitizeHtml(uploadedContent);
+        if (!isPublic) {
+          privateTransition = await preparePrivateImageContent({
+            content: finalContent,
+            storage,
+            pathPrefixes: privatePathPrefixes,
+          });
+          finalContent = privateTransition.content;
+          await deleteStorageObjects({
+            urls: privateTransition.originalUrls,
+            storage,
+            pathPrefixes: privatePathPrefixes,
+          });
+        }
         const nextTags = mergePostTags(tags, extractHashtagsFromContent(finalContent));
         const normalizedStyleSettings = hasContentStyleSettings(contentStyleSettings)
           ? normalizeContentStyleSettings(contentStyleSettings)
@@ -327,11 +348,25 @@ const useWritingEditor = () => {
           tags: nextTags,
         });
         await batch.commit();
+        persisted = true;
 
         alert('게시글이 성공적으로 등록되었습니다!');
         resetForm();
         navigate(`/posts/${category}/${docRef.id}`);
       } catch (error) {
+        if (privateTransition && !persisted) {
+          try {
+            await deleteStorageObjects({
+              urls: privateTransition.privateUrls,
+              storage,
+              pathPrefixes: privatePathPrefixes,
+            });
+          } catch (cleanupError) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn('[WritePostPage] 비공개 이미지 복사본 정리 실패:', cleanupError);
+            }
+          }
+        }
         console.error('[WritePostPage] 게시글 등록 실패:', error);
         alert('게시글 등록 실패: ' + error.message);
       } finally {

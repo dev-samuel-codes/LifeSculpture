@@ -10,7 +10,6 @@ let testEnv;
 
 const timestamp = () => firebase.firestore.FieldValue.serverTimestamp();
 const increment = (value) => firebase.firestore.FieldValue.increment(value);
-const arrayUnion = (value) => firebase.firestore.FieldValue.arrayUnion(value);
 
 beforeAll(async () => {
   testEnv = await createRulesTestEnv();
@@ -295,19 +294,21 @@ test('admin can read user profiles', async () => {
   await assertSucceeds(readProfile);
 });
 
-test('signed-in user can add only their own post like', async () => {
-  // Given: a signed-in user and an unliked post.
+test('signed-in user can add only their own post like atomically', async () => {
+  // Given: a signed-in user, an unliked post, and its index.
   const db = testEnv.authenticatedContext('user-a').firestore();
   const postRef = db.doc('blog/post-a');
+  const indexRef = db.doc('post_index/blog/posts/post-a');
+  const membershipRef = postRef.collection('likes').doc('user-a');
 
-  // When: the user adds their own uid and increments the count once.
-  const addOwnLike = postRef.update({
-    likeCount: increment(1),
-    likedBy: arrayUnion('user-a'),
-  });
+  // When: the user batches membership creation with both aggregate updates.
+  const batch = db.batch();
+  batch.set(membershipRef, { createdAt: timestamp() });
+  batch.update(postRef, { likeCount: increment(1) });
+  batch.update(indexRef, { likeCount: increment(1) });
 
-  // Then: the update succeeds.
-  await assertSucceeds(addOwnLike);
+  // Then: the complete transition succeeds.
+  await assertSucceeds(batch.commit());
 });
 
 test('signed-in user cannot overwrite post likes with arbitrary values', async () => {

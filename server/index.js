@@ -1,17 +1,15 @@
 require('dotenv').config();
 
-const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const cors = require('cors');
-const admin = require('firebase-admin');
 const { resolveUserRole } = require('./authz');
+const { initializeFirebaseAdmin } = require('./firebase-admin');
 
 const REQUIRED_ENV_KEYS = [
-  'SERVICE_ACCOUNT_KEY_PATH',
   'JWT_SECRET_KEY',
   'GOOGLE_CLIENT_ID_BACKEND',
 ];
@@ -21,23 +19,7 @@ if (missingEnv.length > 0) {
   throw new Error(`[server] 필수 환경변수가 누락되었습니다: ${missingEnv.join(', ')}`);
 }
 
-const serviceAccountPath = path.resolve(process.cwd(), process.env.SERVICE_ACCOUNT_KEY_PATH);
-
-if (!fs.existsSync(serviceAccountPath)) {
-  throw new Error(`[server] 서비스 계정 키 파일을 찾을 수 없습니다: ${serviceAccountPath}`);
-}
-
-let serviceAccount;
-try {
-  serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-} catch (error) {
-  throw new Error(`[server] 서비스 계정 키 JSON 파싱 실패: ${error.message}`);
-}
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-
+const admin = initializeFirebaseAdmin();
 const dbAdmin = admin.firestore();
 
 const app = express();
@@ -78,6 +60,7 @@ const sanitizePostUpdates = (input) => {
     'isPublic',
     'contentStyleSettings',
     'contentTableSettings',
+    'pendingStorageCleanup',
   ]);
   const updates = {};
 
@@ -244,6 +227,24 @@ const moveCommentsAndLikes = async ({ fromCategory, toCategory, postId }) => {
   };
 };
 
+const movePostLikes = async ({ sourcePostRef, targetPostRef }) => {
+  const likesSnapshot = await sourcePostRef.collection('likes').get();
+  if (likesSnapshot.empty) return 0;
+
+  const copyWriter = createBatchWriter(dbAdmin);
+  for (const likeDoc of likesSnapshot.docs) {
+    await copyWriter.set(targetPostRef.collection('likes').doc(likeDoc.id), likeDoc.data());
+  }
+  await copyWriter.flush();
+
+  const deleteWriter = createBatchWriter(dbAdmin);
+  for (const likeDoc of likesSnapshot.docs) {
+    await deleteWriter.delete(likeDoc.ref);
+  }
+  await deleteWriter.flush();
+  return likesSnapshot.size;
+};
+
 const saveUserToFirestore = async (userData) => {
   const documentId = userData.userid || userData.uid;
   if (!documentId) {
@@ -397,6 +398,7 @@ app.post('/posts/move-category', requireAdmin, async (req, res) => {
       targetIndexRef.set(buildIndexPayload(targetPostData, sourceIndexData)),
     ]);
 
+    const postLikeCount = await movePostLikes({ sourcePostRef, targetPostRef });
     const migrationStats = await moveCommentsAndLikes({
       fromCategory: sourceCategory,
       toCategory: targetCategory,
@@ -413,6 +415,7 @@ app.post('/posts/move-category', requireAdmin, async (req, res) => {
       postId: normalizedPostId,
       fromCategory: sourceCategory,
       toCategory: targetCategory,
+      postLikeCount,
       ...migrationStats,
     });
   } catch (error) {

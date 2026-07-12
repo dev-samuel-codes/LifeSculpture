@@ -3,4 +3,6 @@ node_modules/
 
 # environment variables
 .env
+.env.*
+!.env.example
 serviceAccountKey.json

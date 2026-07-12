@@ -3,7 +3,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
       return request.auth != null &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+             ((request.auth.token.keys().hasAny(["admin"]) &&
+               request.auth.token.admin == true) ||
+              (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"));
     }
 
     function isSignedIn() {
@@ -11,7 +14,19 @@ service cloud.firestore {
     }
 
     function commentDocPath(cat, postId, commentId) {
-      return path("/databases/$(database)/documents/" + cat + "/" + postId + "/comments/" + commentId);
+      return /databases/$(database)/documents/$(cat)/$(postId)/comments/$(commentId);
+    }
+
+    function postDocPath(cat, postId) {
+      return /databases/$(database)/documents/$(cat)/$(postId);
+    }
+
+    function postIndexDocPath(cat, postId) {
+      return /databases/$(database)/documents/post_index/$(cat)/posts/$(postId);
+    }
+
+    function postLikeDocPath(cat, postId, uid) {
+      return /databases/$(database)/documents/$(cat)/$(postId)/likes/$(uid);
     }
 
     function isPublicPost() {
@@ -32,30 +47,52 @@ service cloud.firestore {
              request.resource.data.authorPhoto == null;
     }
 
-    // Allow legacy like fields (kept for backward compatibility)
-    function isLegacyLikeUpdate() {
-      let previousLikes = resource.data.likedBy.toSet();
-      let nextLikes = request.resource.data.likedBy.toSet();
-      let addedLikes = nextLikes.difference(previousLikes);
-      let removedLikes = previousLikes.difference(nextLikes);
-      return request.auth != null &&
-             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
+    function isPostLikeAggregateUpdate(cat, postId, counterpartPath) {
+      let membershipPath = postLikeDocPath(cat, postId, request.auth.uid);
+      return isSignedIn() &&
+             isPublicPost() &&
              resource.data.likeCount is int &&
-             resource.data.likedBy is list &&
              request.resource.data.likeCount is int &&
              request.resource.data.likeCount >= 0 &&
-             request.resource.data.likedBy is list &&
-             request.resource.data.likedBy.size() == nextLikes.size() &&
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']) &&
+             getAfter(counterpartPath).data.likeCount == request.resource.data.likeCount &&
              ((request.resource.data.likeCount == resource.data.likeCount + 1 &&
-               !previousLikes.hasAny([request.auth.uid]) &&
-               addedLikes.size() == 1 &&
-               addedLikes.hasOnly([request.auth.uid]) &&
-               removedLikes.size() == 0) ||
+               !exists(membershipPath) &&
+               existsAfter(membershipPath)) ||
               (request.resource.data.likeCount == resource.data.likeCount - 1 &&
-               previousLikes.hasAny([request.auth.uid]) &&
-               addedLikes.size() == 0 &&
-               removedLikes.size() == 1 &&
-               removedLikes.hasOnly([request.auth.uid])));
+               exists(membershipPath) &&
+               !existsAfter(membershipPath)));
+    }
+
+    function isPostLikeMembershipCreate(cat, postId, likeUid) {
+      let postPath = postDocPath(cat, postId);
+      let indexPath = postIndexDocPath(cat, postId);
+      return isSignedIn() &&
+             likeUid == request.auth.uid &&
+             exists(postPath) &&
+             get(postPath).data.isPublic == true &&
+             request.resource.data.keys().hasOnly(['createdAt']) &&
+             request.resource.data.createdAt == request.time &&
+             getAfter(postPath).data.likeCount == get(postPath).data.likeCount + 1 &&
+             getAfter(indexPath).data.likeCount == getAfter(postPath).data.likeCount;
+    }
+
+    function isPostLikeMembershipDelete(cat, postId, likeUid) {
+      let postPath = postDocPath(cat, postId);
+      let indexPath = postIndexDocPath(cat, postId);
+      return isSignedIn() &&
+             likeUid == request.auth.uid &&
+             exists(postPath) &&
+             get(postPath).data.isPublic == true &&
+             getAfter(postPath).data.likeCount == get(postPath).data.likeCount - 1 &&
+             getAfter(postPath).data.likeCount >= 0 &&
+             getAfter(indexPath).data.likeCount == getAfter(postPath).data.likeCount;
+    }
+
+    function hasValidCommentContent() {
+      return request.resource.data.content is string &&
+             request.resource.data.content.size() > 0 &&
+             request.resource.data.content.size() <= 2000;
     }
 
     function isValidParent(cat, postId) {
@@ -77,7 +114,7 @@ service cloud.firestore {
              request.resource.data.authorId is string &&
              (request.resource.data.authorName == null || request.resource.data.authorName is string) &&
              (request.resource.data.authorPhoto == null || request.resource.data.authorPhoto is string) &&
-             request.resource.data.content is string &&
+             hasValidCommentContent() &&
              (request.resource.data.parentId == null || request.resource.data.parentId is string) &&
              request.resource.data.createdAt == request.time &&
              request.resource.data.updatedAt == request.time &&
@@ -101,7 +138,7 @@ service cloud.firestore {
              request.resource.data.parentId == resource.data.parentId &&
              request.resource.data.createdAt == resource.data.createdAt &&
              request.resource.data.updatedAt == request.time &&
-             request.resource.data.content is string &&
+             hasValidCommentContent() &&
              isValidParent(cat, postId);
     }
 
@@ -113,10 +150,32 @@ service cloud.firestore {
       );
     }
 
+    function canDeleteCommentLike(cat, postId, commentId, likeUid) {
+      let comment = get(commentDocPath(cat, postId, commentId));
+      return isSignedIn() && (
+        likeUid == request.auth.uid ||
+        comment.data.authorId == request.auth.uid ||
+        (comment.data.parentId != null &&
+         get(commentDocPath(cat, postId, comment.data.parentId)).data.authorId == request.auth.uid)
+      );
+    }
+
     match /blog/{postId} {
       allow read: if isPublicPost() || isAdmin();
       allow write: if isAdmin();
-      allow update: if isLegacyLikeUpdate();
+      allow update: if isPostLikeAggregateUpdate(
+        "blog",
+        postId,
+        postIndexDocPath("blog", postId)
+      );
+
+      match /likes/{likeUid} {
+        allow get: if isAdmin() || (isSignedIn() && likeUid == request.auth.uid);
+        allow list: if isAdmin();
+        allow create: if isAdmin() || isPostLikeMembershipCreate("blog", postId, likeUid);
+        allow delete: if isAdmin() || isPostLikeMembershipDelete("blog", postId, likeUid);
+        allow update: if false;
+      }
 
       match /comments/{commentId} {
         allow read: if canReadPostAt("blog", postId);
@@ -137,13 +196,13 @@ service cloud.firestore {
           allow create: if isAdmin() ||
                          (isPublicPostAt("blog", postId) &&
                           isSignedIn() &&
+                          exists(commentDocPath("blog", postId, commentId)) &&
                           likeUid == request.auth.uid &&
                           request.resource.data.keys().hasOnly(['createdAt']) &&
                           request.resource.data.createdAt == request.time);
           allow delete: if isAdmin() ||
                          (isPublicPostAt("blog", postId) &&
-                          isSignedIn() &&
-                          likeUid == request.auth.uid);
+                          canDeleteCommentLike("blog", postId, commentId, likeUid));
           allow update: if false;
         }
       }
@@ -152,7 +211,19 @@ service cloud.firestore {
     match /study/{postId} {
       allow read: if isPublicPost() || isAdmin();
       allow write: if isAdmin();
-      allow update: if isLegacyLikeUpdate();
+      allow update: if isPostLikeAggregateUpdate(
+        "study",
+        postId,
+        postIndexDocPath("study", postId)
+      );
+
+      match /likes/{likeUid} {
+        allow get: if isAdmin() || (isSignedIn() && likeUid == request.auth.uid);
+        allow list: if isAdmin();
+        allow create: if isAdmin() || isPostLikeMembershipCreate("study", postId, likeUid);
+        allow delete: if isAdmin() || isPostLikeMembershipDelete("study", postId, likeUid);
+        allow update: if false;
+      }
 
       match /comments/{commentId} {
         allow read: if canReadPostAt("study", postId);
@@ -173,13 +244,13 @@ service cloud.firestore {
           allow create: if isAdmin() ||
                          (isPublicPostAt("study", postId) &&
                           isSignedIn() &&
+                          exists(commentDocPath("study", postId, commentId)) &&
                           likeUid == request.auth.uid &&
                           request.resource.data.keys().hasOnly(['createdAt']) &&
                           request.resource.data.createdAt == request.time);
           allow delete: if isAdmin() ||
                          (isPublicPostAt("study", postId) &&
-                          isSignedIn() &&
-                          likeUid == request.auth.uid);
+                          canDeleteCommentLike("study", postId, commentId, likeUid));
           allow update: if false;
         }
       }
@@ -192,7 +263,12 @@ service cloud.firestore {
     match /post_index/{category}/posts/{postId} {
       allow read: if isPublicPost() || isAdmin();
       allow write: if isAdmin();
-      allow update: if isLegacyLikeUpdate();
+      allow update: if (category == "blog" || category == "study") &&
+                       isPostLikeAggregateUpdate(
+                         category,
+                         postId,
+                         postDocPath(category, postId)
+                       );
     }
 
     match /post_filters/{category} {

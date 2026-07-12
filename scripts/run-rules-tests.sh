@@ -20,9 +20,9 @@ if ! command -v java >/dev/null 2>&1 || [ "$(java_major_version)" -lt 21 ]; then
 fi
 
 if [ "$#" -gt 0 ]; then
-  jest_args="$*"
+  jest_command="./node_modules/.bin/jest $*"
 else
-  jest_args="tests/rules --runInBand"
+  jest_command="./node_modules/.bin/jest tests/rules --runInBand"
 fi
 
-firebase emulators:exec --only firestore,storage "jest $jest_args"
+./node_modules/.bin/firebase emulators:exec --only firestore,storage "$jest_command"

@@ -124,6 +124,15 @@ export async function unlikeComment({ category, postId, commentId, uid }) {
   await deleteDoc(likeDoc(category, postId, commentId, uid));
 }
 
+const deleteCommentWithLikes = async ({ category, postId, commentId }) => {
+  const likesSnap = await getDocs(likesCollection(category, postId, commentId));
+  await Promise.all(
+    likesSnap.docs.map((likeSnap) =>
+      deleteDoc(likeDoc(category, postId, commentId, likeSnap.id))),
+  );
+  await deleteDoc(commentDoc(category, postId, commentId));
+};
+
 export async function deleteCommentTree({ category, postId, commentId }) {
   const repliesSnap = await getDocs(
     query(
@@ -133,9 +142,9 @@ export async function deleteCommentTree({ category, postId, commentId }) {
   );
   const replyIds = repliesSnap.docs.map((docSnap) => docSnap.id);
 
-  await Promise.all(
-    replyIds.map((id) => deleteDoc(commentDoc(category, postId, id))),
-  );
+  for (const replyId of replyIds) {
+    await deleteCommentWithLikes({ category, postId, commentId: replyId });
+  }
 
-  await deleteDoc(commentDoc(category, postId, commentId));
+  await deleteCommentWithLikes({ category, postId, commentId });
 }
