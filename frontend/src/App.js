@@ -110,7 +110,7 @@ function App() {
             <Route path="/edit-post/:category/:id" element={<Page className="editor-route-page"><EditPostPage /></Page>} />
           )}
 
-          <Route path="/posts/:category/:id" element={<Page><PostDetailPage /></Page>} />
+          <Route path="/posts/:category/:id" element={<Page className="post-detail-route-page"><PostDetailPage /></Page>} />
         </Routes>
       </Suspense>
 

@@ -19,6 +19,28 @@
   --pd-radius-md: 10px;
 }
 
+.container.mt-4.post-detail-route-page {
+  width: min(calc(100% - clamp(2rem, 6vw, 8rem)), 2400px);
+  max-width: none;
+  padding-inline: 0;
+}
+
+.post-detail-route-page .post-detail-layout {
+  width: 100%;
+  max-width: none;
+}
+
+.post-detail-route-page .post-detail-container {
+  max-width: none;
+  min-width: 0;
+}
+
+@media (min-width: 1025px) {
+  .post-detail-route-page .post-toc--outside {
+    flex-basis: clamp(220px, 16vw, 300px);
+  }
+}
+
 body[data-theme='dark'] .post-detail-container {
   background: linear-gradient(160deg, rgba(28, 40, 68, 0.94), rgba(15, 24, 45, 0.94));
   border: 1px solid rgba(76, 90, 124, 0.6);
