@@ -3,8 +3,8 @@ import { listPostsPage } from '../services/posts';
 import { extractHashtagsFromContent } from '../utils/tags';
 
 const POSTS_PER_PAGE_DEFAULT = 6;
-const FETCH_BATCH_SIZE = 24;
 const POST_LIST_CACHE_TTL = 60 * 1000;
+const EMPTY_SECTIONS = [];
 
 const postListCache = new Map();
 const getCacheKey = (collectionName, includePrivate = false) =>
@@ -33,7 +33,12 @@ const norm = (value) =>
 
 const ensureArray = (value) => (Array.isArray(value) ? value : []);
 
-function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS_PER_PAGE_DEFAULT }) {
+function usePostList({
+  collectionName,
+  sections = EMPTY_SECTIONS,
+  role,
+  postsPerPage = POSTS_PER_PAGE_DEFAULT,
+}) {
   const includePrivate = role === 'admin';
   const initialCache = readCache(collectionName, includePrivate);
   const [allPosts, setAllPosts] = useState(() => initialCache?.posts ?? []);
@@ -51,6 +56,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
 
   const initialLoadRef = useRef(0);
   const cursorRef = useRef(initialCache?.cursor ?? null);
+  const fetchingMoreRef = useRef(false);
 
   const updateCache = useCallback(
     (posts, nextCursor, nextHasMore, fullyLoaded) => {
@@ -99,7 +105,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
       const { posts, cursor: nextCursor, hasMore: nextHasMore } = await listPostsPage({
         category: collectionName,
         includePrivate,
-        limit: FETCH_BATCH_SIZE,
+        limit: postsPerPage,
       });
       if (initialLoadRef.current === loadId) {
         setAllPosts(posts);
@@ -120,7 +126,7 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
         setLoading(false);
       }
     }
-  }, [collectionName, includePrivate, updateCache]);
+  }, [collectionName, includePrivate, postsPerPage, updateCache]);
 
   useEffect(() => {
     const cached = readCache(collectionName, includePrivate);
@@ -152,40 +158,40 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
 
   const fetchMorePosts = useCallback(async () => {
     const currentCursor = cursorRef.current;
-    if (isFetchingMore || !hasMore || !currentCursor) {
+    if (fetchingMoreRef.current || !hasMore || !currentCursor) {
       if (!hasMore) {
         setIsFullyLoaded(true);
       }
-      return false;
+      return { loaded: false, hasMore };
     }
 
+    fetchingMoreRef.current = true;
     setIsFetchingMore(true);
     try {
       const { posts, cursor: nextCursor, hasMore: nextHasMore } = await listPostsPage({
         category: collectionName,
         includePrivate,
-        limit: FETCH_BATCH_SIZE,
+        limit: postsPerPage,
         cursor: currentCursor,
       });
       appendPosts(posts, nextCursor, nextHasMore);
-      return nextHasMore;
+      return { loaded: posts.length > 0, hasMore: nextHasMore };
     } catch (err) {
       console.error('[usePostList] 추가 게시글 로드 실패:', err);
-      return false;
+      return { loaded: false, hasMore };
     } finally {
+      fetchingMoreRef.current = false;
       setIsFetchingMore(false);
     }
-  }, [appendPosts, collectionName, hasMore, includePrivate, isFetchingMore]);
+  }, [appendPosts, collectionName, hasMore, includePrivate, postsPerPage]);
 
   const fetchAllRemaining = useCallback(async () => {
     if (isFullyLoaded) return;
     let more = true;
     while (more) {
-      const hasNext = await fetchMorePosts();
-      more = Boolean(hasNext);
-      if (!more) {
-        setIsFullyLoaded(true);
-      }
+      const result = await fetchMorePosts();
+      if (!result.loaded) break;
+      more = result.hasMore;
     }
   }, [fetchMorePosts, isFullyLoaded]);
 
@@ -311,7 +317,8 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     visibleChildren,
   ]);
 
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage) || 1;
+  const loadedPageCount = Math.ceil(filteredPosts.length / postsPerPage) || 1;
+  const totalPages = loadedPageCount + (hasMore ? 1 : 0);
 
   const currentPosts = useMemo(() => {
     const start = (currentPage - 1) * postsPerPage;
@@ -350,17 +357,23 @@ function usePostList({ collectionName, sections = [], role, postsPerPage = POSTS
     setCurrentPage(1);
   }, []);
 
-  const goToPage = useCallback((pageNumber) => {
+  const goToPage = useCallback(async (pageNumber) => {
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    if (pageNumber > loadedPageCount) {
+      const result = await fetchMorePosts();
+      if (!result.loaded) return;
+    }
     setCurrentPage(pageNumber);
-  }, []);
+  }, [fetchMorePosts, loadedPageCount, totalPages]);
 
   const goToPrevious = useCallback(() => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
   }, []);
 
-  const goToNext = useCallback(() => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
-  }, [totalPages]);
+  const goToNext = useCallback(
+    () => goToPage(Math.min(totalPages, currentPage + 1)),
+    [currentPage, goToPage, totalPages],
+  );
 
   return {
     loading,
