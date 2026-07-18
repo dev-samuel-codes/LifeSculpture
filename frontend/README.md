@@ -6,7 +6,7 @@
 
 - **Study**: 개발 학습 내용 정리 및 관리
 - **Blog**: 여행, 일상, 리뷰 등 다양한 콘텐츠
-- **Admin Dashboard**: 콘텐츠 관리 및 사용자 관리
+- **관리자 기능**: 글 작성·수정·삭제, 공개 범위와 Study·Blog 필터 관리
 - **Google 로그인**: 사용자 인증 시스템
 
 ## 성능 최적화
@@ -20,7 +20,6 @@
 #### 사용된 컴포넌트
 - `LazyImage`: 일반 이미지 지연 로딩
 - `LazyBackgroundImage`: 배경 이미지 지연 로딩
-- `useLazyLoading`: 커스텀 훅
 
 #### 설정 옵션
 - `rootMargin`: 뷰포트 밖 50px 전에 미리 로딩
