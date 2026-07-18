@@ -8,8 +8,10 @@ test('본문에서 해시태그를 중복 없이 추출한다', () => {
 });
 
 test('전체 페이지 로딩 상태를 안내한다', () => {
-  render(<FullPageLoading />);
+  const { container } = render(<FullPageLoading />);
 
   expect(screen.getByRole('status')).toHaveTextContent('페이지를 불러오는 중입니다');
   expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+  expect(screen.queryByText('LS')).not.toBeInTheDocument();
+  expect(container.querySelector('.app-loading-mark')).not.toBeInTheDocument();
 });

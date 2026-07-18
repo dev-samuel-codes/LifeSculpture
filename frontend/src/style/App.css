@@ -50,40 +50,6 @@
   width: min(100%, 360px);
 }
 
-.app-loading-mark {
-  position: relative;
-  width: 86px;
-  height: 86px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 22px;
-}
-
-.app-loading-mark-ring {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(91, 119, 224, 0.18);
-  border-top-color: rgba(74, 108, 231, 0.82);
-  border-right-color: rgba(74, 108, 231, 0.4);
-  border-radius: 50%;
-  animation: app-loading-spin 1.35s cubic-bezier(0.55, 0.2, 0.35, 0.85) infinite;
-}
-
-.app-loading-mark-core {
-  width: 64px;
-  height: 64px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(104, 128, 218, 0.16);
-  border-radius: 20px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(237, 243, 255, 0.94));
-  box-shadow: 0 14px 35px rgba(45, 72, 153, 0.14);
-  color: #3453bd;
-  font-size: 21px;
-  font-weight: 750;
-  letter-spacing: -0.05em;
-}
-
 .app-loading-brand,
 .app-loading-title {
   margin: 0;
@@ -135,27 +101,8 @@ body[data-theme='dark'] .app-loading-screen {
     var(--color-background-body);
 }
 
-body[data-theme='dark'] .app-loading-mark-core {
-  border-color: rgba(148, 163, 230, 0.2);
-  background: linear-gradient(145deg, rgba(38, 51, 85, 0.98), rgba(21, 32, 61, 0.98));
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.34);
-  color: #c7d2fe;
-}
-
-body[data-theme='dark'] .app-loading-mark-ring {
-  border-color: rgba(148, 163, 230, 0.16);
-  border-top-color: rgba(165, 180, 252, 0.92);
-  border-right-color: rgba(129, 140, 248, 0.48);
-}
-
 body[data-theme='dark'] .app-loading-dots span {
   background: #a5b4fc;
-}
-
-@keyframes app-loading-spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes app-loading-pulse {
@@ -175,25 +122,9 @@ body[data-theme='dark'] .app-loading-dots span {
     padding: 24px;
   }
 
-  .app-loading-mark {
-    width: 78px;
-    height: 78px;
-    margin-bottom: 20px;
-  }
-
-  .app-loading-mark-core {
-    width: 58px;
-    height: 58px;
-    border-radius: 18px;
-    font-size: 19px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .app-loading-mark-ring {
-    animation-duration: 2.8s;
-  }
-
   .app-loading-dots span {
     animation: none;
     opacity: 0.6;
