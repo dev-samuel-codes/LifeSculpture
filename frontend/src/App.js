@@ -97,8 +97,8 @@ function App() {
       <Suspense fallback={<FullPageLoading />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/study" element={<Page><StudyPage /></Page>} />
-          <Route path="/blog" element={<Page><BlogPage /></Page>} />
+          <Route path="/study" element={<Page className="post-collection-route-page"><StudyPage /></Page>} />
+          <Route path="/blog" element={<Page className="post-collection-route-page"><BlogPage /></Page>} />
 
           {role === 'admin' && (
             <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
