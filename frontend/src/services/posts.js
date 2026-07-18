@@ -15,7 +15,10 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
-export { movePostCategory } from './postCategoryMove';
+export {
+  completePostMoveCleanupJob,
+  movePostCategory,
+} from './postCategoryMove';
 
 const collectionRef = (category) => collection(db, category);
 const docRef = (category, id) => doc(collectionRef(category), id);
@@ -23,6 +26,9 @@ const indexCollectionRef = (category) => collection(db, 'post_index', category, 
 const indexDocRef = (category, id) => doc(indexCollectionRef(category), id);
 const postLikeDocRef = (category, id, uid) =>
   doc(collection(docRef(category, id), 'likes'), uid);
+const postDeletionJobDocRef = (jobId) => doc(db, 'post_deletion_jobs', jobId);
+const FIRESTORE_BATCH_WRITE_LIMIT = 500;
+const DELETE_STATIC_WRITE_COUNT = 3;
 
 const buildIndexPayload = (data = {}) => {
   const payload = {};
@@ -125,16 +131,95 @@ export async function hasPostLike({ category, id, uid }) {
   return snapshot.exists();
 }
 
-export async function deletePost({ category, id }) {
+const getLegacyCommentDeleteRefs = async (postReference) => {
+  const commentsSnapshot = await getDocs(collection(postReference, 'comments'));
+  const likeSnapshots = await Promise.all(
+    commentsSnapshot.docs.map((commentSnap) => getDocs(collection(commentSnap.ref, 'likes'))),
+  );
+  return commentsSnapshot.docs.flatMap((commentSnap, index) => [
+    ...likeSnapshots[index].docs.map((likeSnap) => likeSnap.ref),
+    commentSnap.ref,
+  ]);
+};
+
+const getPostRelatedDeleteRefs = async (postReference) => {
+  const [likesSnapshot, legacyCommentRefs] = await Promise.all([
+    getDocs(collection(postReference, 'likes')),
+    getLegacyCommentDeleteRefs(postReference),
+  ]);
+  return [
+    ...likesSnapshot.docs.map((likeSnap) => likeSnap.ref),
+    ...legacyCommentRefs,
+  ];
+};
+
+export async function assertPostDeletionFitsBatch({ category, id }) {
+  const relatedDeleteRefs = await getPostRelatedDeleteRefs(docRef(category, id));
+  if (relatedDeleteRefs.length + DELETE_STATIC_WRITE_COUNT > FIRESTORE_BATCH_WRITE_LIMIT) {
+    throw new Error('연관 데이터가 많은 게시물은 안전한 단일 배치로 삭제할 수 없습니다.');
+  }
+  return relatedDeleteRefs.length;
+}
+
+export async function deletePost({ category, id, storageCleanup = {} }) {
   const postReference = docRef(category, id);
-  const likesSnapshot = await getDocs(collection(postReference, 'likes'));
-  if (likesSnapshot.size > 497) {
-    throw new Error('좋아요가 많은 게시물은 서버에서 삭제해야 합니다.');
+  const relatedDeleteRefs = await getPostRelatedDeleteRefs(postReference);
+  if (relatedDeleteRefs.length + DELETE_STATIC_WRITE_COUNT > FIRESTORE_BATCH_WRITE_LIMIT) {
+    throw new Error('연관 데이터가 많은 게시물은 안전한 단일 배치로 삭제할 수 없습니다.');
   }
 
+  const jobId = `${category}--${id}`;
+  const urls = Array.isArray(storageCleanup.urls) ? [...new Set(storageCleanup.urls)] : [];
+  const pathPrefixes = Array.isArray(storageCleanup.pathPrefixes)
+    ? [...new Set(storageCleanup.pathPrefixes)]
+    : [];
   const batch = writeBatch(db);
-  likesSnapshot.docs.forEach((likeSnap) => batch.delete(likeSnap.ref));
+  batch.set(postDeletionJobDocRef(jobId), {
+    category,
+    postId: id,
+    urls,
+    pathPrefixes,
+    createdAt: serverTimestamp(),
+  });
+  relatedDeleteRefs.forEach((reference) => batch.delete(reference));
   batch.delete(postReference);
   batch.delete(indexDocRef(category, id));
+  await batch.commit();
+  return { jobId };
+}
+
+export async function listPostDeletionJobs() {
+  const snapshot = await getDocs(collection(db, 'post_deletion_jobs'));
+  return snapshot.docs.map((jobSnap) => ({
+    id: jobSnap.id,
+    ...jobSnap.data(),
+  }));
+}
+
+export async function completePostDeletionJob({ jobId }) {
+  const batch = writeBatch(db);
+  batch.delete(postDeletionJobDocRef(jobId));
+  await batch.commit();
+}
+
+export async function queueStorageCleanup({
+  jobId,
+  category,
+  id,
+  storageCleanup = {},
+}) {
+  const urls = Array.isArray(storageCleanup.urls) ? [...new Set(storageCleanup.urls)] : [];
+  const pathPrefixes = Array.isArray(storageCleanup.pathPrefixes)
+    ? [...new Set(storageCleanup.pathPrefixes)]
+    : [];
+  const batch = writeBatch(db);
+  batch.set(postDeletionJobDocRef(jobId), {
+    category,
+    postId: id,
+    urls,
+    pathPrefixes,
+    reason: 'orphan-storage-cleanup',
+    createdAt: serverTimestamp(),
+  });
   await batch.commit();
 }

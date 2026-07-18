@@ -1,10 +1,15 @@
 import { deleteStorageImages, getOwnedStorageImageUrls } from '../utils/storage';
-import { deletePost } from './posts';
-import { deletePostWithStorage } from './postDeletion';
 import {
-  cleanupPendingStorage,
-  transitionPostVisibility,
-} from './postVisibilityTransition';
+  deletePostWithStorage,
+  retryPendingPostDeletionCleanups,
+} from './postDeletion';
+import {
+  assertPostDeletionFitsBatch,
+  completePostDeletionJob,
+  deletePost,
+  listPostDeletionJobs,
+  setPostVisibility,
+} from './posts';
 
 jest.mock('../utils/storage', () => ({
   deleteStorageImages: jest.fn(),
@@ -12,12 +17,11 @@ jest.mock('../utils/storage', () => ({
 }));
 
 jest.mock('./posts', () => ({
+  assertPostDeletionFitsBatch: jest.fn(),
+  completePostDeletionJob: jest.fn(),
   deletePost: jest.fn(),
-}));
-
-jest.mock('./postVisibilityTransition', () => ({
-  cleanupPendingStorage: jest.fn(),
-  transitionPostVisibility: jest.fn(),
+  listPostDeletionJobs: jest.fn(),
+  setPostVisibility: jest.fn(),
 }));
 
 const input = {
@@ -32,39 +36,114 @@ const input = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  transitionPostVisibility.mockResolvedValue({
-    content: '<img src="private-url">',
-    isPublic: false,
-  });
-  getOwnedStorageImageUrls.mockReturnValue(['private-url']);
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  assertPostDeletionFitsBatch.mockResolvedValue(0);
+  setPostVisibility.mockResolvedValue(undefined);
+  getOwnedStorageImageUrls.mockReturnValue(['old-url']);
   deleteStorageImages.mockResolvedValue(1);
-  deletePost.mockResolvedValue(undefined);
+  deletePost.mockResolvedValue({ jobId: 'blog--post-a' });
+  completePostDeletionJob.mockResolvedValue(undefined);
+  listPostDeletionJobs.mockResolvedValue([]);
 });
 
-test('tombstones a public post before deleting images and data', async () => {
+afterEach(() => {
+  console.warn.mockRestore();
+});
+
+test('commits Firestore deletion and cleanup ledger before deleting images', async () => {
   const onTombstoned = jest.fn();
 
-  await deletePostWithStorage({ ...input, onTombstoned });
+  const result = await deletePostWithStorage({ ...input, onTombstoned });
 
-  expect(transitionPostVisibility).toHaveBeenCalled();
+  expect(assertPostDeletionFitsBatch).toHaveBeenCalledWith({
+    category: 'blog',
+    id: 'post-a',
+  });
+  expect(setPostVisibility).toHaveBeenCalledWith({
+    category: 'blog',
+    id: 'post-a',
+    isPublic: false,
+  });
   expect(onTombstoned).toHaveBeenCalledWith(expect.objectContaining({ isPublic: false }));
-  expect(deleteStorageImages).toHaveBeenCalledWith(expect.objectContaining({
-    urls: ['private-url'],
-  }));
-  expect(deletePost).toHaveBeenCalledWith({ category: 'blog', id: 'post-a' });
+  expect(deletePost).toHaveBeenCalledWith({
+    category: 'blog',
+    id: 'post-a',
+    storageCleanup: {
+      pathPrefixes: ['post-images/blog/post-a'],
+      urls: ['old-url'],
+    },
+  });
+  expect(deletePost.mock.invocationCallOrder[0]).toBeLessThan(
+    deleteStorageImages.mock.invocationCallOrder[0],
+  );
+  expect(completePostDeletionJob).toHaveBeenCalledWith({ jobId: 'blog--post-a' });
+  expect(result).toEqual({ storageCleanupPending: false });
 });
 
-test('keeps the private post when storage cleanup fails', async () => {
+test('keeps the cleanup ledger when image deletion partially fails', async () => {
   deleteStorageImages.mockRejectedValue(new Error('cleanup failed'));
 
-  await expect(deletePostWithStorage(input)).rejects.toThrow('cleanup failed');
+  await expect(deletePostWithStorage(input)).resolves.toEqual({
+    storageCleanupPending: true,
+  });
 
-  expect(deletePost).not.toHaveBeenCalled();
+  expect(deletePost).toHaveBeenCalled();
+  expect(completePostDeletionJob).not.toHaveBeenCalled();
 });
 
-test('retries pending cleanup for an already private post', async () => {
+test('never deletes images when the atomic Firestore deletion fails', async () => {
+  deletePost.mockRejectedValue(new Error('firestore failed'));
+
+  await expect(deletePostWithStorage(input)).rejects.toThrow('firestore failed');
+
+  expect(deleteStorageImages).not.toHaveBeenCalled();
+  expect(completePostDeletionJob).not.toHaveBeenCalled();
+  expect(setPostVisibility).toHaveBeenLastCalledWith({
+    category: 'blog',
+    id: 'post-a',
+    isPublic: true,
+  });
+});
+
+test('rejects an oversized deletion before changing visibility or images', async () => {
+  assertPostDeletionFitsBatch.mockRejectedValue(new Error('too many related documents'));
+
+  await expect(deletePostWithStorage(input)).rejects.toThrow('too many related documents');
+
+  expect(setPostVisibility).not.toHaveBeenCalled();
+  expect(deletePost).not.toHaveBeenCalled();
+  expect(deleteStorageImages).not.toHaveBeenCalled();
+});
+
+test('does not alter visibility or images before deleting an already private post', async () => {
   await deletePostWithStorage({ ...input, isPublic: false });
 
-  expect(cleanupPendingStorage).toHaveBeenCalled();
-  expect(transitionPostVisibility).not.toHaveBeenCalled();
+  expect(setPostVisibility).not.toHaveBeenCalled();
+  expect(deletePost.mock.invocationCallOrder[0]).toBeLessThan(
+    deleteStorageImages.mock.invocationCallOrder[0],
+  );
+});
+
+test('retries persisted image cleanup jobs idempotently', async () => {
+  listPostDeletionJobs.mockResolvedValue([{
+    id: 'blog--post-a',
+    urls: ['private-url'],
+    pathPrefixes: ['post-images/blog/post-a'],
+  }]);
+
+  const result = await retryPendingPostDeletionCleanups({
+    storage: input.storage,
+    uid: input.uid,
+    role: input.role,
+  });
+
+  expect(deleteStorageImages).toHaveBeenCalledWith({
+    urls: ['private-url'],
+    storage: input.storage,
+    uid: input.uid,
+    role: input.role,
+    pathPrefixes: ['post-images/blog/post-a'],
+  });
+  expect(completePostDeletionJob).toHaveBeenCalledWith({ jobId: 'blog--post-a' });
+  expect(result).toEqual({ completed: 1, pending: 0 });
 });

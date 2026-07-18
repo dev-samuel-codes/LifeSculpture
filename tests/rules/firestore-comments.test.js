@@ -66,14 +66,8 @@ beforeEach(async () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-    await db.doc('blog/private-post/comments/private-comment').set({
-      authorId: 'user-a',
-      authorName: 'User A',
-      authorPhoto: null,
-      content: 'private comment',
-      parentId: null,
+    await db.doc('blog/post-a/comments/comment-a/likes/user-a').set({
       createdAt: new Date(),
-      updatedAt: new Date(),
     });
   });
 });
@@ -82,98 +76,29 @@ afterAll(async () => {
   await testEnv.cleanup();
 });
 
-test('signed-in user can create an anonymous comment without client counters', async () => {
-  const db = testEnv.authenticatedContext('user-a', { name: 'User A' }).firestore();
-  const commentRef = db.doc('blog/post-a/comments/comment-new');
-
-  await assertSucceeds(commentRef.set({
-    authorId: 'user-a',
-    authorName: null,
-    authorPhoto: null,
-    content: 'hello',
-    parentId: null,
-    createdAt: timestamp(),
-    updatedAt: timestamp(),
-  }));
-});
-
-test('signed-in user cannot spoof comment display identity', async () => {
-  // Given: the authenticated token contains a user-controlled display name.
-  const db = testEnv.authenticatedContext('user-a', { name: 'User A' }).firestore();
-  const commentRef = db.doc('blog/post-a/comments/comment-spoofed');
-
-  // When: the caller tries to persist a privileged-looking display name.
-  const createSpoofedComment = commentRef.set({
-    authorId: 'user-a',
-    authorName: '관리자',
-    authorPhoto: null,
-    content: 'hello',
-    parentId: null,
-    createdAt: timestamp(),
-    updatedAt: timestamp(),
-  });
-
-  // Then: the write is denied.
-  await assertFails(createSpoofedComment);
-});
-
-test('signed-in user cannot forge comment timestamps', async () => {
-  // Given: a signed-in user and a future client timestamp.
-  const db = testEnv.authenticatedContext('user-a', { name: 'User A' }).firestore();
-  const commentRef = db.doc('blog/post-a/comments/comment-future');
-
-  // When: the caller supplies timestamps instead of the server timestamp.
-  const createFutureComment = commentRef.set({
-    authorId: 'user-a',
-    authorName: null,
-    authorPhoto: null,
-    content: 'hello',
-    parentId: null,
-    createdAt: new Date('2099-01-01T00:00:00Z'),
-    updatedAt: new Date('2099-01-01T00:00:00Z'),
-  });
-
-  // Then: the write is denied.
-  await assertFails(createFutureComment);
-});
-
-test('signed-in user cannot create a comment with likeCount or replyCount', async () => {
-  const db = testEnv.authenticatedContext('user-a').firestore();
-  const commentRef = db.doc('blog/post-a/comments/comment-new');
-
-  await assertFails(commentRef.set({
-    authorId: 'user-a',
-    authorName: null,
-    authorPhoto: null,
-    content: 'hello',
-    parentId: null,
-    likeCount: 0,
-    replyCount: 0,
-    createdAt: timestamp(),
-    updatedAt: timestamp(),
-  }));
-});
-
-test('signed-in user can create and delete own comment like doc', async () => {
-  const db = testEnv.authenticatedContext('user-a').firestore();
-  const likeRef = db.doc('blog/post-a/comments/comment-a/likes/user-a');
-
-  await assertSucceeds(likeRef.set({ createdAt: timestamp() }));
-  await assertSucceeds(likeRef.delete());
-});
-
-test('signed-in user cannot create another user comment like doc', async () => {
-  const db = testEnv.authenticatedContext('user-a').firestore();
-  const likeRef = db.doc('blog/post-a/comments/comment-a/likes/user-b');
-
-  await assertFails(likeRef.set({ createdAt: timestamp() }));
-});
-
-test('signed-in user cannot update parent comment likeCount directly', async () => {
+test('comment feature is unavailable to signed-in users', async () => {
   const db = testEnv.authenticatedContext('user-a').firestore();
   const commentRef = db.doc('blog/post-a/comments/comment-a');
+  const newCommentRef = db.doc('blog/post-a/comments/comment-new');
+  const likeRef = db.doc('blog/post-a/comments/comment-a/likes/user-a');
 
-  await assertFails(commentRef.update({ likeCount: increment(1) }));
+  await assertFails(commentRef.get());
+  await assertFails(newCommentRef.set({ content: 'disabled' }));
+  await assertFails(likeRef.get());
+  await assertFails(likeRef.delete());
+});
+
+test('admin access to legacy comments is cleanup-only', async () => {
+  const db = testEnv.authenticatedContext('admin-uid').firestore();
+  const commentRef = db.doc('blog/post-a/comments/comment-a');
+  const newCommentRef = db.doc('blog/post-a/comments/comment-new');
+  const likeRef = db.doc('blog/post-a/comments/comment-a/likes/user-a');
+
+  await assertSucceeds(commentRef.get());
+  await assertSucceeds(likeRef.get());
+  await assertFails(newCommentRef.set({ content: 'disabled' }));
+  await assertSucceeds(likeRef.delete());
+  await assertSucceeds(commentRef.delete());
 });
 
 test('post like legacy update cannot make likeCount negative', async () => {
@@ -226,28 +151,6 @@ test('admin can read private posts and indexes', async () => {
   // Then: both reads remain available to the administrator.
   await assertSucceeds(readPrivatePost);
   await assertSucceeds(readPrivateIndex);
-});
-
-test('unauthenticated user cannot read comments under a private post', async () => {
-  // Given: a comment belongs to a private post.
-  const db = testEnv.unauthenticatedContext().firestore();
-
-  // When: an unauthenticated caller reads the nested comment directly.
-  const readPrivateComment = db.doc('blog/private-post/comments/private-comment').get();
-
-  // Then: the nested content is denied with its parent post.
-  await assertFails(readPrivateComment);
-});
-
-test('admin can read comments under a private post', async () => {
-  // Given: the caller has the stored admin role.
-  const db = testEnv.authenticatedContext('admin-uid').firestore();
-
-  // When: the administrator reads a nested private comment.
-  const readPrivateComment = db.doc('blog/private-post/comments/private-comment').get();
-
-  // Then: administrative access remains available.
-  await assertSucceeds(readPrivateComment);
 });
 
 test('unauthenticated user cannot increment post viewCount', async () => {

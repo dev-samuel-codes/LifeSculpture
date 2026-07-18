@@ -3,14 +3,15 @@ import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { storage } from '../firebase/firebase';
 import { AuthContext } from '../context/AuthContext';
-import CommentsSection from '../components/comments/CommentsSection';
 import LoginRequiredPopup from '../components/auth/LoginRequiredPopup';
 import LikeButton from '../components/posts/LikeButton';
 import { formatDateOnly } from '../utils/date';
 import { sanitizeHtml } from '../components/text-editor/utils/content';
 import { getContentStyleCssVariables } from '../components/text-editor/utils/contentStyleSettings';
 import { usePostContentPresentation } from '../hooks/usePostContentPresentation';
-import { deletePostWithStorage } from '../services/postDeletion';
+import {
+  deletePostWithStorage,
+} from '../services/postDeletion';
 import { transitionPostVisibility } from '../services/postVisibilityTransition';
 import {
   getPost,
@@ -130,7 +131,7 @@ function PostDetailPage() {
     if (!window.confirm('정말로 이 게시물을 삭제하시겠습니까?\n게시물에 포함된 이미지도 함께 삭제됩니다.')) return;
 
     try {
-      await deletePostWithStorage({
+      const deletionResult = await deletePostWithStorage({
         category,
         id,
         post,
@@ -144,7 +145,9 @@ function PostDetailPage() {
         },
       });
 
-      alert('게시물과 관련 이미지가 성공적으로 삭제되었습니다.');
+      alert(deletionResult.storageCleanupPending
+        ? '게시물은 삭제되었습니다. 남은 이미지는 다음 관리자 접속 때 다시 정리됩니다.'
+        : '게시물과 관련 이미지가 성공적으로 삭제되었습니다.');
       navigate(`/${category}`);
     } catch (err) {
       alert('게시물을 삭제하는 중 오류가 발생했습니다.');
@@ -252,7 +255,6 @@ function PostDetailPage() {
           dangerouslySetInnerHTML={{ __html: renderedContent || sanitizeHtml(post.content) }}
         />
 
-        <CommentsSection category={category} postId={id} />
         <LoginRequiredPopup
           isOpen={showLoginPopup}
           onClose={closeLoginPopup}

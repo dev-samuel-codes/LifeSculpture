@@ -4,14 +4,14 @@
 
 [웹사이트 바로가기](https://lifesculpture-220b3.web.app) · [보안 정책](./SECURITY.md)
 
-LifeSculpture는 React와 Firebase로 만든 풀스택 웹 애플리케이션입니다. 방문자는 공개 글을 탐색하고, Google 계정으로 로그인한 사용자는 댓글과 공감으로 참여할 수 있습니다. 관리자는 리치 텍스트 편집기와 이미지 업로드, 공개 범위 설정, 카테고리 이동, 대시보드를 이용해 콘텐츠를 운영합니다.
+LifeSculpture는 React와 Firebase로 만든 풀스택 웹 애플리케이션입니다. 방문자는 공개 글을 탐색하고, Google 계정으로 로그인한 사용자는 게시글에 공감할 수 있습니다. 관리자는 리치 텍스트 편집기와 이미지 업로드, 공개 범위 설정, 카테고리 이동, 대시보드를 이용해 콘텐츠를 운영합니다.
 
 ## 프로젝트 한눈에 보기
 
 | 사용자 | 할 수 있는 일 |
 | --- | --- |
 | 방문자 | 공개된 Study·Blog 글 탐색, 필터링, 정렬, 상세 글 읽기, 테마 변경 |
-| 로그인 사용자 | 게시글 공감, 댓글·답글 작성, 댓글 공감 및 본인 댓글 삭제 |
+| 로그인 사용자 | 게시글 공감 |
 | 관리자 | 글 작성·수정·삭제, 이미지 업로드, 공개/비공개 전환, 카테고리 이동, 필터 구성 및 대시보드 사용 |
 
 ## 주요 화면
@@ -21,7 +21,7 @@ LifeSculpture는 React와 Firebase로 만든 풀스택 웹 애플리케이션입
 | `/` | 웹·앱 개발, AI, 여행, 팁 콘텐츠로 이동하는 홈 |
 | `/study` | 개발·IT, 과학, 수학, 인문·사회, 프로젝트 학습 기록 |
 | `/blog` | 일상, 여행, 사진, 팁, 리뷰, 개발 블로그 |
-| `/posts/:category/:id` | 본문, 이미지, 공감, 댓글과 답글을 제공하는 글 상세 화면 |
+| `/posts/:category/:id` | 본문, 이미지와 공감을 제공하는 글 상세 화면 |
 | `/write` | 관리자 전용 글 작성 화면 |
 | `/edit-post/:category/:id` | 관리자 전용 글 편집 화면 |
 | `/admin` | 관리자 전용 콘텐츠 현황 대시보드 |
@@ -40,8 +40,6 @@ LifeSculpture는 React와 Firebase로 만든 풀스택 웹 애플리케이션입
 
 - Firebase Authentication 기반 Google 로그인
 - 게시글 공감
-- 댓글과 한 단계 답글
-- 댓글 공감과 작성자 중심 삭제 권한
 
 ### 관리자 콘텐츠 운영
 
@@ -49,7 +47,7 @@ LifeSculpture는 React와 Firebase로 만든 풀스택 웹 애플리케이션입
 - 이미지 업로드와 Firebase Storage 수명주기 관리
 - 코드, 표, 수식(KaTeX) 등 구조화된 본문 표현
 - 공개/비공개 전환과 이미지 접근 권한 연동
-- Study와 Blog 간 글·댓글·공감 데이터 이동
+- Study와 Blog 간 글·공감 데이터의 잠금 기반 원자적 이동과 실패 복구 원장
 - 필터 구성 및 콘텐츠 통계 대시보드
 
 ## 아키텍처
@@ -67,7 +65,7 @@ flowchart LR
   Admin --> Firestore
 ```
 
-일반적인 콘텐츠 읽기·댓글·공감은 브라우저가 Firebase에 직접 요청하고 `firestore.rules`와 `storage.rules`가 권한을 강제합니다. Express API는 토큰 검증과 관리자 전용 카테고리 이동처럼 서버 권한이 필요한 작업을 담당합니다.
+일반적인 콘텐츠 읽기·공감은 브라우저가 Firebase에 직접 요청하고 `firestore.rules`와 `storage.rules`가 권한을 강제합니다. 카테고리 이동은 원본을 먼저 비공개 잠근 뒤 단일 Firestore 트랜잭션으로 확정하며, Express API가 설정된 환경에서도 같은 잠금·트랜잭션 절차를 사용합니다. 서버 응답을 확인할 수 없을 때는 위험한 클라이언트 재실행으로 전환하지 않고 작업 원장과 서버 상태를 기준으로 복구합니다.
 
 ## 기술 스택
 
@@ -87,7 +85,7 @@ flowchart LR
 LifeSculpture/
 ├── frontend/
 │   ├── src/
-│   │   ├── components/    # 레이아웃, 인증, 글, 댓글, 편집기 UI
+│   │   ├── components/    # 레이아웃, 인증, 글, 편집기 UI
 │   │   ├── pages/         # 홈, 목록, 상세, 관리자 화면
 │   │   ├── services/      # Firestore·Storage 데이터 작업
 │   │   ├── hooks/         # 인증, 목록, 콘텐츠 표현 상태
@@ -217,9 +215,9 @@ npm start
 | `study/{postId}` | Study 글 본문과 공개 상태 |
 | `blog/{postId}` | Blog 글 본문과 공개 상태 |
 | `{category}/{postId}/likes/{uid}` | 게시글 공감 멤버십 |
-| `{category}/{postId}/comments/{commentId}` | 댓글과 답글 |
-| `{category}/{postId}/comments/{commentId}/likes/{uid}` | 댓글 공감 |
 | `post_index/{category}/posts/{postId}` | 공개 목록 조회용 요약 인덱스 |
+| `post_deletion_jobs/{jobId}` | 삭제 후 Storage 정리를 재시도하기 위한 관리자 전용 작업 원장 |
+| `post_move_jobs/{jobId}` | 이동 잠금, 응답 유실 판정, 준비 이미지 정리를 위한 관리자 전용 작업 원장 |
 | `users/{uid}` | 사용자 정보와 역할 |
 | Storage `post-images/{category}/{postId}/{fileName}` | 게시글 이미지 |
 

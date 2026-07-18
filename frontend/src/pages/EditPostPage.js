@@ -33,7 +33,9 @@ import { deleteStorageImages, preparePrivateImageContent } from '../utils/storag
 import { cleanupPendingStorage } from '../services/postVisibilityTransition';
 import {
   getPost,
+  completePostMoveCleanupJob,
   movePostCategory,
+  queueStorageCleanup,
   setPostVisibility,
   updatePostFields,
 } from '../services/posts';
@@ -63,6 +65,7 @@ function EditPostPage() {
   const [originalImageUrls, setOriginalImageUrls] = useState([]);
   const [originalIsPublic, setOriginalIsPublic] = useState(true);
   const [originalPendingStorageCleanup, setOriginalPendingStorageCleanup] = useState(null);
+  const [originalStoragePathPrefixes, setOriginalStoragePathPrefixes] = useState([]);
 
   const [isFormulaEditorOpen, setIsFormulaEditorOpen] = useState(false);
   const [formulaInitialValue, setFormulaInitialValue] = useState('');
@@ -120,6 +123,9 @@ function EditPostPage() {
           setIsPublic(initialIsPublic);
           setOriginalIsPublic(initialIsPublic);
           setOriginalPendingStorageCleanup(postData.pendingStorageCleanup || null);
+          setOriginalStoragePathPrefixes(
+            Array.isArray(postData.storagePathPrefixes) ? postData.storagePathPrefixes : [],
+          );
           setTags(Array.isArray(postData.tags) ? postData.tags : []);
           setContentStyleSettings(
             hasContentStyleSettings(postData.contentStyleSettings)
@@ -176,7 +182,7 @@ function EditPostPage() {
   );
 
   const uploadPendingImages = useCallback(
-    async (sourceContent = content) => {
+    async (sourceContent = content, onUploaded) => {
       const resolvedCategory = category.trim() || categoryParam;
       return replacePendingImages({
         content: sourceContent,
@@ -184,6 +190,7 @@ function EditPostPage() {
         category: resolvedCategory,
         postId: id,
         uploadImage: handleImageUpload,
+        onUploaded,
       });
     },
     [category, categoryParam, content, handleImageUpload, id, pendingImages],
@@ -200,9 +207,27 @@ function EditPostPage() {
       return;
     }
 
+    const nextCategory = category.trim();
+    if (!nextCategory) {
+      alert('카테고리를 선택해주세요.');
+      return;
+    }
+    if (nextCategory !== categoryParam && originalIsPublic && !isPublic) {
+      alert('카테고리 이동과 비공개 전환은 한 번에 처리할 수 없습니다. 먼저 이동한 뒤 비공개로 전환해주세요.');
+      return;
+    }
+    const sourcePathPrefix = `post-images/${categoryParam}/${id}`;
+    const targetPathPrefix = `post-images/${nextCategory}/${id}`;
+    const sourcePathPrefixes = [...new Set([
+      sourcePathPrefix,
+      ...originalStoragePathPrefixes,
+    ])];
+
     setIsUploading(true);
     let privateTransition = null;
     let persisted = false;
+    const uploadedImageUrls = [];
+    const orphanCleanupJobId = `edit--${categoryParam}--${id}--${Date.now()}`;
     try {
       const editorContent = getCurrentEditorContent();
       const nextTableSettings =
@@ -211,27 +236,23 @@ function EditPostPage() {
       const normalizedTableSettings = hasContentTableSettings(nextTableSettings)
         ? normalizeContentTableSettings(nextTableSettings)
         : null;
-      const finalContent = await uploadPendingImages(editorContent);
+      const finalContent = await uploadPendingImages(
+        editorContent,
+        (url) => uploadedImageUrls.push(url),
+      );
       const currentUrls = getTrackedImageUrls(finalContent).filter((url) => url.startsWith('https'));
       const originalUrls = originalImageUrls.filter((url) => url.startsWith('https'));
-      const sourcePathPrefix = `post-images/${categoryParam}/${id}`;
       const removedUrls = originalUrls.filter((url) => {
         const path = extractStoragePath(url);
-        return path?.startsWith(`${sourcePathPrefix}/`) &&
+        return sourcePathPrefixes.some((prefix) => path?.startsWith(`${prefix}/`)) &&
           !currentUrls.some((candidate) => isSameStorageImage(url, candidate));
       });
 
       let sanitizedContent = sanitizeHtml(finalContent);
       const nextTags = mergePostTags(tags, extractHashtagsFromContent(sanitizedContent));
-      const nextCategory = category.trim();
       const normalizedStyleSettings = hasContentStyleSettings(contentStyleSettings)
         ? normalizeContentStyleSettings(contentStyleSettings)
         : null;
-
-      if (!nextCategory) {
-        alert('카테고리를 선택해주세요.');
-        return;
-      }
 
       await cleanupPendingStorage({
         category: categoryParam,
@@ -245,14 +266,11 @@ function EditPostPage() {
       const shouldDeleteRemoved = removedUrls.length > 0 &&
         window.confirm(`${removedUrls.length}개의 이미지를 삭제하시겠습니까?`);
 
-      if (nextCategory !== categoryParam || (originalIsPublic && !isPublic)) {
+      if (nextCategory === categoryParam && originalIsPublic && !isPublic) {
         privateTransition = await preparePrivateImageContent({
           content: sanitizedContent,
           storage,
-          pathPrefixes: [`post-images/${categoryParam}/${id}`],
-          targetPathPrefix: nextCategory === categoryParam
-            ? ''
-            : `post-images/${nextCategory}/${id}`,
+          pathPrefixes: sourcePathPrefixes,
         });
         sanitizedContent = privateTransition.content;
       }
@@ -262,8 +280,11 @@ function EditPostPage() {
         ...(shouldDeleteRemoved ? removedUrls : []),
       ])];
       const pendingStorageCleanup = cleanupUrls.length > 0
-        ? { urls: cleanupUrls, pathPrefixes: [sourcePathPrefix] }
+        ? { urls: cleanupUrls, pathPrefixes: sourcePathPrefixes }
         : null;
+      const storagePathPrefixes = nextCategory === categoryParam
+        ? sourcePathPrefixes
+        : [...new Set([...sourcePathPrefixes, targetPathPrefix])];
 
       if (nextCategory === categoryParam) {
         await updatePostFields({
@@ -275,6 +296,7 @@ function EditPostPage() {
             category: nextCategory,
             isPublic,
             pendingStorageCleanup,
+            storagePathPrefixes,
             tags: nextTags,
             ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
             ...(normalizedTableSettings ? { contentTableSettings: normalizedTableSettings } : {}),
@@ -290,9 +312,14 @@ function EditPostPage() {
             content: sanitizedContent,
             isPublic,
             pendingStorageCleanup,
+            storagePathPrefixes,
             tags: nextTags,
             ...(normalizedStyleSettings ? { contentStyleSettings: normalizedStyleSettings } : {}),
             ...(normalizedTableSettings ? { contentTableSettings: normalizedTableSettings } : {}),
+          },
+          preparedStorageCleanup: {
+            urls: uploadedImageUrls,
+            pathPrefixes: [targetPathPrefix],
           },
         });
       }
@@ -305,7 +332,7 @@ function EditPostPage() {
             storage,
             uid,
             role,
-            pathPrefixes: [sourcePathPrefix],
+            pathPrefixes: sourcePathPrefixes,
           });
           await updatePostFields({
             category: nextCategory,
@@ -313,7 +340,7 @@ function EditPostPage() {
             data: { pendingStorageCleanup: null },
           });
         } catch (cleanupError) {
-          if (originalIsPublic && !isPublic) {
+          if (privateTransition && originalIsPublic && !isPublic) {
             await setPostVisibility({
               category: nextCategory,
               id,
@@ -336,17 +363,45 @@ function EditPostPage() {
         navigate(targetPath, { replace: true });
       }
     } catch (err) {
-      if (privateTransition && !persisted) {
+      const mayCleanPreparedImages = !persisted &&
+        (!err.preservePreparedImages || err.moveRolledBack);
+      const preparedCleanupUrls = mayCleanPreparedImages
+        ? [...new Set([
+          ...(privateTransition?.privateUrls || []),
+          ...uploadedImageUrls,
+        ])]
+        : [];
+      if (preparedCleanupUrls.length > 0) {
         try {
           await deleteStorageImages({
-            urls: privateTransition.privateUrls,
+            urls: preparedCleanupUrls,
             storage,
             uid,
             role,
           });
+          if (err.moveJobId) {
+            await completePostMoveCleanupJob({ jobId: err.moveJobId });
+          }
         } catch (cleanupError) {
+          if (!err.moveJobId) {
+            try {
+              await queueStorageCleanup({
+                jobId: orphanCleanupJobId,
+                category: categoryParam,
+                id,
+                storageCleanup: {
+                  urls: preparedCleanupUrls,
+                  pathPrefixes: [...new Set([sourcePathPrefix, targetPathPrefix])],
+                },
+              });
+            } catch (ledgerError) {
+              if (process.env.NODE_ENV !== 'production') {
+                console.warn('이미지 정리 작업 원장 저장 실패:', ledgerError);
+              }
+            }
+          }
           if (process.env.NODE_ENV !== 'production') {
-            console.warn('비공개 이미지 복사본 정리 실패:', cleanupError);
+            console.warn('준비 이미지 정리 실패:', cleanupError);
           }
         }
       }

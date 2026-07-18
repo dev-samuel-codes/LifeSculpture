@@ -26,7 +26,7 @@ function Page({ children, className = '' }) {
 }
 
 function App() {
-  const { role, loading: authLoading } = React.useContext(AuthContext);
+  const { role, uid, loading: authLoading } = React.useContext(AuthContext);
   const location = useLocation();
   const isEditorRoute =
     location.pathname === '/write' || location.pathname.startsWith('/edit-post/');
@@ -48,6 +48,42 @@ function App() {
     const timer = setTimeout(prefetch, 600);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (role !== 'admin' || !uid) return;
+    Promise.all([
+      import('./firebase/firebase'),
+      import('./services/postDeletion'),
+      import('./services/postCategoryMove'),
+      import('./utils/storage'),
+    ]).then(([
+      firebaseModule,
+      deletionModule,
+      moveModule,
+      storageModule,
+    ]) => Promise.allSettled([
+      deletionModule.retryPendingPostDeletionCleanups({
+        storage: firebaseModule.storage,
+        uid,
+        role,
+      }),
+      moveModule.retryPendingPostMoveRecoveries({
+        storage: firebaseModule.storage,
+        uid,
+        role,
+        deleteImages: storageModule.deleteStorageImages,
+      }),
+    ])).then((results) => {
+      if (process.env.NODE_ENV !== 'production' &&
+          results.some((result) => result.status === 'rejected')) {
+        console.warn('보류 중인 게시물 작업을 일부 완료하지 못했습니다.');
+      }
+    }).catch((error) => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('게시물 복구 모듈을 불러오지 못했습니다.', error);
+      }
+    });
+  }, [role, uid]);
 
   return (
     <div className="App">

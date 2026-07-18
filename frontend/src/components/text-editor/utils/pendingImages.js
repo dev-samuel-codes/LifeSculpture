@@ -4,6 +4,7 @@ export async function replacePendingImages({
   uploadImage,
   category,
   postId,
+  onUploaded,
 }) {
   if (!Array.isArray(pendingImages) || pendingImages.length === 0) {
     return content;
@@ -15,6 +16,7 @@ export async function replacePendingImages({
     if (!url) {
       throw new Error('이미지 업로드에 실패했습니다.');
     }
+    onUploaded?.(url);
     updatedContent = updatedContent.replace(tempUrl, url);
   }
 

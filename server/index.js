@@ -45,7 +45,8 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 const POST_CATEGORIES = new Set(['blog', 'study']);
-const BATCH_WRITE_LIMIT = 450;
+const FIRESTORE_BATCH_WRITE_LIMIT = 500;
+const MOVE_STATIC_WRITE_COUNT = 4;
 const INDEX_FIELDS = ['title', 'tags', 'createdAt', 'viewCount', 'likeCount', 'isPublic'];
 
 const sanitizePostUpdates = (input) => {
@@ -61,6 +62,7 @@ const sanitizePostUpdates = (input) => {
     'contentStyleSettings',
     'contentTableSettings',
     'pendingStorageCleanup',
+    'storagePathPrefixes',
   ]);
   const updates = {};
 
@@ -76,54 +78,6 @@ const sanitizePostUpdates = (input) => {
 
 const isValidPostCategory = (category) =>
   typeof category === 'string' && POST_CATEGORIES.has(category.trim());
-
-const createBatchWriter = (firestore) => {
-  let batch = firestore.batch();
-  let operationCount = 0;
-
-  const queueSet = (ref, data, options) => {
-    if (options) {
-      batch.set(ref, data, options);
-    } else {
-      batch.set(ref, data);
-    }
-    operationCount += 1;
-  };
-
-  const queueDelete = (ref) => {
-    batch.delete(ref);
-    operationCount += 1;
-  };
-
-  const flush = async () => {
-    if (operationCount === 0) {
-      return;
-    }
-    await batch.commit();
-    batch = firestore.batch();
-    operationCount = 0;
-  };
-
-  const queueSetWithAutoFlush = async (ref, data, options) => {
-    queueSet(ref, data, options);
-    if (operationCount >= BATCH_WRITE_LIMIT) {
-      await flush();
-    }
-  };
-
-  const queueDeleteWithAutoFlush = async (ref) => {
-    queueDelete(ref);
-    if (operationCount >= BATCH_WRITE_LIMIT) {
-      await flush();
-    }
-  };
-
-  return {
-    set: queueSetWithAutoFlush,
-    delete: queueDeleteWithAutoFlush,
-    flush,
-  };
-};
 
 const buildIndexPayload = (postData, sourceIndexData = {}) => {
   const payload = {};
@@ -179,70 +133,6 @@ const requireAdmin = async (req, res, next) => {
     console.error('[auth] 관리자 인증 실패:', error);
     res.status(401).json({ message: 'Authentication failed' });
   }
-};
-
-const moveCommentsAndLikes = async ({ fromCategory, toCategory, postId }) => {
-  const sourceCommentsRef = dbAdmin.collection(fromCategory).doc(postId).collection('comments');
-  const targetCommentsRef = dbAdmin.collection(toCategory).doc(postId).collection('comments');
-
-  const commentsSnapshot = await sourceCommentsRef.get();
-  if (commentsSnapshot.empty) {
-    return { commentCount: 0, likeCount: 0 };
-  }
-
-  const copiedLikes = [];
-  const copyWriter = createBatchWriter(dbAdmin);
-  let likeCount = 0;
-
-  for (const commentDoc of commentsSnapshot.docs) {
-    const targetCommentRef = targetCommentsRef.doc(commentDoc.id);
-    await copyWriter.set(targetCommentRef, commentDoc.data());
-
-    const likesSnapshot = await commentDoc.ref.collection('likes').get();
-    for (const likeDoc of likesSnapshot.docs) {
-      await copyWriter.set(targetCommentRef.collection('likes').doc(likeDoc.id), likeDoc.data());
-      copiedLikes.push({
-        commentId: commentDoc.id,
-        likeId: likeDoc.id,
-      });
-      likeCount += 1;
-    }
-  }
-  await copyWriter.flush();
-
-  const deleteWriter = createBatchWriter(dbAdmin);
-  for (const { commentId, likeId } of copiedLikes) {
-    await deleteWriter.delete(
-      sourceCommentsRef.doc(commentId).collection('likes').doc(likeId),
-    );
-  }
-  for (const commentDoc of commentsSnapshot.docs) {
-    await deleteWriter.delete(commentDoc.ref);
-  }
-  await deleteWriter.flush();
-
-  return {
-    commentCount: commentsSnapshot.size,
-    likeCount,
-  };
-};
-
-const movePostLikes = async ({ sourcePostRef, targetPostRef }) => {
-  const likesSnapshot = await sourcePostRef.collection('likes').get();
-  if (likesSnapshot.empty) return 0;
-
-  const copyWriter = createBatchWriter(dbAdmin);
-  for (const likeDoc of likesSnapshot.docs) {
-    await copyWriter.set(targetPostRef.collection('likes').doc(likeDoc.id), likeDoc.data());
-  }
-  await copyWriter.flush();
-
-  const deleteWriter = createBatchWriter(dbAdmin);
-  for (const likeDoc of likesSnapshot.docs) {
-    await deleteWriter.delete(likeDoc.ref);
-  }
-  await deleteWriter.flush();
-  return likesSnapshot.size;
 };
 
 const saveUserToFirestore = async (userData) => {
@@ -335,8 +225,29 @@ app.post('/auth/google', async (req, res) => {
   }
 });
 
+const uniqueStrings = (value) => Array.isArray(value)
+  ? [...new Set(value.filter((item) => typeof item === 'string' && item))]
+  : [];
+
+const getLegacyCommentDeleteRefs = async (postRef) => {
+  const commentsSnapshot = await postRef.collection('comments').get();
+  const likeSnapshots = await Promise.all(
+    commentsSnapshot.docs.map((commentDoc) => commentDoc.ref.collection('likes').get()),
+  );
+  return commentsSnapshot.docs.flatMap((commentDoc, index) => [
+    ...likeSnapshots[index].docs.map((likeDoc) => likeDoc.ref),
+    commentDoc.ref,
+  ]);
+};
+
 app.post('/posts/move-category', requireAdmin, async (req, res) => {
-  const { postId, fromCategory, toCategory, data } = req.body || {};
+  const {
+    postId,
+    fromCategory,
+    toCategory,
+    data,
+    preparedStorageCleanup,
+  } = req.body || {};
   const normalizedPostId = typeof postId === 'string' ? postId.trim() : '';
   const sourceCategory = typeof fromCategory === 'string' ? fromCategory.trim() : '';
   const targetCategory = typeof toCategory === 'string' ? toCategory.trim() : '';
@@ -366,61 +277,167 @@ app.post('/posts/move-category', requireAdmin, async (req, res) => {
     .doc(targetCategory)
     .collection('posts')
     .doc(normalizedPostId);
+  const jobId = `${sourceCategory}--${targetCategory}--${normalizedPostId}`;
+  const jobRef = dbAdmin.collection('post_move_jobs').doc(jobId);
 
   try {
-    const [sourcePostSnap, sourceIndexSnap, targetPostSnap] = await Promise.all([
-      sourcePostRef.get(),
-      sourceIndexRef.get(),
-      targetPostRef.get(),
+    const sourceLikesRef = sourcePostRef.collection('likes');
+    const targetLikesRef = targetPostRef.collection('likes');
+    let lockResult = null;
+    await dbAdmin.runTransaction(async (transaction) => {
+      const [sourcePostSnap, sourceIndexSnap, targetPostSnap, targetIndexSnap] =
+        await Promise.all([
+          transaction.get(sourcePostRef),
+          transaction.get(sourceIndexRef),
+          transaction.get(targetPostRef),
+          transaction.get(targetIndexRef),
+        ]);
+      if (!sourcePostSnap.exists || !sourceIndexSnap.exists) {
+        const error = new Error('Post or index not found in source category');
+        error.statusCode = 404;
+        throw error;
+      }
+      if (targetPostSnap.exists || targetIndexSnap.exists) {
+        const error = new Error('Target category already has a post with the same id');
+        error.statusCode = 409;
+        throw error;
+      }
+
+      const sourcePostData = sourcePostSnap.data() || {};
+      const sourceIndexData = sourceIndexSnap.data() || {};
+      const originalIsPublic = sourcePostData.isPublic !== false;
+      transaction.update(sourcePostRef, {
+        isPublic: false,
+        categoryMoveJobId: jobId,
+      });
+      transaction.update(sourceIndexRef, { isPublic: false });
+      transaction.set(jobRef, {
+        sourceCategory,
+        targetCategory,
+        postId: normalizedPostId,
+        originalIsPublic,
+        preparedImageUrls: uniqueStrings(preparedStorageCleanup?.urls),
+        preparedPathPrefixes: uniqueStrings(preparedStorageCleanup?.pathPrefixes),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      lockResult = { sourcePostData, sourceIndexData, originalIsPublic };
+    });
+
+    const [likesSnapshot, legacyCommentRefs] = await Promise.all([
+      sourceLikesRef.get(),
+      getLegacyCommentDeleteRefs(sourcePostRef),
     ]);
-
-    if (!sourcePostSnap.exists) {
-      res.status(404).json({ message: 'Post not found in source category' });
+    const writeCount = MOVE_STATIC_WRITE_COUNT +
+      (likesSnapshot.size * 2) +
+      legacyCommentRefs.length;
+    if (writeCount > FIRESTORE_BATCH_WRITE_LIMIT) {
+      await dbAdmin.runTransaction(async (transaction) => {
+        const [sourcePostSnap, sourceIndexSnap, targetPostSnap, targetIndexSnap] =
+          await Promise.all([
+            transaction.get(sourcePostRef),
+            transaction.get(sourceIndexRef),
+            transaction.get(targetPostRef),
+            transaction.get(targetIndexRef),
+          ]);
+        if (!sourcePostSnap.exists || !sourceIndexSnap.exists ||
+            targetPostSnap.exists || targetIndexSnap.exists) {
+          throw new Error('Failed to restore category move lock');
+        }
+        transaction.update(sourcePostRef, {
+          isPublic: lockResult.originalIsPublic,
+          categoryMoveJobId: admin.firestore.FieldValue.delete(),
+        });
+        transaction.update(sourceIndexRef, { isPublic: lockResult.originalIsPublic });
+        transaction.delete(jobRef);
+      });
+      res.status(409).json({
+        message: `Move exceeds the ${FIRESTORE_BATCH_WRITE_LIMIT}-write atomic limit`,
+      });
       return;
     }
-    if (targetPostSnap.exists) {
-      res.status(409).json({ message: 'Target category already has a post with the same id' });
-      return;
-    }
 
-    const sourcePostData = sourcePostSnap.data() || {};
-    const sourceIndexData = sourceIndexSnap.exists ? sourceIndexSnap.data() || {} : {};
     const updates = sanitizePostUpdates(data);
-
+    const { categoryMoveJobId, ...unlockedSourcePostData } = lockResult.sourcePostData;
     const targetPostData = {
-      ...sourcePostData,
+      ...unlockedSourcePostData,
       ...updates,
+      isPublic: updates.isPublic === undefined ? lockResult.originalIsPublic : updates.isPublic,
       category: targetCategory,
     };
 
-    await Promise.all([
-      targetPostRef.set(targetPostData),
-      targetIndexRef.set(buildIndexPayload(targetPostData, sourceIndexData)),
-    ]);
+    await dbAdmin.runTransaction(async (transaction) => {
+      const [sourcePostSnap, sourceIndexSnap, targetPostSnap, targetIndexSnap, jobSnap] =
+        await Promise.all([
+          transaction.get(sourcePostRef),
+          transaction.get(sourceIndexRef),
+          transaction.get(targetPostRef),
+          transaction.get(targetIndexRef),
+          transaction.get(jobRef),
+        ]);
+      if (!sourcePostSnap.exists || !sourceIndexSnap.exists || !jobSnap.exists ||
+          sourcePostSnap.data()?.categoryMoveJobId !== jobId) {
+        throw new Error('Category move lock is no longer valid');
+      }
+      if (targetPostSnap.exists || targetIndexSnap.exists) {
+        const error = new Error('Target category was created while moving the post');
+        error.statusCode = 409;
+        throw error;
+      }
 
-    const postLikeCount = await movePostLikes({ sourcePostRef, targetPostRef });
-    const migrationStats = await moveCommentsAndLikes({
-      fromCategory: sourceCategory,
-      toCategory: targetCategory,
-      postId: normalizedPostId,
+      transaction.set(targetPostRef, targetPostData);
+      transaction.set(
+        targetIndexRef,
+        buildIndexPayload(targetPostData, lockResult.sourceIndexData),
+      );
+      likesSnapshot.docs.forEach((likeDoc) => {
+        transaction.set(targetLikesRef.doc(likeDoc.id), likeDoc.data());
+        transaction.delete(likeDoc.ref);
+      });
+      legacyCommentRefs.forEach((reference) => transaction.delete(reference));
+      transaction.delete(sourcePostRef);
+      transaction.delete(sourceIndexRef);
     });
 
-    await Promise.all([
-      sourcePostRef.delete(),
-      sourceIndexRef.delete().catch(() => null),
-    ]);
+    await jobRef.delete();
 
     res.json({
       message: 'Post category moved successfully',
       postId: normalizedPostId,
       fromCategory: sourceCategory,
       toCategory: targetCategory,
-      postLikeCount,
-      ...migrationStats,
+      postLikeCount: likesSnapshot.size,
     });
   } catch (error) {
     console.error('[posts] 카테고리 이동 실패:', error);
-    res.status(500).json({ message: 'Failed to move post category' });
+    try {
+      await dbAdmin.runTransaction(async (transaction) => {
+        const [sourcePostSnap, sourceIndexSnap, targetPostSnap, targetIndexSnap, jobSnap] =
+          await Promise.all([
+            transaction.get(sourcePostRef),
+            transaction.get(sourceIndexRef),
+            transaction.get(targetPostRef),
+            transaction.get(targetIndexRef),
+            transaction.get(jobRef),
+          ]);
+        if (!jobSnap.exists || !sourcePostSnap.exists || !sourceIndexSnap.exists ||
+            sourcePostSnap.data()?.categoryMoveJobId !== jobId) {
+          return;
+        }
+        transaction.update(sourcePostRef, {
+          isPublic: jobSnap.data()?.originalIsPublic === true,
+          categoryMoveJobId: admin.firestore.FieldValue.delete(),
+        });
+        transaction.update(sourceIndexRef, {
+          isPublic: jobSnap.data()?.originalIsPublic === true,
+        });
+        transaction.delete(jobRef);
+      });
+    } catch (restoreError) {
+      console.error('[posts] 카테고리 이동 잠금 복구 실패:', restoreError);
+    }
+    res.status(error.statusCode || 500).json({
+      message: error.statusCode ? error.message : 'Failed to move post category',
+    });
   }
 });
 

@@ -1,5 +1,7 @@
 # LifeSculpture Security Stabilization Implementation Plan
 
+> 참고: 이 문서는 당시 보안 안정화 작업 기록입니다. 댓글 기능은 이후 제거되어 댓글 관련 항목은 현재 구현 범위에 적용되지 않습니다.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 댓글 작성/좋아요 실패, 저장형 XSS, Storage 업로드 규칙, 비밀값/배포 설정 문제를 1차 안정화 범위에서 수정한다.

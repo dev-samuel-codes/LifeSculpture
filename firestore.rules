@@ -13,10 +13,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function commentDocPath(cat, postId, commentId) {
-      return /databases/$(database)/documents/$(cat)/$(postId)/comments/$(commentId);
-    }
-
     function postDocPath(cat, postId) {
       return /databases/$(database)/documents/$(cat)/$(postId);
     }
@@ -31,20 +27,6 @@ service cloud.firestore {
 
     function isPublicPost() {
       return resource.data.isPublic == true;
-    }
-
-    function isPublicPostAt(cat, postId) {
-      let postPath = /databases/$(database)/documents/$(cat)/$(postId);
-      return exists(postPath) && get(postPath).data.isPublic == true;
-    }
-
-    function canReadPostAt(cat, postId) {
-      return isPublicPostAt(cat, postId) || isAdmin();
-    }
-
-    function hasMatchingCommentIdentity() {
-      return request.resource.data.authorName == null &&
-             request.resource.data.authorPhoto == null;
     }
 
     function isPostLikeAggregateUpdate(cat, postId, counterpartPath) {
@@ -89,77 +71,6 @@ service cloud.firestore {
              getAfter(indexPath).data.likeCount == getAfter(postPath).data.likeCount;
     }
 
-    function hasValidCommentContent() {
-      return request.resource.data.content is string &&
-             request.resource.data.content.size() > 0 &&
-             request.resource.data.content.size() <= 2000;
-    }
-
-    function isValidParent(cat, postId) {
-      return request.resource.data.parentId == null ||
-             (exists(commentDocPath(cat, postId, request.resource.data.parentId)) &&
-              get(commentDocPath(cat, postId, request.resource.data.parentId)).data.parentId == null);
-    }
-
-    function isValidCommentCreate(cat, postId) {
-      return request.resource.data.keys().hasOnly([
-               'authorId',
-               'authorName',
-               'authorPhoto',
-               'content',
-               'parentId',
-               'createdAt',
-               'updatedAt'
-             ]) &&
-             request.resource.data.authorId is string &&
-             (request.resource.data.authorName == null || request.resource.data.authorName is string) &&
-             (request.resource.data.authorPhoto == null || request.resource.data.authorPhoto is string) &&
-             hasValidCommentContent() &&
-             (request.resource.data.parentId == null || request.resource.data.parentId is string) &&
-             request.resource.data.createdAt == request.time &&
-             request.resource.data.updatedAt == request.time &&
-             hasMatchingCommentIdentity() &&
-             isValidParent(cat, postId);
-    }
-
-    function isValidCommentUpdate(cat, postId) {
-      return request.resource.data.keys().hasOnly([
-               'authorId',
-               'authorName',
-               'authorPhoto',
-               'content',
-               'parentId',
-               'createdAt',
-               'updatedAt'
-             ]) &&
-             request.resource.data.authorId == resource.data.authorId &&
-             request.resource.data.authorName == resource.data.authorName &&
-             request.resource.data.authorPhoto == resource.data.authorPhoto &&
-             request.resource.data.parentId == resource.data.parentId &&
-             request.resource.data.createdAt == resource.data.createdAt &&
-             request.resource.data.updatedAt == request.time &&
-             hasValidCommentContent() &&
-             isValidParent(cat, postId);
-    }
-
-    function canDeleteComment(cat, postId) {
-      return isSignedIn() && (
-        resource.data.authorId == request.auth.uid ||
-        (resource.data.parentId != null &&
-         get(commentDocPath(cat, postId, resource.data.parentId)).data.authorId == request.auth.uid)
-      );
-    }
-
-    function canDeleteCommentLike(cat, postId, commentId, likeUid) {
-      let comment = get(commentDocPath(cat, postId, commentId));
-      return isSignedIn() && (
-        likeUid == request.auth.uid ||
-        comment.data.authorId == request.auth.uid ||
-        (comment.data.parentId != null &&
-         get(commentDocPath(cat, postId, comment.data.parentId)).data.authorId == request.auth.uid)
-      );
-    }
-
     match /blog/{postId} {
       allow read: if isPublicPost() || isAdmin();
       allow write: if isAdmin();
@@ -177,34 +88,9 @@ service cloud.firestore {
         allow update: if false;
       }
 
-      match /comments/{commentId} {
-        allow read: if canReadPostAt("blog", postId);
-        allow create: if isAdmin() ||
-                       (isPublicPostAt("blog", postId) &&
-                        isSignedIn() &&
-                        request.resource.data.authorId == request.auth.uid &&
-                        isValidCommentCreate("blog", postId));
-        allow update: if (isPublicPostAt("blog", postId) &&
-                         isSignedIn() &&
-                         resource.data.authorId == request.auth.uid &&
-                         isValidCommentUpdate("blog", postId)) || isAdmin();
-        allow delete: if (isPublicPostAt("blog", postId) &&
-                          canDeleteComment("blog", postId)) || isAdmin();
-
-        match /likes/{likeUid} {
-          allow read: if canReadPostAt("blog", postId);
-          allow create: if isAdmin() ||
-                         (isPublicPostAt("blog", postId) &&
-                          isSignedIn() &&
-                          exists(commentDocPath("blog", postId, commentId)) &&
-                          likeUid == request.auth.uid &&
-                          request.resource.data.keys().hasOnly(['createdAt']) &&
-                          request.resource.data.createdAt == request.time);
-          allow delete: if isAdmin() ||
-                         (isPublicPostAt("blog", postId) &&
-                          canDeleteCommentLike("blog", postId, commentId, likeUid));
-          allow update: if false;
-        }
+      match /comments/{legacyDocument=**} {
+        allow read, delete: if isAdmin();
+        allow create, update: if false;
       }
     }
 
@@ -225,38 +111,21 @@ service cloud.firestore {
         allow update: if false;
       }
 
-      match /comments/{commentId} {
-        allow read: if canReadPostAt("study", postId);
-        allow create: if isAdmin() ||
-                       (isPublicPostAt("study", postId) &&
-                        isSignedIn() &&
-                        request.resource.data.authorId == request.auth.uid &&
-                        isValidCommentCreate("study", postId));
-        allow update: if (isPublicPostAt("study", postId) &&
-                         isSignedIn() &&
-                         resource.data.authorId == request.auth.uid &&
-                         isValidCommentUpdate("study", postId)) || isAdmin();
-        allow delete: if (isPublicPostAt("study", postId) &&
-                          canDeleteComment("study", postId)) || isAdmin();
-
-        match /likes/{likeUid} {
-          allow read: if canReadPostAt("study", postId);
-          allow create: if isAdmin() ||
-                         (isPublicPostAt("study", postId) &&
-                          isSignedIn() &&
-                          exists(commentDocPath("study", postId, commentId)) &&
-                          likeUid == request.auth.uid &&
-                          request.resource.data.keys().hasOnly(['createdAt']) &&
-                          request.resource.data.createdAt == request.time);
-          allow delete: if isAdmin() ||
-                         (isPublicPostAt("study", postId) &&
-                          canDeleteCommentLike("study", postId, commentId, likeUid));
-          allow update: if false;
-        }
+      match /comments/{legacyDocument=**} {
+        allow read, delete: if isAdmin();
+        allow create, update: if false;
       }
     }
 
     match /users/{uid} {
+      allow read, write: if isAdmin();
+    }
+
+    match /post_deletion_jobs/{jobId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /post_move_jobs/{jobId} {
       allow read, write: if isAdmin();
     }
 

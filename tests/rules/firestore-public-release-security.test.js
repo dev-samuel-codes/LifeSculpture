@@ -41,64 +41,12 @@ beforeEach(async () => {
       db.doc('study/private-post').set(privatePost),
       db.doc('post_index/blog/posts/post-a').set(publicPost),
       db.doc('post_index/blog/posts/private-post').set(privatePost),
-      db.doc('blog/post-a/comments/comment-a').set({
-        authorId: 'user-a',
-        authorName: null,
-        authorPhoto: null,
-        content: 'hello',
-        parentId: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
     ]);
   });
 });
 
 afterAll(async () => {
   await testEnv.cleanup();
-});
-
-test('comment content is accepted at 2000 characters and denied at 2001', async () => {
-  // Given: a signed-in user and a public post.
-  const db = testEnv.authenticatedContext('user-a').firestore();
-
-  // When: the user writes comments at and above the documented limit.
-  const atLimit = db.doc('blog/post-a/comments/at-limit').set({
-    authorId: 'user-a',
-    authorName: null,
-    authorPhoto: null,
-    content: 'a'.repeat(2000),
-    parentId: null,
-    createdAt: timestamp(),
-    updatedAt: timestamp(),
-  });
-  const overLimit = db.doc('blog/post-a/comments/over-limit').set({
-    authorId: 'user-a',
-    authorName: null,
-    authorPhoto: null,
-    content: 'a'.repeat(2001),
-    parentId: null,
-    createdAt: timestamp(),
-    updatedAt: timestamp(),
-  });
-
-  // Then: only the bounded comment is accepted.
-  await assertSucceeds(atLimit);
-  await assertFails(overLimit);
-});
-
-test('comment owner cannot update content beyond 2000 characters', async () => {
-  // Given: an existing comment owned by the signed-in user.
-  const db = testEnv.authenticatedContext('user-a').firestore();
-
-  // When: the owner replaces its content with an oversized value.
-  const oversizedUpdate = db.doc('blog/post-a/comments/comment-a').update({
-    content: 'a'.repeat(2001),
-    updatedAt: timestamp(),
-  });
-
-  // Then: the update is denied at the Rules boundary.
-  await assertFails(oversizedUpdate);
 });
 
 test('normal user cannot mutate likes on private posts or indexes', async () => {
@@ -189,15 +137,44 @@ test('only administrators can list post like memberships for cleanup', async () 
   await assertFails(userDb.collection('blog/post-a/likes').get());
 });
 
-test('like cannot be created below a missing comment', async () => {
-  // Given: a signed-in user and no parent comment document.
-  const db = testEnv.authenticatedContext('user-a').firestore();
+test('post deletion cleanup jobs are restricted to administrators', async () => {
+  const adminDb = testEnv.authenticatedContext('admin-uid').firestore();
+  const userDb = testEnv.authenticatedContext('user-a').firestore();
+  const jobData = {
+    category: 'blog',
+    postId: 'post-a',
+    urls: [],
+    pathPrefixes: ['post-images/blog/post-a'],
+    createdAt: timestamp(),
+  };
 
-  // When: the user creates a like below the missing parent.
-  const orphanLike = db
-    .doc('blog/post-a/comments/missing-comment/likes/user-a')
-    .set({ createdAt: timestamp() });
+  await assertFails(userDb.doc('post_deletion_jobs/blog--post-a').set(jobData));
+  await assertSucceeds(adminDb.doc('post_deletion_jobs/blog--post-a').set(jobData));
+  await assertFails(userDb.doc('post_deletion_jobs/blog--post-a').get());
+  await assertSucceeds(adminDb.doc('post_deletion_jobs/blog--post-a').get());
+  await assertFails(userDb.collection('post_deletion_jobs').get());
+  await assertSucceeds(adminDb.collection('post_deletion_jobs').get());
+  await assertFails(userDb.doc('post_deletion_jobs/blog--post-a').delete());
+  await assertSucceeds(adminDb.doc('post_deletion_jobs/blog--post-a').delete());
+});
 
-  // Then: the orphan subcollection write is denied.
-  await assertFails(orphanLike);
+test('post category move jobs are restricted to administrators', async () => {
+  const adminDb = testEnv.authenticatedContext('admin-uid').firestore();
+  const userDb = testEnv.authenticatedContext('user-a').firestore();
+  const jobData = {
+    sourceCategory: 'blog',
+    targetCategory: 'study',
+    postId: 'post-a',
+    originalIsPublic: true,
+    preparedImageUrls: [],
+    preparedPathPrefixes: ['post-images/study/post-a'],
+    createdAt: timestamp(),
+  };
+
+  await assertFails(userDb.doc('post_move_jobs/blog--study--post-a').set(jobData));
+  await assertSucceeds(adminDb.doc('post_move_jobs/blog--study--post-a').set(jobData));
+  await assertFails(userDb.collection('post_move_jobs').get());
+  await assertSucceeds(adminDb.collection('post_move_jobs').get());
+  await assertFails(userDb.doc('post_move_jobs/blog--study--post-a').delete());
+  await assertSucceeds(adminDb.doc('post_move_jobs/blog--study--post-a').delete());
 });
