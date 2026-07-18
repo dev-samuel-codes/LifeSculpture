@@ -300,6 +300,10 @@ body[data-theme='dark'] .post-toc__item a {
   color: #d7ddf0;
 }
 
+.post-toc__item.level-1 a {
+  font-weight: 700;
+}
+
 .post-toc__item.level-2 a {
   font-weight: 600;
 }
