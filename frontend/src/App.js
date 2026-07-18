@@ -3,6 +3,7 @@ import React, { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/layout/Header';
 import Connect from './components/layout/Connect';
+import FullPageLoading from './components/layout/FullPageLoading';
 import { AuthContext } from './context/AuthContext';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -85,40 +86,35 @@ function App() {
     });
   }, [role, uid]);
 
+  if (authLoading) {
+    return <FullPageLoading />;
+  }
+
   return (
     <div className="App">
       <Header />
 
-      {authLoading ? (
-        <>
-          <div style={{ padding: 16 }}>Loading session…</div>
-          {!isEditorRoute && <Connect />}
-        </>
-      ) : (
-        <>
-          <Suspense fallback={<div className="route-loading">페이지를 불러오는 중...</div>}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/study" element={<Page><StudyPage /></Page>} />
-              <Route path="/blog" element={<Page><BlogPage /></Page>} />
+      <Suspense fallback={<FullPageLoading />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/study" element={<Page><StudyPage /></Page>} />
+          <Route path="/blog" element={<Page><BlogPage /></Page>} />
 
-              {role === 'admin' && (
-                <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
-              )}
-              {role === 'admin' && (
-                <Route path="/write" element={<Page className="editor-route-page"><WritePostPage /></Page>} />
-              )}
-              {role === 'admin' && (
-                <Route path="/edit-post/:category/:id" element={<Page className="editor-route-page"><EditPostPage /></Page>} />
-              )}
+          {role === 'admin' && (
+            <Route path="/admin" element={<Page><AdminDashboardPage /></Page>} />
+          )}
+          {role === 'admin' && (
+            <Route path="/write" element={<Page className="editor-route-page"><WritePostPage /></Page>} />
+          )}
+          {role === 'admin' && (
+            <Route path="/edit-post/:category/:id" element={<Page className="editor-route-page"><EditPostPage /></Page>} />
+          )}
 
-              <Route path="/posts/:category/:id" element={<Page><PostDetailPage /></Page>} />
-            </Routes>
-          </Suspense>
+          <Route path="/posts/:category/:id" element={<Page><PostDetailPage /></Page>} />
+        </Routes>
+      </Suspense>
 
-          {!isEditorRoute && <Connect />}
-        </>
-      )}
+      {!isEditorRoute && <Connect />}
 
     </div>
   );
