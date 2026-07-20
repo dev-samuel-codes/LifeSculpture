@@ -1332,6 +1332,13 @@ body.writing-page-lock-scroll .App {
   overflow-y: auto !important;
 }
 
+.writing-workspace .writing-editor .ql-editor::after {
+  content: '';
+  display: block;
+  height: calc(100dvh / 3);
+  pointer-events: none;
+}
+
 .writing-workspace .writing-editor .ql-editor.ql-blank::before {
   position: absolute !important;
   top: clamp(14px, 2vh, 24px);
