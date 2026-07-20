@@ -39,11 +39,21 @@ import {
   setPostVisibility,
   updatePostFields,
 } from '../services/posts';
+import {
+  areEditPostDraftFieldsEqual,
+  getEditPostDraftFields,
+  getEditPostDraftStorageKey,
+  loadEditPostDraft,
+  removeEditPostDraft,
+  saveEditPostDraft,
+} from '../utils/editPostDraft';
 import { extractHashtagsFromContent, mergePostTags } from '../utils/tags';
 import '../style/components/write/WritePostPage.css';
 import '../style/components/editor/QuillToolbar.css';
 import '../style/components/editor/CustomFormulaEditor.css';
 import '../style/components/editor/RichText.css';
+
+const AUTO_SAVE_DELAY = 2000;
 
 function EditPostPage() {
   const { category: categoryParam, id } = useParams();
@@ -66,14 +76,18 @@ function EditPostPage() {
   const [originalIsPublic, setOriginalIsPublic] = useState(true);
   const [originalPendingStorageCleanup, setOriginalPendingStorageCleanup] = useState(null);
   const [originalStoragePathPrefixes, setOriginalStoragePathPrefixes] = useState([]);
+  const [draftStatus, setDraftStatus] = useState('idle');
 
   const [isFormulaEditorOpen, setIsFormulaEditorOpen] = useState(false);
   const [formulaInitialValue, setFormulaInitialValue] = useState('');
   const [onFormulaSave, setOnFormulaSave] = useState(null);
 
   const quillRef = useRef(null);
+  const initialDraftStateRef = useRef(null);
+  const skipNextAutoSaveRef = useRef(false);
   const editorHeight = useResponsiveEditorHeight();
   const { modules, formats, handleImageUpload } = useQuillToolbar();
+  const draftStorageKey = getEditPostDraftStorageKey(categoryParam, id);
 
   const getReadyEditor = useCallback(() => {
     try {
@@ -110,35 +124,74 @@ function EditPostPage() {
     setIsFormulaEditorOpen(true);
   }, []);
 
+  const clearDraftStorage = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const removed = removeEditPostDraft({
+      storage: window.localStorage,
+      key: draftStorageKey,
+    });
+    setDraftStatus(removed ? 'idle' : 'error');
+  }, [draftStorageKey]);
+
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const postData = await getPost({ category: categoryParam, id });
         if (postData) {
           const initialContent = normalizeTableCellBreaksForEditor(postData.content || '');
-          setTitle(postData.title || '');
-          setContent(initialContent);
-          setCategory(postData.category || categoryParam);
           const initialIsPublic = typeof postData.isPublic === 'boolean' ? postData.isPublic : true;
-          setIsPublic(initialIsPublic);
+          const initialStyleSettings = hasContentStyleSettings(postData.contentStyleSettings)
+            ? normalizeContentStyleSettings(postData.contentStyleSettings)
+            : null;
+          const initialTableSettings = hasContentTableSettings(postData.contentTableSettings)
+            ? normalizeContentTableSettings(postData.contentTableSettings)
+            : null;
+          const initialDraftState = getEditPostDraftFields({
+            title: postData.title || '',
+            content: initialContent,
+            category: postData.category || categoryParam,
+            isPublic: initialIsPublic,
+            tags: Array.isArray(postData.tags) ? postData.tags : [],
+            contentStyleSettings: initialStyleSettings,
+            contentTableSettings: initialTableSettings,
+          });
+          initialDraftStateRef.current = {
+            storageKey: draftStorageKey,
+            fields: initialDraftState,
+          };
+
+          const storedDraft = typeof window === 'undefined'
+            ? null
+            : loadEditPostDraft({
+                storage: window.localStorage,
+                key: draftStorageKey,
+              });
+          const hasRestorableDraft = Boolean(
+            storedDraft && !areEditPostDraftFieldsEqual(storedDraft, initialDraftState),
+          );
+          const nextDraftState = hasRestorableDraft ? storedDraft : initialDraftState;
+
+          if (storedDraft && !hasRestorableDraft && typeof window !== 'undefined') {
+            removeEditPostDraft({ storage: window.localStorage, key: draftStorageKey });
+          }
+
+          setTitle(nextDraftState.title);
+          setContent(nextDraftState.content);
+          setCategory(nextDraftState.category);
+          setIsPublic(nextDraftState.isPublic);
+          setTags(nextDraftState.tags);
+          setContentStyleSettings(nextDraftState.contentStyleSettings);
+          setContentTableSettings(nextDraftState.contentTableSettings);
+          setDraftStatus(hasRestorableDraft ? 'loaded' : 'idle');
+          skipNextAutoSaveRef.current = hasRestorableDraft;
           setOriginalIsPublic(initialIsPublic);
           setOriginalPendingStorageCleanup(postData.pendingStorageCleanup || null);
           setOriginalStoragePathPrefixes(
             Array.isArray(postData.storagePathPrefixes) ? postData.storagePathPrefixes : [],
           );
-          setTags(Array.isArray(postData.tags) ? postData.tags : []);
-          setContentStyleSettings(
-            hasContentStyleSettings(postData.contentStyleSettings)
-              ? normalizeContentStyleSettings(postData.contentStyleSettings)
-              : null,
-          );
-          setContentTableSettings(
-            hasContentTableSettings(postData.contentTableSettings)
-              ? normalizeContentTableSettings(postData.contentTableSettings)
-              : null,
-          );
           setOriginalImageUrls(getTrackedImageUrls(initialContent));
-          setContentSize(calculateContentSize(initialContent));
+          setContentSize(calculateContentSize(nextDraftState.content));
         } else {
           setError('Post not found.');
         }
@@ -150,7 +203,72 @@ function EditPostPage() {
     };
 
     fetchPost();
-  }, [categoryParam, getTrackedImageUrls, id]);
+  }, [categoryParam, draftStorageKey, getTrackedImageUrls, id]);
+
+  useEffect(() => {
+    const initialDraftEntry = initialDraftStateRef.current;
+    if (
+      typeof window === 'undefined' ||
+      loading ||
+      initialDraftEntry?.storageKey !== draftStorageKey
+    ) {
+      return undefined;
+    }
+
+    if (skipNextAutoSaveRef.current) {
+      skipNextAutoSaveRef.current = false;
+      return undefined;
+    }
+
+    const nextDraftState = getEditPostDraftFields({
+      title,
+      content,
+      category,
+      isPublic,
+      tags,
+      contentStyleSettings: hasContentStyleSettings(contentStyleSettings)
+        ? normalizeContentStyleSettings(contentStyleSettings)
+        : null,
+      contentTableSettings: hasContentTableSettings(contentTableSettings)
+        ? normalizeContentTableSettings(contentTableSettings)
+        : null,
+    });
+
+    if (areEditPostDraftFieldsEqual(nextDraftState, initialDraftEntry.fields)) {
+      clearDraftStorage();
+      return undefined;
+    }
+
+    setDraftStatus('saving');
+    const timer = window.setTimeout(() => {
+      try {
+        saveEditPostDraft({
+          storage: window.localStorage,
+          key: draftStorageKey,
+          draft: nextDraftState,
+        });
+        setDraftStatus('saved');
+      } catch (error) {
+        setDraftStatus('error');
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('[EditPostPage] 임시 저장 실패:', error);
+        }
+      }
+    }, AUTO_SAVE_DELAY);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    category,
+    clearDraftStorage,
+    content,
+    contentStyleSettings,
+    contentTableSettings,
+    draftStorageKey,
+    isPublic,
+    loading,
+    tags,
+    title,
+  ]);
 
   useQuillEditorBridge({
     quillRef,
@@ -353,6 +471,7 @@ function EditPostPage() {
       }
 
       invalidatePostListCache([categoryParam, nextCategory]);
+      clearDraftStorage();
 
       alert('게시글이 성공적으로 수정되었습니다.');
       const targetPath = `/posts/${nextCategory}/${id}`;
@@ -414,6 +533,20 @@ function EditPostPage() {
   if (loading) return <div className="container mt-4">Loading...</div>;
   if (error) return <div className="container mt-4 text-danger">Error: {error}</div>;
 
+  const draftStatusMessage = (() => {
+    switch (draftStatus) {
+      case 'saving':
+        return '임시저장 중...';
+      case 'saved':
+      case 'loaded':
+        return '임시저장 완료';
+      case 'error':
+        return '임시저장 실패';
+      default:
+        return '';
+    }
+  })();
+
   return (
     <PostEditorForm
       mode="edit"
@@ -425,7 +558,7 @@ function EditPostPage() {
       contentStyleSettings={contentStyleSettings}
       editorHeight={editorHeight}
       isSubmitting={isUploading}
-      statusMessage=""
+      statusMessage={draftStatusMessage}
       quillRef={quillRef}
       modules={modules}
       formats={formats}
