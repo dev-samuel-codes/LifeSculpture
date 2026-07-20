@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { convertHeicToJpeg } from '../utils/media';
 import { setupResponsiveImageSizing } from '../utils/imageSizing';
+import { setupImageResizing } from '../utils/imageResizing';
 import { setupEditorCommandShortcuts } from '../utils/keyboardShortcuts';
 import { setupTableResizing } from '../utils/tableResizing';
 import { applyContentTableSettingsToRoot } from '../utils/contentTableSettings';
@@ -568,6 +569,7 @@ function useQuillEditorBridge({
     let retryTimer;
     let cleanupToolbarSelectionPreservation = null;
     let cleanupCommandShortcuts = null;
+    let cleanupImageResizing = null;
     let cleanupTableResizing = null;
     let cleanupDefaultAlignment = null;
     let retryCount = 0;
@@ -589,6 +591,12 @@ function useQuillEditorBridge({
       cleanupToolbarSelectionPreservation = setupToolbarSelectionPreservation(editor);
       cleanupCommandShortcuts?.();
       cleanupCommandShortcuts = setupEditorCommandShortcuts(editor);
+      cleanupImageResizing?.();
+      cleanupImageResizing = setupImageResizing({
+        root: editor.root,
+        editor,
+        onResize: onContentChange,
+      });
       cleanupTableResizing?.();
       cleanupTableResizing = setupTableResizing({
         root: editor.root,
@@ -617,6 +625,7 @@ function useQuillEditorBridge({
       }
       cleanupToolbarSelectionPreservation?.();
       cleanupCommandShortcuts?.();
+      cleanupImageResizing?.();
       cleanupTableResizing?.();
       cleanupDefaultAlignment?.();
       window.openFormulaEditor = null;

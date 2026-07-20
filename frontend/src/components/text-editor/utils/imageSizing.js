@@ -1,3 +1,23 @@
+export const applyStoredImageSizing = (img) => {
+  if (!img) return false;
+
+  const widthAttribute = img.getAttribute('width')?.trim() || '';
+  if (!/^\d+$/.test(widthAttribute)) {
+    return false;
+  }
+
+  const storedWidth = Number.parseInt(widthAttribute, 10);
+  if (!Number.isFinite(storedWidth) || storedWidth <= 0) {
+    return false;
+  }
+
+  img.style.setProperty('width', `${Math.round(storedWidth)}px`, 'important');
+  img.style.setProperty('max-width', '100%', 'important');
+  img.style.setProperty('height', 'auto', 'important');
+  img.style.setProperty('max-height', 'none', 'important');
+  return true;
+};
+
 export const setupResponsiveImageSizing = ({
   root,
   portraitClassName = 'portrait-image',
@@ -10,6 +30,8 @@ export const setupResponsiveImageSizing = ({
   const loadHandlers = new Map();
 
   const classifyImage = (img) => {
+    applyStoredImageSizing(img);
+
     const { naturalWidth, naturalHeight } = img;
     if (!naturalWidth || !naturalHeight) return;
 
