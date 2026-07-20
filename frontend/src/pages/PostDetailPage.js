@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { storage } from '../firebase/firebase';
 import { AuthContext } from '../context/AuthContext';
 import LoginRequiredPopup from '../components/auth/LoginRequiredPopup';
+import FullPageLoading from '../components/layout/FullPageLoading';
 import LikeButton from '../components/posts/LikeButton';
 import { formatDateOnly } from '../utils/date';
 import { sanitizeHtml } from '../components/text-editor/utils/content';
@@ -154,7 +155,7 @@ function PostDetailPage() {
     }
   };
 
-  if (loading) return <div className="post-status">게시물을 불러오는 중...</div>;
+  if (loading) return <FullPageLoading />;
   if (error) return <div className="post-status">오류: {error}</div>;
   if (!post) return <div className="post-status">게시물을 찾을 수 없습니다.</div>;
 
