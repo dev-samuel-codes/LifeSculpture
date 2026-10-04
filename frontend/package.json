@@ -31,7 +31,7 @@
     "prebuild": "node scripts/validate-build-env.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "test:env": "node --test scripts/validate-build-env.test.js",
+    "test:env": "node --test scripts/validate-build-env.test.js scripts/build-firebase-hosting.test.js",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -53,3 +53,4 @@
     ]
   }
 }
+
