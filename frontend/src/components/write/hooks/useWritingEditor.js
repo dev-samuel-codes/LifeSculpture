@@ -1,8 +1,9 @@
 // useWritingEditor 훅: 글 작성 폼 상태와 편집기 동작을 관리
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { AuthContext } from '../../../context/AuthContext';
 import { db, storage } from '../../../firebase/firebase';
 import { useQuillToolbar } from '../../text-editor/hooks/useQuillToolbar';
 import useQuillEditorBridge from '../../text-editor/hooks/useQuillEditorBridge';
@@ -30,11 +31,17 @@ import {
 } from '../../../utils/storage';
 
 const AUTO_SAVE_DELAY = 2000;
-const DRAFT_STORAGE_KEY = 'settings-writing-draft';
-const DRAFT_TTL = 1000 * 60 * 60 * 24 * 30; // 30일
+const LEGACY_DRAFT_STORAGE_KEY = 'settings-writing-draft';
+const DRAFT_STORAGE_PREFIX = 'settings-writing-draft:v2';
+const DRAFT_TTL = 1000 * 60 * 60 * 24 * 30; // 열린 탭이 장기간 유지되는 경우를 위한 상한
 
 const useWritingEditor = () => {
   const navigate = useNavigate();
+  const { uid, loading: authLoading } = useContext(AuthContext) || {};
+  const draftStorageKey = useMemo(
+    () => (uid ? `${DRAFT_STORAGE_PREFIX}:${encodeURIComponent(uid)}` : null),
+    [uid],
+  );
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -57,6 +64,7 @@ const useWritingEditor = () => {
   const quillRef = useRef(null);
   const lastSubmitAtRef = useRef(0);
   const skipNextAutoSaveRef = useRef(false);
+  const loadedDraftStorageKeyRef = useRef(null);
 
   const { modules, formats, handleImageUpload } = useQuillToolbar();
 
@@ -79,7 +87,9 @@ const useWritingEditor = () => {
   const clearDraftStorage = useCallback(() => {
     if (typeof window === 'undefined') return;
     try {
-      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+      if (draftStorageKey) {
+        window.sessionStorage.removeItem(draftStorageKey);
+      }
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
         console.warn('[WritePostPage] 임시 저장본 삭제 실패:', error);
@@ -87,7 +97,7 @@ const useWritingEditor = () => {
     }
     setDraftStatus('idle');
     setDraftUpdatedAt(null);
-  }, []);
+  }, [draftStorageKey]);
 
   const handlePendingImage = useCallback(({ file, tempUrl }) => {
     setPendingImages((prev) => [...prev, { id: Date.now(), file, tempUrl }]);
@@ -110,25 +120,69 @@ const useWritingEditor = () => {
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || authLoading) return;
+
+    // Remove drafts written by the old shared localStorage implementation.
+    try {
+      window.localStorage.removeItem(LEGACY_DRAFT_STORAGE_KEY);
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[WritePostPage] 레거시 임시 저장본 삭제 실패:', error);
+      }
+    }
+
+    if (!draftStorageKey) {
+      loadedDraftStorageKeyRef.current = null;
+      skipNextAutoSaveRef.current = true;
+      setTitle('');
+      setContent('');
+      setCategory('study');
+      setIsPublic(true);
+      setTags([]);
+      setContentStyleSettings(null);
+      setContentTableSettings(null);
+      setContentSize(0);
+      setDraftUpdatedAt(null);
+      setDraftStatus('idle');
+      return;
+    }
+
+    if (loadedDraftStorageKeyRef.current === draftStorageKey) return;
+    loadedDraftStorageKeyRef.current = draftStorageKey;
+    skipNextAutoSaveRef.current = true;
+
+    setTitle('');
+    setContent('');
+    setCategory('study');
+    setIsPublic(true);
+    setTags([]);
+    setContentStyleSettings(null);
+    setContentTableSettings(null);
+    setContentSize(0);
+    setDraftUpdatedAt(null);
+    setDraftStatus('idle');
 
     try {
-      const rawDraft = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      const rawDraft = window.sessionStorage.getItem(draftStorageKey);
       if (!rawDraft) return;
 
       const parsedDraft = JSON.parse(rawDraft);
-      if (!parsedDraft || typeof parsedDraft !== 'object') return;
+      if (!parsedDraft || typeof parsedDraft !== 'object') {
+        window.sessionStorage.removeItem(draftStorageKey);
+        return;
+      }
 
       if (
         parsedDraft.updatedAt &&
         Date.now() - parsedDraft.updatedAt > DRAFT_TTL
       ) {
-        window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+        window.sessionStorage.removeItem(draftStorageKey);
         return;
       }
 
+      const restoredContent = parsedDraft.content ?? '';
       setTitle(parsedDraft.title ?? '');
-      setContent(parsedDraft.content ?? '');
+      setContent(restoredContent);
       setCategory(parsedDraft.category ?? 'study');
       setIsPublic(
         typeof parsedDraft.isPublic === 'boolean' ? parsedDraft.isPublic : true,
@@ -144,18 +198,28 @@ const useWritingEditor = () => {
           ? normalizeContentTableSettings(parsedDraft.contentTableSettings)
           : null,
       );
+      setContentSize(calculateContentSize(restoredContent));
       setDraftUpdatedAt(parsedDraft.updatedAt ?? Date.now());
       setDraftStatus('loaded');
-      skipNextAutoSaveRef.current = true;
     } catch (error) {
+      try {
+        window.sessionStorage.removeItem(draftStorageKey);
+      } catch {}
       if (process.env.NODE_ENV !== 'production') {
         console.warn('[WritePostPage] 임시 저장본 불러오기 실패:', error);
       }
     }
-  }, [setCategory, setContent, setIsPublic, setTitle]);
+  }, [authLoading, draftStorageKey]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
+    if (
+      typeof window === 'undefined' ||
+      authLoading ||
+      !draftStorageKey ||
+      loadedDraftStorageKeyRef.current !== draftStorageKey
+    ) {
+      return undefined;
+    }
     if (skipNextAutoSaveRef.current) {
       skipNextAutoSaveRef.current = false;
       return undefined;
@@ -194,8 +258,8 @@ const useWritingEditor = () => {
             : {}),
           updatedAt: Date.now(),
         };
-        window.localStorage.setItem(
-          DRAFT_STORAGE_KEY,
+        window.sessionStorage.setItem(
+          draftStorageKey,
           JSON.stringify(payload),
         );
         setDraftUpdatedAt(payload.updatedAt);
@@ -212,11 +276,13 @@ const useWritingEditor = () => {
       clearTimeout(timer);
     };
   }, [
+    authLoading,
     category,
     clearDraftStorage,
     content,
     contentStyleSettings,
     contentTableSettings,
+    draftStorageKey,
     isPublic,
     tags,
     title,
