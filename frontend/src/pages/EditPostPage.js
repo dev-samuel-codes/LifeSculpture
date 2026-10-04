@@ -43,6 +43,7 @@ import {
   areEditPostDraftFieldsEqual,
   getEditPostDraftFields,
   getEditPostDraftStorageKey,
+  getLegacyEditPostDraftStorageKey,
   loadEditPostDraft,
   removeEditPostDraft,
   saveEditPostDraft,
@@ -87,7 +88,8 @@ function EditPostPage() {
   const skipNextAutoSaveRef = useRef(false);
   const editorHeight = useResponsiveEditorHeight();
   const { modules, formats, handleImageUpload } = useQuillToolbar();
-  const draftStorageKey = getEditPostDraftStorageKey(categoryParam, id);
+  const draftStorageKey = getEditPostDraftStorageKey(uid, categoryParam, id);
+  const legacyDraftStorageKey = getLegacyEditPostDraftStorageKey(categoryParam, id);
 
   const getReadyEditor = useCallback(() => {
     try {
@@ -128,7 +130,7 @@ function EditPostPage() {
     if (typeof window === 'undefined') return;
 
     const removed = removeEditPostDraft({
-      storage: window.localStorage,
+      storage: window.sessionStorage,
       key: draftStorageKey,
     });
     setDraftStatus(removed ? 'idle' : 'error');
@@ -161,10 +163,20 @@ function EditPostPage() {
             fields: initialDraftState,
           };
 
-          const storedDraft = typeof window === 'undefined'
+          if (typeof window !== 'undefined') {
+            try {
+              window.localStorage.removeItem(legacyDraftStorageKey);
+            } catch (error) {
+              if (process.env.NODE_ENV !== 'production') {
+                console.warn('[EditPostPage] 레거시 임시 저장본 삭제 실패:', error);
+              }
+            }
+          }
+
+          const storedDraft = typeof window === 'undefined' || !draftStorageKey
             ? null
             : loadEditPostDraft({
-                storage: window.localStorage,
+                storage: window.sessionStorage,
                 key: draftStorageKey,
               });
           const hasRestorableDraft = Boolean(
@@ -173,7 +185,7 @@ function EditPostPage() {
           const nextDraftState = hasRestorableDraft ? storedDraft : initialDraftState;
 
           if (storedDraft && !hasRestorableDraft && typeof window !== 'undefined') {
-            removeEditPostDraft({ storage: window.localStorage, key: draftStorageKey });
+            removeEditPostDraft({ storage: window.sessionStorage, key: draftStorageKey });
           }
 
           setTitle(nextDraftState.title);
@@ -203,13 +215,14 @@ function EditPostPage() {
     };
 
     fetchPost();
-  }, [categoryParam, draftStorageKey, getTrackedImageUrls, id]);
+  }, [categoryParam, draftStorageKey, getTrackedImageUrls, id, legacyDraftStorageKey]);
 
   useEffect(() => {
     const initialDraftEntry = initialDraftStateRef.current;
     if (
       typeof window === 'undefined' ||
       loading ||
+      !draftStorageKey ||
       initialDraftEntry?.storageKey !== draftStorageKey
     ) {
       return undefined;
@@ -243,7 +256,7 @@ function EditPostPage() {
     const timer = window.setTimeout(() => {
       try {
         saveEditPostDraft({
-          storage: window.localStorage,
+          storage: window.sessionStorage,
           key: draftStorageKey,
           draft: nextDraftState,
         });
