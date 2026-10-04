@@ -23,11 +23,13 @@ beforeEach(async () => {
     const publicPost = {
       title: 'Public Post',
       isPublic: true,
+      viewCount: 0,
       likeCount: 0,
     };
     const privatePost = {
       title: 'Private Post',
       isPublic: false,
+      viewCount: 0,
       likeCount: 0,
       likedBy: [],
     };
@@ -89,6 +91,50 @@ test('user documents cannot be exposed by a permissive top-level wildcard', asyn
   await assertFails(userDb.doc('users/admin-uid').get());
   await assertFails(userDb.doc('users/user-a').get());
   await assertSucceeds(adminDb.doc('users/user-a').get());
+});
+
+test('public posts reject direct view and arbitrary like tampering', async () => {
+  // Given: public post/index documents and untrusted caller contexts.
+  const anonymousDb = testEnv.unauthenticatedContext().firestore();
+  const userDb = testEnv.authenticatedContext('user-a').firestore();
+
+  // Then: view counts cannot be incremented directly by visitors or normal users.
+  await assertFails(anonymousDb.doc('blog/post-a').update({ viewCount: increment(1) }));
+  await assertFails(userDb.doc('blog/post-a').update({ viewCount: increment(1) }));
+  await assertFails(
+    userDb.doc('post_index/blog/posts/post-a').update({ viewCount: increment(1) }),
+  );
+
+  // And: aggregate likes cannot be forged without the caller-owned membership transition.
+  await assertFails(userDb.doc('blog/post-a').update({ likeCount: increment(10) }));
+  await assertFails(
+    userDb.doc('post_index/blog/posts/post-a').update({ likeCount: increment(10) }),
+  );
+  await assertFails(
+    userDb.doc('blog/post-a').update({ likedBy: arrayUnion('user-b') }),
+  );
+});
+
+test('administrators can remove foreign likes and legacy comment data during a move', async () => {
+  // Given: data created by another user that an administrator must clean up during a move.
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await db.doc('blog/post-a/likes/user-b').set({ createdAt: new Date() });
+    await db.doc('blog/post-a/comments/comment-a').set({ authorId: 'user-b' });
+    await db.doc('blog/post-a/comments/comment-a/likes/user-b').set({ createdAt: new Date() });
+  });
+
+  const userDb = testEnv.authenticatedContext('user-a').firestore();
+  const adminDb = testEnv.authenticatedContext('cleanup-admin-uid', { admin: true }).firestore();
+
+  // Then: a normal user cannot remove somebody else's cleanup data.
+  await assertFails(userDb.doc('blog/post-a/likes/user-b').delete());
+  await assertFails(userDb.doc('blog/post-a/comments/comment-a/likes/user-b').delete());
+
+  // But an administrator can remove both, so an atomic category move is not blocked by ownership.
+  await assertSucceeds(adminDb.doc('blog/post-a/likes/user-b').delete());
+  await assertSucceeds(adminDb.doc('blog/post-a/comments/comment-a/likes/user-b').delete());
+  await assertSucceeds(adminDb.doc('blog/post-a/comments/comment-a').delete());
 });
 
 test('normal user cannot mutate likes on private posts or indexes', async () => {
