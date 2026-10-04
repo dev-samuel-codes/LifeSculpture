@@ -2,23 +2,31 @@ import {
   EDIT_POST_DRAFT_TTL,
   areEditPostDraftFieldsEqual,
   getEditPostDraftStorageKey,
+  getLegacyEditPostDraftStorageKey,
   loadEditPostDraft,
   saveEditPostDraft,
 } from './editPostDraft';
 
 describe('editPostDraft', () => {
-  test('builds a versioned storage key for each post', () => {
-    expect(getEditPostDraftStorageKey('study', 'post/1')).toBe(
-      'settings-edit-post-draft:v1:study:post%2F1',
+  test('builds a user-scoped versioned storage key for each post', () => {
+    expect(getEditPostDraftStorageKey('user-a', 'study', 'post/1')).toBe(
+      'settings-edit-post-draft:v2:user-a:study:post%2F1',
     );
-    expect(getEditPostDraftStorageKey('blog', 'post/1')).not.toBe(
-      getEditPostDraftStorageKey('study', 'post/1'),
+    expect(getEditPostDraftStorageKey('user-a', 'blog', 'post/1')).not.toBe(
+      getEditPostDraftStorageKey('user-a', 'study', 'post/1'),
+    );
+    expect(getEditPostDraftStorageKey('user-b', 'study', 'post/1')).not.toBe(
+      getEditPostDraftStorageKey('user-a', 'study', 'post/1'),
+    );
+    expect(getEditPostDraftStorageKey(null, 'study', 'post/1')).toBeNull();
+    expect(getLegacyEditPostDraftStorageKey('study', 'post/1')).toBe(
+      'settings-edit-post-draft:v1:study:post%2F1',
     );
   });
 
   test('stores and loads only the fields required to restore editing', () => {
-    const storage = window.localStorage;
-    const key = getEditPostDraftStorageKey('study', 'draft-test');
+    const storage = window.sessionStorage;
+    const key = getEditPostDraftStorageKey('user-a', 'study', 'draft-test');
     const draft = {
       title: '수정 중인 제목',
       content: '<p>수정 중인 본문</p>',
@@ -48,8 +56,8 @@ describe('editPostDraft', () => {
   });
 
   test('removes expired drafts instead of restoring them', () => {
-    const storage = window.localStorage;
-    const key = getEditPostDraftStorageKey('study', 'expired-test');
+    const storage = window.sessionStorage;
+    const key = getEditPostDraftStorageKey('user-a', 'study', 'expired-test');
     saveEditPostDraft({ storage, key, draft: { title: '만료됨' }, now: 1000 });
 
     expect(
@@ -59,8 +67,8 @@ describe('editPostDraft', () => {
   });
 
   test('removes malformed drafts instead of retrying them on every load', () => {
-    const storage = window.localStorage;
-    const key = getEditPostDraftStorageKey('study', 'malformed-test');
+    const storage = window.sessionStorage;
+    const key = getEditPostDraftStorageKey('user-a', 'study', 'malformed-test');
     storage.setItem(key, '{invalid-json');
 
     expect(loadEditPostDraft({ storage, key })).toBeNull();
