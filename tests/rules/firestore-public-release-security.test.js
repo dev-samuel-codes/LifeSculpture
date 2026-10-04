@@ -49,6 +49,48 @@ afterAll(async () => {
   await testEnv.cleanup();
 });
 
+test('anonymous and normal users cannot read private posts or private indexes', async () => {
+  // Given: public/private post documents and matching list indexes.
+  const anonymousDb = testEnv.unauthenticatedContext().firestore();
+  const userDb = testEnv.authenticatedContext('user-a').firestore();
+  const adminDb = testEnv.authenticatedContext('admin-uid').firestore();
+
+  // Then: public content remains readable to visitors.
+  await assertSucceeds(anonymousDb.doc('blog/post-a').get());
+  await assertSucceeds(userDb.doc('study/post-a').get());
+  await assertSucceeds(anonymousDb.doc('post_index/blog/posts/post-a').get());
+
+  // And: private content cannot be bypassed with direct document reads.
+  for (const documentPath of [
+    'blog/private-post',
+    'study/private-post',
+    'post_index/blog/posts/private-post',
+  ]) {
+    await assertFails(anonymousDb.doc(documentPath).get());
+    await assertFails(userDb.doc(documentPath).get());
+    await assertSucceeds(adminDb.doc(documentPath).get());
+  }
+
+  // And: an unfiltered collection read cannot return a mix containing private posts.
+  await assertFails(anonymousDb.collection('blog').get());
+  await assertSucceeds(
+    anonymousDb.collection('blog').where('isPublic', '==', true).get(),
+  );
+});
+
+test('user documents cannot be exposed by a permissive top-level wildcard', async () => {
+  // Given: anonymous, normal-user, and administrator contexts.
+  const anonymousDb = testEnv.unauthenticatedContext().firestore();
+  const userDb = testEnv.authenticatedContext('user-a').firestore();
+  const adminDb = testEnv.authenticatedContext('admin-uid').firestore();
+
+  // Then: only administrators can read user profile/role documents.
+  await assertFails(anonymousDb.doc('users/admin-uid').get());
+  await assertFails(userDb.doc('users/admin-uid').get());
+  await assertFails(userDb.doc('users/user-a').get());
+  await assertSucceeds(adminDb.doc('users/user-a').get());
+});
+
 test('normal user cannot mutate likes on private posts or indexes', async () => {
   // Given: private blog, study, and index documents with legacy like fields.
   const db = testEnv.authenticatedContext('user-a').firestore();
